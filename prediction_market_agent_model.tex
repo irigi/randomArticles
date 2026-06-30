@@ -53,7 +53,7 @@ Consider a binary event with settlement variable
 \begin{equation}
 Y\in\{0,1\},
 \end{equation}
-where a YES share pays $Y$ units of currency and a NO share pays $1-Y$.
+where a YES share pays $Y$ units of currency and a NO share pays $1-Y$. Cost-function and scoring-rule market makers provide standard examples of automated prediction-market mechanisms \cite{hanson2007,chenpennock2007}.
 
 Let $x\in\mathcal{X}$ denote the complete AMM state. Depending on the mechanism, $x$ may include liquidity pools, scoring-rule inventory, a cost-function state, fee parameters, and outstanding limit orders. For side $o\in\{\mathrm{Y},\mathrm{N}\}$, suppose that paying $b\geq 0$ and receiving $s\geq 0$ shares is characterized by an exact equation
 \begin{equation}
@@ -215,7 +215,11 @@ p_i(\beta)
 \right].
 \label{eq:calibration-model}
 \end{equation}
-The interpretation is continuous:
+It is motivated by logistic recalibration, in which a slope on a forecast logit measures over- or under-dispersion \cite{cox1958,dawid1982}, but differs by anchoring the transformation at the market quote and scaling only the agent--market disagreement. Equation~\eqref{eq:calibration-model} is therefore a modeling choice of this article rather than a claim that one scalar universally describes forecast quality.
+
+In the baseline model, one $\beta$ is shared only by forecasts produced by a fixed version of one forecasting system, on one platform, over a prespecified deployment window and forecast-horizon/topic regime. Forecasts from materially different model versions, horizons, topics, or market microstructures should be assigned separate coefficients or a hierarchical model. This scope determines which trades share calibration risk.
+
+Within this model, the interpretations are relative to the chosen market baseline:
 \begin{itemize}
     \item $\beta=0$: the agent adds no information beyond the market.
     \item $0<\beta<1$: the disagreement is informative but overstated.
@@ -439,15 +443,15 @@ The events were assumed independent conditional on $\beta$, so this correlation 
 
 \subsection{Current markets without future arrivals}
 If no further opportunities can arrive, the agent solves
-\begin{equation}
+\begin{align}
 \max_{s_A,s_B\geq0}
 \sum_{a=0}^{1}\sum_{b=0}^{1}
 P_{ab}
 \log\left[
-300-K_A(s_A)-K_B(s_B)+a s_A+b s_B
+300-K_A(s_A)-K_B(s_B) \right.\nonumber \\ \left.  +a s_A+b s_B
 \right],
 \label{eq:example-static}
-\end{equation}
+\end{align}
 where $K_A$ and $K_B$ are defined by the implicit Manifold equations. Numerical root-finding inside the log-utility optimization gives
 \begin{align}
  s_A^{\mathrm{static}}&=142.497, & K_A&=\text{M}\,54.676,\\
@@ -478,18 +482,15 @@ W_T={}&300-K_A(s_A)-K_B(s_B)-nK_F(u_n)\\
 \label{eq:example-terminal-dynamic}
 \end{equation}
 For each observed count $n$, the exact second-stage value is
-\begin{equation}
-\begin{split}
-V_n(s_A,s_B)
+\begin{align}
+V_n&(s_A,s_B)
 =\max_{u\geq0}
 \int_{-\infty}^{\infty}
-\sum_{a=0}^{1}\sum_{b=0}^{1}\sum_{m=0}^{n}
-&\Pr(a,b,m\mid\beta,n)\\
-&\times\log W_T(a,b,m;u)\,
+\sum_{a=0}^{1}\sum_{b=0}^{1}\sum_{m=0}^{n} \nonumber
+\\&\Pr(a,b,m\mid\beta,n) \log W_T(a,b,m;u)\,
 \pi_t(\beta)\,\mathrm{d}\beta,
-\end{split}
 \label{eq:example-stage-two}
-\end{equation}
+\end{align}
 subject to positive wealth in every state with positive probability. The first-stage problem is
 \begin{equation}
 \max_{s_A,s_B\geq0}
@@ -565,6 +566,35 @@ The continuous coefficient $\beta$ measures how much of the agent's log-odds dis
 
 \bibitem{kelly1956}
 J. L. Kelly, Jr., ``A new interpretation of information rate,'' \emph{Bell System Technical Journal}, vol. 35, no. 4, pp. 917--926, 1956.
+
+
+\bibitem{coverthomas2006}
+T. M. Cover and J. A. Thomas, \emph{Elements of Information Theory}, 2nd ed. Hoboken, NJ, USA: Wiley, 2006.
+
+\bibitem{maclean2011}
+L. C. MacLean, E. O. Thorp, and W. T. Ziemba, Eds., \emph{The Kelly Capital Growth Investment Criterion: Theory and Practice}. Singapore: World Scientific, 2011.
+
+\bibitem{hanson2007}
+R. Hanson, ``Logarithmic market scoring rules for modular combinatorial information aggregation,'' \emph{Journal of Prediction Markets}, vol. 1, no. 1, pp. 3--15, 2007.
+
+\bibitem{chenpennock2007}
+Y. Chen and D. M. Pennock, ``A utility framework for bounded-loss market makers,'' in \emph{Proc. 23rd Conf. Uncertainty in Artificial Intelligence}, 2007, pp. 49--56.
+
+\bibitem{cox1958}
+D. R. Cox, ``Two further applications of a model for binary regression,'' \emph{Biometrika}, vol. 45, nos. 3--4, pp. 562--565, 1958.
+
+\bibitem{dawid1982}
+A. P. Dawid, ``The well-calibrated Bayesian,'' \emph{Journal of the American Statistical Association}, vol. 77, no. 379, pp. 605--610, 1982.
+
+\bibitem{daleyvere2003}
+D. J. Daley and D. Vere-Jones, \emph{An Introduction to the Theory of Point Processes, Volume I: Elementary Theory and Methods}, 2nd ed. New York, NY, USA: Springer, 2003.
+
+\bibitem{davis1993}
+M. H. A. Davis, \emph{Markov Models and Optimization}. London, U.K.: Chapman \& Hall, 1993.
+
+\bibitem{oksendal2019}
+B. \O ksendal and A. Sulem, \emph{Applied Stochastic Control of Jump Diffusions}, 3rd ed. Cham, Switzerland: Springer, 2019.
+
 
 \bibitem{manifold-cpmm}
 Manifold Markets, ``Binary CPMM calculation and execution source,'' \texttt{common/src/calculate-cpmm.ts}, GitHub repository, accessed Jun. 30, 2026. [Online]. Available: \url{https://github.com/manifoldmarkets/manifold/blob/main/common/src/calculate-cpmm.ts}
