@@ -1,0 +1,580 @@
+\documentclass[journal, a4paper]{IEEEtran}
+%\documentclass[12pt,onecolumn]{IEEEtran}
+
+%\usepackage{cite}
+\usepackage{booktabs}
+\usepackage{graphicx}
+%\usepackage{psfrag}
+%\usepackage{subfigure}
+%\usepackage{hyperref}
+\usepackage{stfloats}
+\usepackage{placeins}
+\usepackage{url}
+\usepackage{cuted}
+\usepackage{lipsum}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{siunitx}
+\sisetup{output-exponent-marker=\ensuremath{\mathrm{e}}}
+
+\begin{document}
+
+\title{Beyond Fractional Kelly: A Continuous Calibration and Poisson Arrival Model for Automated Prediction Market Trading}
+
+\author{Jan~Ol\v{s}ina\\[1ex] Independent Researcher, Prague, Czech Republic\\
+email: \texttt{jan.olsina@gmail.com},  ORCID: \texttt{0009-0003-9816-3958}.}
+
+
+\maketitle
+
+\begin{abstract}
+This article develops a decision model for a prediction-market trading agent whose probability estimate is itself uncertain. The model begins with an exact, implicit description of a general automated market maker (AMM), specializes it to the weighted constant-product market maker used for binary contracts by various prediction markets, and then embeds execution into a Bayesian log-utility portfolio problem. The agent's disagreement with the market is controlled by a continuous latent calibration coefficient $\beta$. Integrating over this coefficient both shrinks individual probabilities and induces dependence among otherwise unrelated trades, thereby producing endogenous diversification. Future opportunities arrive as a marked Poisson process, and their option value is represented by a Bellman equation. A two-stage numerical example is given for illustration.
+\end{abstract}
+
+\begin{IEEEkeywords}
+prediction markets, Kelly criterion, Bayesian calibration, automated market maker, constant-product market maker, prediction markets, Poisson arrivals, stochastic control.
+\end{IEEEkeywords}
+
+\section{Introduction}
+A prediction-market trader faces two distinct uncertainties. First, the event itself is uncertain. Second, the trader is uncertain whether its probability estimate is better than the market price. The ordinary Kelly criterion addresses the first uncertainty when the event probability is known, but it does not by itself specify how a trader should learn whether its forecasting system is reliable, diversify across trades that share model risk, account for exact AMM slippage, or retain liquidity for future opportunities.
+
+The model below uses one objective throughout:
+\begin{equation}
+\max \; \mathbb{E}\!\left[\log W_T\right],
+\label{eq:master-objective}
+\end{equation}
+where the expectation is taken over event outcomes, uncertainty in the agent's calibration, market resolutions, and future opportunity arrivals. Fractional-Kelly-like caution, diversification, and liquidity reservation all arise endogenously from the posterior predictive distribution and the continuation value of cash.
+
+The construction proceeds in the following order. Section~II defines a general binary AMM using implicit execution equations. Section~III specializes the model to constant product AMM. Section~IV models continuous uncertainty in the agent's forecasting quality. Section~V derives the static portfolio problem. Section~VI adds Poisson-arriving opportunities through stochastic dynamic programming. Section~VII presents a complete numerical example.
+
+\section{A General Binary AMM}
+\subsection{State, execution, and implicit cost}
+Consider a binary event with settlement variable
+\begin{equation}
+Y\in\{0,1\},
+\end{equation}
+where a YES share pays $Y$ units of currency and a NO share pays $1-Y$.
+
+Let $x\in\mathcal{X}$ denote the complete AMM state. Depending on the mechanism, $x$ may include liquidity pools, scoring-rule inventory, a cost-function state, fee parameters, and outstanding limit orders. For side $o\in\{\mathrm{Y},\mathrm{N}\}$, suppose that paying $b\geq 0$ and receiving $s\geq 0$ shares is characterized by an exact equation
+\begin{equation}
+F^{o}(x,b,s)=0.
+\label{eq:general-implicit-fill}
+\end{equation}
+The post-trade state is
+\begin{equation}
+x^{+}=T^{o}(x,b,s).
+\end{equation}
+If, for every feasible $s$, Eq.~\eqref{eq:general-implicit-fill} has a unique nonnegative solution $b$, define the exact cost-to-shares function implicitly by
+\begin{equation}
+K^{o}_{x}(s)=b
+\quad\Longleftrightarrow\quad
+F^{o}(x,b,s)=0.
+\label{eq:general-cost}
+\end{equation}
+This definition admits non-smooth execution schedules, such as an order book followed by an AMM:  $K_x^o$ need only be increasing and convex on the feasible region.
+
+If $K_x^o$ is differentiable, its derivative is the marginal execution price,
+\begin{equation}
+\pi_x^o(s)=\frac{\partial K_x^o(s)}{\partial s}.
+\label{eq:marginal-price-general}
+\end{equation}
+For YES, $\pi_x^{\mathrm{Y}}(0)$ is the displayed probability under a frictionless binary contract; for NO, $\pi_x^{\mathrm{N}}(0)=1-\pi_x^{\mathrm{Y}}(0)$.
+
+\subsection{Exact terminal wealth}
+Suppose the agent buys $s_i\geq0$ shares on side $o_i$ in market $i$. Define
+\begin{equation}
+Z_i^{\mathrm{Y}}=Y_i,
+\qquad
+Z_i^{\mathrm{N}}=1-Y_i.
+\end{equation}
+Starting from liquid wealth $W_0$, terminal wealth from a set of new trades is
+\begin{equation}
+W_T(\boldsymbol{Y},\boldsymbol{s})
+=
+W_0-
+\sum_{i=1}^{m}K_{x_i}^{o_i}(s_i)
++
+\sum_{i=1}^{m}s_i Z_i^{o_i},
+\label{eq:terminal-wealth-general}
+\end{equation}
+possibly augmented by existing positions. Solvency requires
+\begin{equation}
+W_T(\boldsymbol{y},\boldsymbol{s})>0
+\end{equation}
+for every outcome vector assigned positive predictive probability.
+
+\section{Constant Product Binary AMM}
+\subsection{Weighted constant-product invariant}
+The section describes the constant product binary market maker (CPMM). Its state contains a YES pool $y>0$, a NO pool $n>0$, and a weight parameter $r\in(0,1)$.
+The AMM invariant is
+\begin{equation}
+y^{r}n^{1-r}=k,
+\label{eq:manifold-invariant}
+\end{equation}
+where $k$ remains constant during a fee-free trade. The displayed YES probability is
+\begin{equation}
+q(y,n,r)
+=
+\frac{r n}{(1-r)y+r n}.
+\label{eq:manifold-probability}
+\end{equation}
+At market creation, the AMM initializes $y=n=A$, where $A$ is the initial liquidity or ante, and sets $r=q_0$, the selected initial probability. Consequently Eq.~\eqref{eq:manifold-probability} gives $q=q_0$ even though the initial pools are equal.
+
+\subsection{Buying YES shares}
+Let $b\geq0$ be the amount paid to buy YES and let $s\geq0$ be the YES shares received. Ignoring fees, the post-trade pools are
+\begin{equation}
+y'=y+b-s,
+\qquad
+n'=n+b.
+\label{eq:manifold-yes-state}
+\end{equation}
+The exact fill is determined by preserving Eq.~\eqref{eq:manifold-invariant}:
+\begin{equation}
+(y+b-s)^r(n+b)^{1-r}=y^r n^{1-r}.
+\label{eq:manifold-yes-implicit}
+\end{equation}
+The exact cost of obtaining $s$ YES shares is therefore the unique nonnegative root
+\begin{equation}
+K_{y,n,r}^{\mathrm{Y}}(s)=b
+\quad\Longleftrightarrow\quad
+(y+b-s)^r(n+b)^{1-r}=y^r n^{1-r}.
+\label{eq:manifold-yes-cost}
+\end{equation}
+The post-trade probability is obtained by substituting Eq.~\eqref{eq:manifold-yes-state} into Eq.~\eqref{eq:manifold-probability}.
+
+Differentiating the logarithm of Eq.~\eqref{eq:manifold-yes-implicit} implicitly gives
+\begin{equation}
+\frac{\mathrm{d}b}{\mathrm{d}s}
+=
+\frac{r(n+b)}{(1-r)(y+b-s)+r(n+b)}
+=
+q(y',n',r).
+\label{eq:manifold-yes-marginal}
+\end{equation}
+Thus the derivative of the exact cost curve equals the post-trade displayed probability.
+
+\subsection{Buying NO shares}
+For a NO purchase, the post-trade pools are
+\begin{equation}
+y'=y+b,
+\qquad
+n'=n+b-s,
+\end{equation}
+and the exact implicit equation is
+\begin{equation}
+(y+b)^r(n+b-s)^{1-r}=y^r n^{1-r}.
+\label{eq:manifold-no-implicit}
+\end{equation}
+Hence
+\begin{equation}
+K_{y,n,r}^{\mathrm{N}}(s)=b
+\quad\Longleftrightarrow\quad
+(y+b)^r(n+b-s)^{1-r}=y^r n^{1-r}.
+\end{equation}
+Implicit differentiation yields
+\begin{equation}
+\frac{\mathrm{d}b}{\mathrm{d}s}
+=
+1-q(y',n',r),
+\end{equation}
+as required for a binary contract.
+
+\subsection{Liquidity addition, fees, and limit orders}
+When equal pool amounts $a$ are added while the displayed probability is to remain unchanged, the source implementation updates the weight to
+\begin{equation}
+r'
+=
+\frac{q(a+y)}{a-n(q-1)+q y},
+\label{eq:manifold-liquidity-weight}
+\end{equation}
+with new pools $(y+a,n+a)$. This maintains Eq.~\eqref{eq:manifold-probability} at the pre-addition probability $q$.
+
+% At the consulted source revision, both the taker-fee constant and the flat trade fee are zero.
+
+If the prediction market platform also matches eligible opposing limit orders,  the executable cost curve presented to an actual bot can contain linear order-book segments joined to a curved CPMM segment.
+
+\section{Continuous Uncertainty About the Agent's Estimate}
+\subsection{A latent calibration coefficient}
+For market $i$, the agent observes its own estimate $p_i^*$ and the market probability $q_i$. Define the log-odds disagreement
+\begin{equation}
+d_i
+=
+\operatorname{logit}(p_i^*)-
+\operatorname{logit}(q_i),
+\qquad
+\operatorname{logit}(u)=\log\frac{u}{1-u}.
+\label{eq:disagreement}
+\end{equation}
+Let $\beta\in\mathbb{R}$ be a continuous latent calibration coefficient. Conditional on $\beta$, the event probability is
+\begin{equation}
+p_i(\beta)
+=
+\operatorname{logit}^{-1}
+\left[
+\operatorname{logit}(q_i)+\beta d_i
+\right].
+\label{eq:calibration-model}
+\end{equation}
+The interpretation is continuous:
+\begin{itemize}
+    \item $\beta=0$: the agent adds no information beyond the market.
+    \item $0<\beta<1$: the disagreement is informative but overstated.
+    \item $\beta=1$: the full log-odds disagreement is calibrated.
+    \item $\beta>1$: the agent is underconfident.
+    \item $\beta<0$: the disagreement is anti-informative.
+\end{itemize}
+
+Let $\mathcal{D}_t$ contain all historical forecasts and resolved outcomes available at time $t$. The posterior density is
+\begin{equation}
+\pi_t(\beta)
+\propto
+\pi_0(\beta)
+\prod_{j\in\mathcal{D}_t}
+ p_j(\beta)^{Y_j}
+ [1-p_j(\beta)]^{1-Y_j}.
+\label{eq:beta-posterior}
+\end{equation}
+A drifting calibration state may be introduced by propagating $\pi_t$ through a continuous state-transition density before applying Eq.~\eqref{eq:beta-posterior}. The decision equations below require only the current posterior $\pi_t$.
+
+\subsection{Posterior predictive probabilities and dependence}
+The posterior predictive probability of event $i$ is
+\begin{equation}
+\bar p_i
+=
+\int_{-\infty}^{\infty}p_i(\beta)\pi_t(\beta)\,\mathrm{d}\beta.
+\label{eq:predictive-mean}
+\end{equation}
+For one isolated binary trade, this predictive mean is sufficient for posterior expected log utility. However, the full posterior remains essential for a portfolio.
+
+Assume for the moment that events are conditionally independent given $\beta$. The joint predictive distribution is
+\begin{equation}
+\Pr_t(\boldsymbol{Y}=\boldsymbol{y})
+=
+\int
+\prod_{i=1}^{m}
+ p_i(\beta)^{y_i}
+ [1-p_i(\beta)]^{1-y_i}
+ \pi_t(\beta)\,\mathrm{d}\beta.
+\label{eq:joint-predictive}
+\end{equation}
+Marginalizing over the common $\beta$ generally makes the outcomes dependent. Specifically,
+\begin{equation}
+\operatorname{Cov}_t(Y_i,Y_j)
+=
+\operatorname{Cov}_{\beta\sim\pi_t}
+\left[p_i(\beta),p_j(\beta)\right]
+\label{eq:model-risk-covariance}
+\end{equation}
+when the events are conditionally independent. This is common model risk: many trades can fail together because the same forecasting system generated their disagreements.
+
+Real-world dependence can be added by introducing further latent factors beside $\beta$; Eq.~\eqref{eq:joint-predictive} is the simplest case.
+
+\section{Exact Static Portfolio Choice}
+Suppose $m$ opportunities are simultaneously available. Select side $o_i$ and shares $s_i\geq0$. Using the predictive distribution in Eq.~\eqref{eq:joint-predictive} and exact AMM costs, the posterior Kelly portfolio is
+\begin{equation}
+\boldsymbol{s}^{*}
+=
+\arg\max_{\boldsymbol{s}\in\mathcal{A}}
+\sum_{\boldsymbol{y}}
+\Pr_t(\boldsymbol{Y}=\boldsymbol{y})
+\log W_T(\boldsymbol{y},\boldsymbol{s}),
+\label{eq:static-portfolio}
+\end{equation}
+where $W_T$ is given by Eq.~\eqref{eq:terminal-wealth-general}, and $\mathcal{A}$ contains collateral, limit-price, and solvency constraints.
+
+If $K_i^{o_i}$ is differentiable and $s_i^*>0$ is interior, the exact first-order condition is
+\begin{equation}
+\mathbb{E}_t
+\left[
+\frac{Z_i^{o_i}-K_i^{o_i\prime}(s_i^*)}
+{W_T(\boldsymbol{Y},\boldsymbol{s}^*)}
+\right]
+=0.
+\label{eq:static-foc}
+\end{equation}
+Equivalently,
+\begin{equation}
+K_i^{o_i\prime}(s_i^*)
+=
+\frac{\mathbb{E}_t[Z_i^{o_i}/W_T]}
+{\mathbb{E}_t[1/W_T]}.
+\label{eq:marginal-utility-probability}
+\end{equation}
+The right-hand side is a marginal-utility-weighted probability. States in which the portfolio is poor receive weight proportional to $1/W_T$. Consequently, a hedge that pays in otherwise bad states can be purchased beyond its isolated Kelly size, whereas another exposure to the common calibration factor is reduced. Diversification therefore follows directly from the joint predictive distribution under log utility.
+
+When the execution curve is nonsmooth, Eq.~\eqref{eq:static-foc} is replaced by the corresponding one-sided derivative or subgradient inequalities. A limit order is consumed while its price lies below the agent's marginal-utility reservation price; execution stops at the first price step that exceeds it.
+
+\section{Poisson-Arriving Opportunities and the Value of Cash}
+\subsection{Marked Poisson arrivals}
+Let future opportunities arrive as a marked Poisson random measure $N(\mathrm{d}t,\mathrm{d}z)$ on a mark space $\mathcal{Z}$, with intensity
+\begin{equation}
+\Lambda_t(\mathrm{d}z)\,\mathrm{d}t.
+\end{equation}
+A mark $z$ can contain the market quote $q$, the agent estimate $p^*$, the AMM state, close and resolution times, outcome-factor exposures, platform information, and any available limit orders.
+
+Let the state be
+\begin{equation}
+S_t=(c_t,h_t,\pi_t,\mathcal{M}_t),
+\end{equation}
+where $c_t$ is liquid cash, $h_t$ describes unresolved positions, $\pi_t$ is the calibration posterior, and $\mathcal{M}_t$ contains the states of currently tradable markets. Define the continuation value
+\begin{equation}
+V(t,S)
+=
+\sup_{\text{admissible policies}}
+\mathbb{E}\!\left[\log W_T\mid S_t=S\right].
+\label{eq:value-function}
+\end{equation}
+
+Let $\mathcal{L}_0$ be the generator for all state changes other than new-opportunity arrivals, including market resolutions, posterior updates, and exogenous market-state evolution. If $\Gamma(S,z,a)$ is the post-action state after opportunity $z$ arrives and action $a$ is taken, the Bellman equation is
+\begin{equation}
+\begin{split}
+0={}&\frac{\partial V}{\partial t}(t,S)
++\mathcal{L}_0V(t,S)\\
+&+\int_{\mathcal{Z}}
+\left[
+\sup_{a\in\mathcal{A}(S,z)}
+V\bigl(t,\Gamma(S,z,a)\bigr)
+-V(t,S)
+\right]
+\Lambda_t(\mathrm{d}z),
+\end{split}
+\label{eq:bellman}
+\end{equation}
+with terminal condition equal to expected log settlement wealth.
+
+Equation~\eqref{eq:bellman} is the exact answer to the liquidity-reservation problem. Cash remains free when its continuation value exceeds the value of the currently available position.
+
+\subsection{Dynamic marginal execution rule}
+Consider a smooth YES cost curve $K_z^{\mathrm{Y}}(s)$. At an interior optimum upon arrival of $z$, differentiating the post-action value gives
+\begin{equation}
+-K_z^{\mathrm{Y}\prime}(s)V_c+V_{h_z}=0,
+\end{equation}
+where $V_c$ is the marginal continuation value of liquid cash and $V_{h_z}$ is the marginal continuation value of one additional YES claim. Therefore
+\begin{equation}
+K_z^{\mathrm{Y}\prime}(s^*)
+=
+\frac{V_{h_z}}{V_c}.
+\label{eq:dynamic-marginal-rule}
+\end{equation}
+For the  CPMM, the left-hand side is exactly the post-trade probability from Eq.~\eqref{eq:manifold-yes-marginal}. The denominator $V_c$ includes the ability to fund future Poisson-arriving opportunities. As cash becomes scarce or attractive arrival intensity increases, $V_c$ rises and the agent stops at a lower position size.
+
+This same Bellman state also handles different resolution times. A long-duration trade keeps cash unavailable through more possible arrivals and therefore has a lower continuation-adjusted value.
+
+\section{Numerical Example}
+\subsection{Setup}
+The agent begins with
+\begin{equation}
+W_0=\text{M}\,300,
+\end{equation}
+where M denotes Manifold's play-money unit. Two current YES opportunities, A and B, are available. A future opportunity type F may arrive later. The exact CPMM states and forecasts are listed in Table~\ref{tab:example-markets}. All three use $r=1/2$.
+
+\begin{table}[!t]
+\centering
+\caption{Market states and agent forecasts in the example.}
+\label{tab:example-markets}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Market & $y$ & $n$ & $q$ & $p^*$ & $\bar p$\\
+\midrule
+A & 650 & 350 & 0.35 & 0.70 & 0.541725\\
+B & 375 & 125 & 0.25 & 0.60 & 0.440037\\
+F & 400 & 400 & 0.50 & 0.75 & 0.637651\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For example, Eq.~\eqref{eq:manifold-probability} gives
+\begin{equation}
+q_A
+=
+\frac{0.5(350)}{0.5(650)+0.5(350)}
+=0.35.
+\end{equation}
+The exact cost of $s_A$ shares is the root $b_A$ of
+\begin{equation}
+(650+b_A-s_A)^{1/2}(350+b_A)^{1/2}
+=(650\cdot350)^{1/2},
+\label{eq:example-A-cost}
+\end{equation}
+with analogous equations for B and F.
+
+The calibration posterior is
+\begin{equation}
+\beta\mid\mathcal{D}_t
+\sim
+\mathcal{N}(0.55,0.50^2).
+\label{eq:example-beta}
+\end{equation}
+Under this continuous distribution,
+\begin{align}
+\Pr(\beta<0)&=0.1357,\\
+\Pr(0\leq\beta\leq1)&=0.6803,\\
+\Pr(\beta>1)&=0.1841.
+\end{align}
+Thus the posterior includes anti-informative, partially informative, calibrated, and underconfident possibilities.
+
+Substitution of Eq.~\eqref{eq:example-beta} into Eq.~\eqref{eq:predictive-mean} gives the predictive means in Table~\ref{tab:example-markets}. For A and B, integrating out the common $\beta$ produces the exact joint predictive probabilities in Table~\ref{tab:joint-probs}.
+
+\begin{table}[!t]
+\centering
+\caption{Joint predictive probabilities for current markets.}
+\label{tab:joint-probs}
+\begin{tabular}{@{}ccr@{}}
+\toprule
+$Y_A$ & $Y_B$ & Probability\\
+\midrule
+0 & 0 & 0.283506\\
+0 & 1 & 0.174769\\
+1 & 0 & 0.276457\\
+1 & 1 & 0.265268\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The induced correlation is
+\begin{equation}
+\operatorname{Corr}(Y_A,Y_B)=0.108717.
+\end{equation}
+The events were assumed independent conditional on $\beta$, so this correlation is entirely common calibration risk.
+
+\subsection{Current markets without future arrivals}
+If no further opportunities can arrive, the agent solves
+\begin{equation}
+\max_{s_A,s_B\geq0}
+\sum_{a=0}^{1}\sum_{b=0}^{1}
+P_{ab}
+\log\left[
+300-K_A(s_A)-K_B(s_B)+a s_A+b s_B
+\right],
+\label{eq:example-static}
+\end{equation}
+where $K_A$ and $K_B$ are defined by the implicit Manifold equations. Numerical root-finding inside the log-utility optimization gives
+\begin{align}
+ s_A^{\mathrm{static}}&=142.497, & K_A&=\text{M}\,54.676,\\
+ s_B^{\mathrm{static}}&=109.293, & K_B&=\text{M}\,32.297.
+\end{align}
+The total cash committed is M\,86.973.
+
+\subsection{A two-stage Poisson opportunity problem}
+Now suppose that, before all markets resolve, a Poisson number of future type-F opportunities arrives:
+\begin{equation}
+N\sim\operatorname{Poisson}(3).
+\label{eq:example-poisson}
+\end{equation}
+The agent chooses $(s_A,s_B)$ now. After observing $N=n$, it chooses the same number $u_n$ of YES shares in each of the $n$ exchangeable F markets. Symmetry of the concave objective guarantees the existence of an equal-allocation optimum.
+
+Conditional on $\beta$,
+\begin{equation}
+M_n=\sum_{j=1}^{n}Y_{F,j}
+\sim
+\operatorname{Binomial}\left(n,p_F(\beta)\right).
+\end{equation}
+Terminal wealth is
+\begin{equation}
+\begin{split}
+W_T={}&300-K_A(s_A)-K_B(s_B)-nK_F(u_n)\\
+&+s_A Y_A+s_B Y_B+u_n M_n.
+\end{split}
+\label{eq:example-terminal-dynamic}
+\end{equation}
+For each observed count $n$, the exact second-stage value is
+\begin{equation}
+\begin{split}
+V_n(s_A,s_B)
+=\max_{u\geq0}
+\int_{-\infty}^{\infty}
+\sum_{a=0}^{1}\sum_{b=0}^{1}\sum_{m=0}^{n}
+&\Pr(a,b,m\mid\beta,n)\\
+&\times\log W_T(a,b,m;u)\,
+\pi_t(\beta)\,\mathrm{d}\beta,
+\end{split}
+\label{eq:example-stage-two}
+\end{equation}
+subject to positive wealth in every state with positive probability. The first-stage problem is
+\begin{equation}
+\max_{s_A,s_B\geq0}
+\sum_{n=0}^{\infty}
+\exp(-3)\frac{3^n}{n!}
+V_n(s_A,s_B).
+\label{eq:example-stage-one}
+\end{equation}
+Equations~\eqref{eq:example-stage-two} and \eqref{eq:example-stage-one} are a finite-horizon specialization of the Bellman equation. They value retained cash through the future decisions themselves; no exogenous liquidity rule is needed.
+
+The numerical solution is
+\begin{align}
+ s_A^{\mathrm{dynamic}}&=127.605, & K_A&=\text{M}\,47.671,\\
+ s_B^{\mathrm{dynamic}}&= 99.866, & K_B&=\text{M}\,29.911.
+\end{align}
+The current commitment falls to M\,77.582 because cash has option value. Relative to the no-future-opportunity solution, the A position falls by $10.45\%$ and B by $8.62\%$.
+
+Table~\ref{tab:future-policy} shows the second-stage policy for representative values of $n$. As more opportunities arrive, shares per market decline. This is endogenous diversification across future markets and endogenous liquidity reservation.
+
+\begin{table}[!t]
+\centering
+\caption{Optimal second-stage position in each F market.}
+\label{tab:future-policy}
+\begin{tabular}{@{}rrrr@{}}
+\toprule
+$n$ & $u_n$ & Cost per F & Cash after purchases\\
+\midrule
+1 & 83.580 & 43.967 & 178.451\\
+2 & 78.838 & 41.356 & 139.705\\
+3 & 74.192 & 38.813 & 105.980\\
+4 & 69.622 & 36.323 & 77.127\\
+5 & 65.090 & 33.867 & 53.085\\
+6 & 60.544 & 31.416 & 33.924\\
+7 & 55.932 & 28.942 & 19.822\\
+8 & 51.287 & 26.465 & 10.700\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All costs in Table~\ref{tab:future-policy} are obtained from the exact implicit CPMM equation. The Gaussian integrals were evaluated numerically, and the Poisson sum was evaluated through $n=15$; the omitted tail probability is $1.24\times10^{-7}$. The defining model remains Eqs.~\eqref{eq:example-stage-two}--\eqref{eq:example-stage-one}, whose numerical tolerance can be made arbitrarily small.
+
+\subsection{Interpretation}
+The example exhibits every component of the model:
+\begin{enumerate}
+\item Forecasts are transformed through a continuous posterior over $\beta$ rather than used directly.
+\item The common $\beta$ induces dependence between otherwise unrelated events, reducing the benefit of apparent diversification.
+\item Position costs are generated by exact Manifold CPMM equations rather than by a local slippage approximation.
+\item Current and future positions are selected jointly under expected log wealth.
+\item The Poisson arrival process gives cash continuation value, so current positions shrink even though they have positive standalone Kelly value.
+\item When many future markets arrive, the optimal amount per market decreases rather than exhausting cash at the isolated Kelly stake.
+\end{enumerate}
+
+\section{Implementation Procedure}
+A practical implementation can follow the exact model directly:
+\begin{enumerate}
+\item Record every forecast $p_i^*$, contemporaneous market quote $q_i$, context, and eventual resolution, including forecasts on which the agent did not trade.
+\item Update the posterior $\pi_t(\beta)$ using Eq.~\eqref{eq:beta-posterior}. Use additional latent factors when markets share real-world causes beyond model calibration.
+\item Read the complete execution state: Manifold CPMM pools and weight, available limit orders, and current fee rules.
+\item Define exact cost functions by implicit fill equations or by the platform's fill simulator.
+\item Generate the joint posterior predictive distribution of open and candidate outcomes.
+\item Solve the static problem in Eq.~\eqref{eq:static-portfolio} when no material future arrivals remain, or solve a receding-horizon approximation to Eq.~\eqref{eq:bellman} otherwise.
+\item After every fill, market movement, resolution, or posterior update, replace the state and re-optimize. Existing positions are decision variables too: the optimum may require reducing or reversing a prior trade.
+\end{enumerate}
+
+The numerical optimizer should enforce worst-state positive wealth, use limit prices to prevent stale-state execution, and recompute after partial fills. Because the Manifold cost functions are monotone, each implicit trade equation can be solved robustly by bracketed root-finding.
+
+\section{Conclusion}
+A coherent prediction-market agent can be built from a single posterior predictive model that includes uncertainty in its own calibration, an exact execution model, and a dynamic log-utility objective.
+
+The continuous coefficient $\beta$ measures how much of the agent's log-odds disagreement with the market should be trusted. Its posterior mean affects individual predictive probabilities, while its posterior dispersion creates common dependence among trades. The exact Manifold weighted constant-product equations map desired shares to required cash and marginal post-trade probability. Joint expected-log optimization then handles diversification, and the Bellman equation assigns cash its option value under Poisson-arriving opportunities. Ordinary Kelly is recovered as the special case of one frictionless market, known calibration, no existing portfolio, and no future opportunities.
+
+\begin{thebibliography}{9}
+
+\bibitem{kelly1956}
+J. L. Kelly, Jr., ``A new interpretation of information rate,'' \emph{Bell System Technical Journal}, vol. 35, no. 4, pp. 917--926, 1956.
+
+\bibitem{manifold-cpmm}
+Manifold Markets, ``Binary CPMM calculation and execution source,'' \texttt{common/src/calculate-cpmm.ts}, GitHub repository, accessed Jun. 30, 2026. [Online]. Available: \url{https://github.com/manifoldmarkets/manifold/blob/main/common/src/calculate-cpmm.ts}
+
+\bibitem{manifold-contract}
+Manifold Markets, ``Contract initialization source,'' \texttt{common/src/new-contract.ts}, GitHub repository, accessed Jun. 30, 2026. [Online]. Available: \url{https://github.com/manifoldmarkets/manifold/blob/main/common/src/new-contract.ts}
+
+\bibitem{manifold-fees}
+Manifold Markets, ``Fee calculation source,'' \texttt{common/src/fees.ts}, GitHub repository, accessed Jun. 30, 2026. [Online]. Available: \url{https://github.com/manifoldmarkets/manifold/blob/main/common/src/fees.ts}
+
+\end{thebibliography}
+
+\end{document}
