@@ -16,6 +16,9 @@ import matplotlib
 
 matplotlib.use("Agg")
 from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+from matplotlib.ticker import MaxNLocator
 from scipy.optimize import brentq, minimize, minimize_scalar
 from scipy.special import expit, gammaln
 from scipy.stats import norm
@@ -69,7 +72,6 @@ class Params:
     poisson_lambda: float = 3.0
     poisson_n_max: int = 15
     future_wrong_rate: float = 0.0
-    mc_paths: int = 4000
     current_a_q: float = 0.35
     current_a_p: float = 0.70
     current_a_liq: float = 1000.0
@@ -127,7 +129,6 @@ class SimulationResult:
     corr_ab: float
     stages: list[StrategyResult]
     future_policy: list[tuple[int, float, float, float]]
-    wealth_samples: dict[str, np.ndarray]
 
 
 def p_beta(q: float | np.ndarray, p_star: float | np.ndarray, beta: np.ndarray) -> np.ndarray:
@@ -390,21 +391,6 @@ def optimize_dynamic(
     return x, costs, policy
 
 
-def simulate_wealth(
-    params: Params,
-    markets: tuple[Market, Market, Market],
-    posterior: Posterior,
-    strategy: StrategyResult,
-    rng: np.random.Generator,
-) -> np.ndarray:
-    beta = rng.choice(posterior.beta, size=params.mc_paths, p=posterior.weights)
-    probs = []
-    for m in markets[:2]:
-        probs.append(expit(logit(m.q) + beta * (logit(m.p_star) - logit(m.q))))
-    ya = rng.binomial(1, probs[0])
-    yb = rng.binomial(1, probs[1])
-    return params.wealth - np.sum(strategy.costs) + strategy.shares[0] * ya + strategy.shares[1] * yb
-
 
 def run_simulation(params: Params, article_posterior: bool = False) -> SimulationResult:
     hist = generate_history(params)
@@ -432,22 +418,323 @@ def run_simulation(params: Params, article_posterior: bool = False) -> Simulatio
         StrategyResult("Joint posterior", static_s, static_c),
         StrategyResult("Final dynamic", dyn_s, dyn_c),
     ]
-    rng = np.random.default_rng(params.seed + 123)
-    wealth_samples = {
-        "Raw frictionless Kelly": simulate_wealth(params, markets, posterior, stages[0], rng),
-        "Joint posterior": simulate_wealth(params, markets, posterior, stages[3], rng),
-        "Final dynamic": simulate_wealth(params, markets, posterior, stages[4], rng),
-    }
-    return SimulationResult(params, hist, posterior, markets, pbar, joint, corr, stages, future_policy, wealth_samples)
+    return SimulationResult(params, hist, posterior, markets, pbar, joint, corr, stages, future_policy)
+
+
+def weighted_quantile(
+    values: np.ndarray,
+    weights: np.ndarray,
+    quantiles: float | list[float] | np.ndarray,
+) -> np.ndarray:
+    values = np.asarray(values, dtype=float)
+    weights = np.asarray(weights, dtype=float)
+    sorter = np.argsort(values)
+    sorted_values = values[sorter]
+    sorted_weights = weights[sorter]
+    total = np.sum(sorted_weights)
+    if total <= 0.0:
+        raise ValueError("weights must sum to a positive value")
+    sorted_weights = sorted_weights / total
+    cumulative = np.cumsum(sorted_weights)
+    q = np.asarray(quantiles, dtype=float)
+    return np.interp(q, cumulative, sorted_values)
+
+
+def stage_by_label(result: SimulationResult, label: str) -> StrategyResult:
+    for stage in result.stages:
+        if stage.label == label:
+            return stage
+    available = ", ".join(stage.label for stage in result.stages)
+    raise KeyError(f"No strategy stage labelled {label!r}. Available stages: {available}")
+
+
+def independent_joint_probs(p_a: float, p_b: float) -> np.ndarray:
+    return np.array([
+        (1.0 - p_a) * (1.0 - p_b),
+        (1.0 - p_a) * p_b,
+        p_a * (1.0 - p_b),
+        p_a * p_b,
+    ])
+
+
+def _set_axis_grid(axis) -> None:
+    axis.grid(True, color="#d9dee7", linewidth=0.7, alpha=0.75)
+    axis.set_axisbelow(True)
+
+
+def _safe_reduction(static_share: float, dynamic_share: float) -> float:
+    if abs(static_share) < EPS:
+        return 0.0
+    return 100.0 * (static_share - dynamic_share) / static_share
+
+
+def draw_dashboard(fig: Figure, result: SimulationResult) -> None:
+    fig.clear()
+    market_colors = {"A": "#2364aa", "B": "#b23a48", "F": "#2a9d8f"}
+    static_color = "#6d597a"
+    dynamic_color = "#e76f51"
+    cash_color = "#d8dee9"
+
+    gs = fig.add_gridspec(
+        3,
+        3,
+        height_ratios=[1.0, 1.0, 0.22],
+        hspace=0.50,
+        wspace=0.34,
+    )
+    ax_beta = fig.add_subplot(gs[0, 0])
+    ax_shrink = fig.add_subplot(gs[0, 1])
+    ax_dependence = fig.add_subplot(gs[0, 2])
+    ax_cpmm = fig.add_subplot(gs[1, 0])
+    ax_budget = fig.add_subplot(gs[1, 1])
+    ax_policy = fig.add_subplot(gs[1, 2])
+    ax_metrics = fig.add_subplot(gs[2, :])
+    ax_metrics.axis("off")
+
+    # 1. Calibration posterior.
+    beta = result.posterior.beta
+    density = result.posterior.weights / max(EPS, beta[1] - beta[0])
+    ymax = max(float(np.max(density)), EPS)
+    ax_beta.axvspan(beta[0], 0.0, color="#e76f51", alpha=0.15)
+    ax_beta.axvspan(0.0, 1.0, color="#2a9d8f", alpha=0.15)
+    ax_beta.axvspan(1.0, beta[-1], color="#f4a261", alpha=0.15)
+    ax_beta.plot(beta, density, color="#244c9a", linewidth=2.0)
+    ax_beta.axvline(0.0, color="#555555", linewidth=1.0)
+    ax_beta.axvline(1.0, color="#555555", linewidth=1.0, linestyle="--")
+    ax_beta.axvline(result.posterior.mean, color="#111111", linewidth=1.8)
+    ci_lo, ci_hi = weighted_quantile(beta, result.posterior.weights, [0.05, 0.95])
+    ax_beta.axvline(ci_lo, color="#111111", linewidth=1.0, linestyle=":")
+    ax_beta.axvline(ci_hi, color="#111111", linewidth=1.0, linestyle=":")
+    ci_y = 0.055 * ymax
+    ax_beta.hlines(ci_y, ci_lo, ci_hi, color="#111111", linewidth=2.0)
+    ax_beta.text((ci_lo + ci_hi) / 2.0, ci_y + 0.035 * ymax, "90% CI", ha="center", va="bottom", fontsize=8)
+    y_region = 1.0
+    # ax_beta.text(max(beta[0] + 0.25, -0.75), y_region, "β < 0", ha="center", fontsize=8.5)
+    # ax_beta.text(0.62, y_region, "0 < β < 1", ha="center", fontsize=8.5)
+    # ax_beta.text(min(beta[-1] - 0.30, 1.65), y_region, "β > 1", ha="center", fontsize=8.5)
+    beta_text = (
+        f"mean  {result.posterior.mean:.3f}\n"
+        f"sd    {result.posterior.std:.3f}\n"
+        f"90% CI [{ci_lo:.3f}, {ci_hi:.3f}]\n"
+        f"P(β<0) {result.posterior.prob_lt(0):.3f}\n"
+        f"P(β>1) {1.0 - result.posterior.prob_lt(1):.3f}"
+    )
+    ax_beta.text(
+        0.98,
+        0.95,
+        beta_text,
+        transform=ax_beta.transAxes,
+        ha="right",
+        va="top",
+        fontsize=8.2,
+        bbox={"boxstyle": "round,pad=0.25", "facecolor": "white", "edgecolor": "0.7", "alpha": 0.92},
+    )
+    ax_beta.set_title("Calibration posterior", fontsize=11.5)
+    ax_beta.set_xlabel("calibration slope β", fontsize=9.5)
+    ax_beta.set_ylabel("posterior density", fontsize=9.5)
+    ax_beta.set_ylim(0.0, max(ymax * 1.12, 1.15))
+    ax_beta.tick_params(labelsize=8.5)
+    _set_axis_grid(ax_beta)
+
+    # 2. Forecast shrinkage.
+    ax_shrink.set_title("Quote, posterior belief, and forecast", fontsize=11.5)
+    y_positions = np.arange(3)
+    q_vals = [m.q for m in result.markets]
+    pstar_vals = [m.p_star for m in result.markets]
+    marker_specs = [("q", "o", q_vals), ("pbar", "D", result.pbar), ("p*", "^", pstar_vals)]
+    for i, market in enumerate(result.markets):
+        vals = [market.q, result.pbar[i], market.p_star]
+        ax_shrink.hlines(i, min(vals), max(vals), color="#9aa3ad", linewidth=1.2)
+    for label, marker, vals in marker_specs:
+        ax_shrink.scatter(vals, y_positions, marker=marker, s=60, label=label, zorder=3)
+    for i, market in enumerate(result.markets):
+        q, pbar, pstar = market.q, float(result.pbar[i]), market.p_star
+        q_x_offset = -10 if abs(q - pbar) < 0.08 else 0
+        pbar_x_offset = 10 if abs(q - pbar) < 0.08 else 0
+        pstar_x_offset = 10 if abs(pstar - pbar) < 0.08 else 0
+        ax_shrink.annotate(f"{q:.3f}", (q, i), xytext=(q_x_offset, 10), textcoords="offset points", ha="center", va="bottom", fontsize=8.2)
+        ax_shrink.annotate(f"{pbar:.3f}", (pbar, i), xytext=(pbar_x_offset, -12), textcoords="offset points", ha="center", va="top", fontsize=8.2)
+        ax_shrink.annotate(f"{pstar:.3f}", (pstar, i), xytext=(pstar_x_offset, 10), textcoords="offset points", ha="center", va="bottom", fontsize=8.2)
+    ax_shrink.set_xlim(0.0, 1.0)
+    ax_shrink.set_yticks(y_positions, [m.name for m in result.markets])
+    ax_shrink.set_ylim(2.65, -0.65)
+    ax_shrink.set_xlabel("probability", fontsize=9.5)
+    ax_shrink.tick_params(labelsize=8.5)
+    ax_shrink.legend(loc="lower left", bbox_to_anchor=(0.02, 0.02), ncol=1, fontsize=8.5, frameon=False)
+    _set_axis_grid(ax_shrink)
+
+    # 3. Dependence from common calibration risk.
+    ax_dependence.set_title(f"Dependence induced by shared β\nCorr(A,B) = {result.corr_ab:.3f}", fontsize=11.0)
+    outcome_labels = ["A=0\nB=0", "A=0\nB=1", "A=1\nB=0", "A=1\nB=1"]
+    actual = result.joint_current
+    independent = independent_joint_probs(result.pbar[0], result.pbar[1])
+    x = np.arange(len(outcome_labels))
+    width = 0.36
+    ax_dependence.bar(x - width / 2, actual, width, label="shared β", color="#2364aa")
+    ax_dependence.bar(x + width / 2, independent, width, label="independent", color="#b8c2cc")
+    for i, delta in enumerate(actual - independent):
+        y = max(actual[i], independent[i]) + 0.014
+        ax_dependence.text(i, y, f"Δ={delta:+.4f}", ha="center", va="bottom", fontsize=8.5)
+    ax_dependence.set_xticks(x, outcome_labels)
+    ax_dependence.set_ylim(0.0, max(0.35, float(np.max([actual, independent])) * 1.25))
+    ax_dependence.set_ylabel("probability", fontsize=9.5)
+    ax_dependence.set_xlabel("Outcome (A, B)", fontsize=9.5)
+    ax_dependence.tick_params(labelsize=8.5)
+    ax_dependence.legend(fontsize=8.5, frameon=False, loc="upper left")
+    _set_axis_grid(ax_dependence)
+
+    # 4. CPMM price impact.
+    ax_cpmm.set_title("CPMM price impact", fontsize=11.5)
+    static = stage_by_label(result, "Joint posterior")
+    dynamic = stage_by_label(result, "Final dynamic")
+    cpmm_xmax = 10.0
+    for idx, market in enumerate(result.markets[:2]):
+        color = market_colors[market.name]
+        largest_stage_share = max(float(stage.shares[idx]) for stage in result.stages)
+        s_max = max(10.0, 1.15 * largest_stage_share)
+        cpmm_xmax = max(cpmm_xmax, s_max)
+        share_grid = np.linspace(0.0, s_max, 250)
+        marginal = np.array([cpmm_marginal_after(market, s) for s in share_grid])
+        ax_cpmm.plot(share_grid, marginal, color=color, linewidth=2.0)
+        ax_cpmm.axhline(result.pbar[idx], color=color, linestyle=":", linewidth=1.2, alpha=0.75)
+        ax_cpmm.text(s_max, marginal[-1], market.name, color=color, ha="left", va="center", fontsize=9, fontweight="bold")
+        ax_cpmm.text(s_max, result.pbar[idx], f"p̄{market.name}", color=color, ha="left", va="center", fontsize=8.5)
+        for stage, marker, stage_color, strategy_name in ((static, "o", static_color, "static"), (dynamic, "s", dynamic_color, "dynamic")):
+            share = float(stage.shares[idx])
+            price = cpmm_marginal_after(market, share)
+            ax_cpmm.scatter(share, price, marker=marker, s=62, color=stage_color, edgecolor="white", linewidth=0.7, zorder=4)
+            offsets = {
+                ("A", "static"): (-16, 12),
+                ("A", "dynamic"): (14, 12),
+                ("B", "static"): (-16, -15),
+                ("B", "dynamic"): (14, -15),
+            }
+            ax_cpmm.annotate(
+                f"{share:.1f}",
+                xy=(share, price),
+                xytext=offsets[(market.name, strategy_name)],
+                textcoords="offset points",
+                ha="center",
+                va="center",
+                fontsize=8.2,
+                arrowprops={"arrowstyle": "-", "lw": 0.6},
+            )
+    marker_handles = [
+        Line2D([0], [0], marker="o", color="none", markerfacecolor=static_color, label="static", markersize=7),
+        Line2D([0], [0], marker="s", color="none", markerfacecolor=dynamic_color, label="dynamic", markersize=7),
+    ]
+    ax_cpmm.legend(handles=marker_handles, fontsize=8.5, frameon=False, loc="upper left")
+    ax_cpmm.set_xlim(0.0, cpmm_xmax * 1.10)
+    ax_cpmm.set_xlabel("YES shares purchased", fontsize=9.5)
+    ax_cpmm.set_ylabel("post-trade marginal probability", fontsize=9.5)
+    ax_cpmm.set_ylim(0.0, 1.0)
+    ax_cpmm.tick_params(labelsize=8.5)
+    _set_axis_grid(ax_cpmm)
+
+    # 5. Static versus dynamic current allocation.
+    ax_budget.set_title("Current allocation and retained cash", fontsize=11.5)
+    budget_rows = [("Static", static), ("Dynamic", dynamic)]
+    for row_idx, (_row_label, stage) in enumerate(budget_rows):
+        y = row_idx
+        a_cost, b_cost = float(stage.costs[0]), float(stage.costs[1])
+        cash_remaining = result.params.wealth - a_cost - b_cost
+        ax_budget.barh(y, a_cost, color=market_colors["A"], height=0.42)
+        ax_budget.barh(y, b_cost, left=a_cost, color=market_colors["B"], height=0.42)
+        ax_budget.barh(y, cash_remaining, left=a_cost + b_cost, color=cash_color, height=0.42)
+        segments = [("A", a_cost, 0.0, stage.shares[0]), ("B", b_cost, a_cost, stage.shares[1])]
+        for label, cost, left, shares in segments:
+            center = left + cost / 2.0
+            ax_budget.text(center, y, f"{label}\nM{cost:.1f}", ha="center", va="center", fontsize=8.2, color="white")
+        if cash_remaining >= 25.0:
+            ax_budget.text(a_cost + b_cost + cash_remaining / 2.0, y, f"cash\nM {cash_remaining:.1f}", ha="center", va="center", fontsize=8.2, color="#222222")
+        else:
+            ax_budget.text(min(result.params.wealth, a_cost + b_cost + cash_remaining + 3.0), y, f"cash M {cash_remaining:.1f}", ha="left", va="center", fontsize=8)
+    static_cash = result.params.wealth - float(np.sum(static.costs))
+    dynamic_cash = result.params.wealth - float(np.sum(dynamic.costs))
+    ax_budget.text(
+        0.5,
+        -0.23,
+        f"Dynamic policy retains M {dynamic_cash - static_cash:.2f} more",
+        transform=ax_budget.transAxes,
+        ha="center",
+        va="top",
+        fontsize=9,
+        fontweight="bold",
+    )
+    ax_budget.set_yticks([0, 1], ["Static", "Dynamic"])
+    ax_budget.set_ylim(1.75, -0.75)
+    ax_budget.set_xlim(0.0, result.params.wealth)
+    ax_budget.set_xlabel("cash allocation (M)", fontsize=9.5)
+    ax_budget.tick_params(labelsize=8.5)
+    budget_handles = [Patch(color=market_colors["A"], label="A cost"), Patch(color=market_colors["B"], label="B cost"), Patch(color=cash_color, label="retained cash")]
+    ax_budget.legend(handles=budget_handles, fontsize=8.5, frameon=False, loc="lower center", bbox_to_anchor=(0.5, 0.02), ncol=3)
+    _set_axis_grid(ax_budget)
+
+    # 6. Future allocation policy.
+    ax_policy.set_title("Future allocation policy", fontsize=11.5)
+    ax_policy.set_xlabel("number of future markets n", fontsize=9.5)
+    ax_policy.set_ylabel("shares per F market", fontsize=9.5, color=market_colors["F"])
+    ax_policy.tick_params(axis="y", labelcolor=market_colors["F"], labelsize=8.5)
+    ax_policy.tick_params(axis="x", labelsize=8.5)
+    ax_policy_right = ax_policy.twinx()
+    ax_policy_right.set_ylabel("cash (M)", fontsize=9.5, color="#333333")
+    ax_policy_right.tick_params(axis="y", labelcolor="#333333", labelsize=8.5)
+    if result.future_policy:
+        ns = np.array([row[0] for row in result.future_policy])
+        shares = np.array([row[1] for row in result.future_policy])
+        costs = np.array([row[2] for row in result.future_policy])
+        cash = np.array([row[3] for row in result.future_policy])
+        left_line = ax_policy.plot(ns, shares, marker="o", color=market_colors["F"], linewidth=2.0, label="shares/F")[0]
+        cost_line = ax_policy_right.plot(ns, costs, marker="s", linestyle="--", color="#6d597a", linewidth=1.8, label="cost/F")[0]
+        cash_line = ax_policy_right.plot(ns, cash, marker="^", linestyle=":", color="#264653", alpha=0.75, linewidth=1.4, label="cash remaining")[0]
+        ax_policy.xaxis.set_major_locator(MaxNLocator(integer=True))
+        # ax_policy.annotate("shares/F", xy=(ns[-1], shares[-1]), xytext=(0, 0), textcoords="offset points", va="center",
+        #                    fontsize=8.5, color=market_colors["F"])
+        # ax_policy_right.annotate("cost/F", xy=(ns[-1], costs[-1]), xytext=(6, 0), textcoords="offset points", va="center",
+        #                          fontsize=8.5, color="#6d597a")
+        # ax_policy_right.annotate("cash", xy=(ns[-1], cash[-1]), xytext=(6, 0), textcoords="offset points", va="center",
+        #                          fontsize=8.5, color="#264653")
+        ax_policy.legend([left_line, cost_line, cash_line], ["shares/F", "cost/F", "cash remaining"], fontsize=8.5,
+                         frameon=False, loc="lower center", bbox_to_anchor=(0.5, 0.85), ncol=3)
+
+        left_ymin, left_ymax = ax_policy.get_ylim()
+        right_ymin, right_ymax = ax_policy_right.get_ylim()
+
+        ax_policy.set_ylim(left_ymin, left_ymax + 0.15 * (left_ymax - left_ymin))
+        ax_policy_right.set_ylim(right_ymin, right_ymax + 0.15 * (right_ymax - right_ymin))
+    else:
+        ax_policy.text(0.5, 0.5, "No future-arrival policy to display", transform=ax_policy.transAxes, ha="center", va="center", fontsize=10)
+    _set_axis_grid(ax_policy)
+    ax_policy_right.grid(False)
+
+    # Bottom metrics strip.
+    static_commit = float(np.sum(static.costs))
+    dynamic_commit = float(np.sum(dynamic.costs))
+    static_cash = result.params.wealth - static_commit
+    dynamic_cash = result.params.wealth - dynamic_commit
+    reduction_a = _safe_reduction(float(static.shares[0]), float(dynamic.shares[0]))
+    reduction_b = _safe_reduction(float(static.shares[1]), float(dynamic.shares[1]))
+    ax_metrics.text(0.01, 0.78, "POSTERIOR", transform=ax_metrics.transAxes, fontsize=9.5, fontweight="bold", va="center")
+    ax_metrics.text(0.01, 0.45, f"β = {result.posterior.mean:.3f} ± {result.posterior.std:.3f}", transform=ax_metrics.transAxes, fontsize=9.5, va="center")
+    ax_metrics.text(0.01, 0.16, f"p̄A = {result.pbar[0]:.3f}   p̄B = {result.pbar[1]:.3f}   p̄F = {result.pbar[2]:.3f}", transform=ax_metrics.transAxes, fontsize=9.5, va="center")
+    ax_metrics.text(0.35, 0.78, "CURRENT ALLOCATION", transform=ax_metrics.transAxes, fontsize=9.5, fontweight="bold", va="center")
+    ax_metrics.text(0.35, 0.45, f"Static: M {static_commit:.2f} committed, M {static_cash:.2f} retained", transform=ax_metrics.transAxes, fontsize=9.5, va="center")
+    ax_metrics.text(0.35, 0.16, f"Dynamic: M {dynamic_commit:.2f} committed, M {dynamic_cash:.2f} retained", transform=ax_metrics.transAxes, fontsize=9.5, va="center")
+    ax_metrics.text(0.70, 0.78, "OPTION VALUE", transform=ax_metrics.transAxes, fontsize=9.5, fontweight="bold", va="center")
+    ax_metrics.text(0.70, 0.45, f"Extra retained cash: M {dynamic_cash - static_cash:.2f}", transform=ax_metrics.transAxes, fontsize=9.5, va="center")
+    ax_metrics.text(0.70, 0.16, f"A reduction: {reduction_a:.2f}%   B reduction: {reduction_b:.2f}%", transform=ax_metrics.transAxes, fontsize=9.5, va="center")
+    fig.subplots_adjust(left=0.055, right=0.970, top=0.930, bottom=0.080)
 
 
 class MarketApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("Prediction Market Kelly / Calibration / Poisson Simulator")
+        self.root.minsize(1250, 820)
         self.params = Params()
         self.vars: dict[str, tk.DoubleVar] = {}
         self.value_labels: dict[str, ttk.Label] = {}
+        self.use_article_posterior = False
         self.status = tk.StringVar(value="Ready")
         self._build()
         self.refresh()
@@ -529,10 +816,11 @@ class MarketApp:
             box.pack(fill="x", padx=4, pady=2)
             for field in fields:
                 self._add_slider(box, *field)
-        ttk.Button(controls, text="Recompute now", command=self.refresh).pack(fill="x", padx=6, pady=4)
+        ttk.Button(controls, text="Recompute now", command=self.refresh).pack(fill="x", padx=6, pady=(4, 2))
+        ttk.Button(controls, text="Load article example", command=self.load_article_example).pack(fill="x", padx=6, pady=(0, 4))
         ttk.Label(controls, textvariable=self.status, wraplength=260).pack(fill="x", padx=6, pady=2)
 
-        self.fig = Figure(figsize=(12, 8), dpi=100)
+        self.fig = Figure(figsize=(13.5, 8.8), dpi=100)
         self.plot_image: tk.PhotoImage | None = None
         self.image_label = ttk.Label(plots)
         self.image_label.pack(fill="both", expand=True)
@@ -544,108 +832,56 @@ class MarketApp:
                 values[key] = int(round(values[key]))
         return replace(self.params, **values)
 
+    def _set_slider(self, name: str, value: float) -> None:
+        if name not in self.vars:
+            return
+        self.vars[name].set(value)
+        self._slider_changed(name)
+
+    def load_article_example(self) -> None:
+        article = Params(
+            wealth=300.0,
+            current_a_q=0.35,
+            current_a_p=0.70,
+            current_a_liq=1000.0,
+            current_b_q=0.25,
+            current_b_p=0.60,
+            current_b_liq=500.0,
+            future_q=0.50,
+            future_p=0.75,
+            future_wrong_rate=0.0,
+            future_liq=800.0,
+            poisson_lambda=3.0,
+            poisson_n_max=15,
+        )
+        for name in self.vars:
+            self._set_slider(name, float(getattr(article, name)))
+        self.use_article_posterior = True
+        self.refresh()
+
     def refresh(self) -> None:
+        article_mode = self.use_article_posterior
+        self.use_article_posterior = False
         self.status.set("Computing...")
         self.root.update_idletasks()
         try:
             self.params = self._params_from_ui()
-            result = run_simulation(self.params)
+            result = run_simulation(self.params, article_posterior=article_mode)
             self._draw(result)
+            prefix = "article posterior; " if article_mode else ""
+            dynamic = stage_by_label(result, "Final dynamic")
+            dynamic_commitment = float(np.sum(dynamic.costs))
+            retained_cash = result.params.wealth - dynamic_commitment
             self.status.set(
-                f"beta mean={result.posterior.mean:.3f}, sd={result.posterior.std:.3f}; "
-                f"corr(A,B)={result.corr_ab:.3f}; final costs="
-                f"{result.stages[-1].costs[0]:.1f}, {result.stages[-1].costs[1]:.1f}"
+                f"{prefix}beta mean={result.posterior.mean:.3f}, sd={result.posterior.std:.3f}; "
+                f"corr(A,B)={result.corr_ab:.3f}; dynamic commitment="
+                f"{dynamic_commitment:.1f}; retained cash={retained_cash:.1f}"
             )
         except Exception as exc:  # Keep GUI alive while sliders explore awkward corners.
             self.status.set(f"Computation failed: {exc}")
 
     def _draw(self, result: SimulationResult) -> None:
-        self.fig.clear()
-        gs = self.fig.add_gridspec(3, 3)
-        ax_hist = self.fig.add_subplot(gs[0, 0])
-        ax_beta = self.fig.add_subplot(gs[0, 1])
-        ax_stage = self.fig.add_subplot(gs[0, 2])
-        ax_policy = self.fig.add_subplot(gs[1, 0])
-        ax_wealth = self.fig.add_subplot(gs[1, 1])
-        ax_table = self.fig.add_subplot(gs[1:, 2])
-        ax_joint = self.fig.add_subplot(gs[2, 0])
-        ax_cost = self.fig.add_subplot(gs[2, 1])
-
-        h = result.history
-        ax_hist.scatter(h.q[h.y == 0], h.p_star[h.y == 0], s=18, alpha=0.7, label="resolved NO")
-        ax_hist.scatter(h.q[h.y == 1], h.p_star[h.y == 1], s=18, alpha=0.7, label="resolved YES")
-        ax_hist.plot([0, 1], [0, 1], color="black", lw=1)
-        ax_hist.set_title("Resolved history")
-        ax_hist.set_xlabel("market quote q")
-        ax_hist.set_ylabel("bot forecast p*")
-        ax_hist.legend(fontsize=8)
-
-        beta = result.posterior.beta
-        density = result.posterior.weights / max(EPS, beta[1] - beta[0])
-        ax_beta.plot(beta, density, color="#244c9a")
-        ax_beta.axvline(0, color="gray", lw=1)
-        ax_beta.axvline(1, color="gray", lw=1, ls="--")
-        ax_beta.set_title("Posterior over beta")
-        ax_beta.set_xlabel("beta")
-
-        labels = [s.label.replace(" ", "\n") for s in result.stages]
-        x = np.arange(len(result.stages))
-        width = 0.38
-        ax_stage.bar(x - width / 2, [s.shares[0] for s in result.stages], width, label="A")
-        ax_stage.bar(x + width / 2, [s.shares[1] for s in result.stages], width, label="B")
-        ax_stage.set_xticks(x)
-        ax_stage.set_xticklabels(labels, fontsize=7)
-        ax_stage.set_title("Recommended shares by stage")
-        ax_stage.legend(fontsize=8)
-
-        if result.future_policy:
-            ns = [p[0] for p in result.future_policy]
-            us = [p[1] for p in result.future_policy]
-            ax_policy.plot(ns, us, marker="o")
-        ax_policy.set_title("Second-stage F shares per market")
-        ax_policy.set_xlabel("future arrivals n")
-        ax_policy.set_ylabel("u_n")
-
-        for name, samples in result.wealth_samples.items():
-            ax_wealth.hist(samples, bins=35, alpha=0.45, density=True, label=name)
-        ax_wealth.set_title("Current A/B terminal wealth")
-        ax_wealth.legend(fontsize=7)
-
-        joint_matrix = np.array([[result.joint_current[0], result.joint_current[1]], [result.joint_current[2], result.joint_current[3]]])
-        im = ax_joint.imshow(joint_matrix, cmap="Blues")
-        for i in range(2):
-            for j in range(2):
-                ax_joint.text(j, i, f"{joint_matrix[i, j]:.3f}", ha="center", va="center")
-        ax_joint.set_xticks([0, 1], labels=["B=0", "B=1"])
-        ax_joint.set_yticks([0, 1], labels=["A=0", "A=1"])
-        ax_joint.set_title(f"Joint predictive; corr={result.corr_ab:.3f}")
-        self.fig.colorbar(im, ax=ax_joint, fraction=0.046, pad=0.04)
-
-        ax_cost.bar(x - width / 2, [s.costs[0] for s in result.stages], width, label="A")
-        ax_cost.bar(x + width / 2, [s.costs[1] for s in result.stages], width, label="B")
-        ax_cost.set_xticks(x)
-        ax_cost.set_xticklabels(labels, fontsize=7)
-        ax_cost.set_title("Cash committed by stage")
-        ax_cost.legend(fontsize=8)
-
-        ax_table.axis("off")
-        rows = [
-            ["beta mean", f"{result.posterior.mean:.4f}"],
-            ["beta std", f"{result.posterior.std:.4f}"],
-            ["Pr(beta<0)", f"{result.posterior.prob_lt(0):.4f}"],
-            ["Pr(0<=beta<=1)", f"{result.posterior.prob_between(0, 1):.4f}"],
-            ["Pr(beta>1)", f"{1.0 - result.posterior.prob_lt(1):.4f}"],
-            ["pbar A", f"{result.pbar[0]:.4f}"],
-            ["pbar B", f"{result.pbar[1]:.4f}"],
-            ["pbar F", f"{result.pbar[2]:.4f}"],
-        ]
-        rows += [[s.label, f"A {s.shares[0]:.1f} / B {s.shares[1]:.1f}"] for s in result.stages]
-        table = ax_table.table(cellText=rows, colLabels=["quantity", "value"], loc="center", cellLoc="left")
-        table.auto_set_font_size(False)
-        table.set_fontsize(8)
-        table.scale(1.0, 1.25)
-
-        self.fig.tight_layout()
+        draw_dashboard(self.fig, result)
         buffer = io.BytesIO()
         self.fig.savefig(buffer, format="png", dpi=100)
         data = base64.b64encode(buffer.getvalue())
@@ -653,8 +889,9 @@ class MarketApp:
         self.image_label.configure(image=self.plot_image)
 
 
-def run_check() -> None:
-    params = Params(
+
+def article_check_params() -> Params:
+    return Params(
         wealth=300,
         current_a_q=0.35,
         current_a_p=0.70,
@@ -668,8 +905,11 @@ def run_check() -> None:
         poisson_lambda=3.0,
         poisson_n_max=15,
         beta_grid_n=301,
-        mc_paths=500,
     )
+
+
+def run_check() -> None:
+    params = article_check_params()
     result = run_simulation(params, article_posterior=True)
     static = result.stages[3]
     dynamic = result.stages[4]
@@ -685,12 +925,29 @@ def run_check() -> None:
         raise SystemExit("dynamic benchmark outside tolerance")
 
 
+def render_check(output_png: str) -> None:
+    params = article_check_params()
+    result = run_simulation(params, article_posterior=True)
+    fig = Figure(figsize=(13.5, 8.8), dpi=100)
+    draw_dashboard(fig, result)
+    fig.savefig(output_png, dpi=120)
+    print(output_png)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="run numerical checks without opening the GUI")
+    parser.add_argument(
+        "--render-check",
+        metavar="OUTPUT_PNG",
+        help="render the article-posterior dashboard to a PNG without opening the GUI",
+    )
     args = parser.parse_args()
     if args.check:
         run_check()
+        return
+    if args.render_check:
+        render_check(args.render_check)
         return
     root = tk.Tk()
     MarketApp(root)

@@ -8,7 +8,7 @@ This repository contains the article and a small interactive simulator for its m
 python3 market_sim.py
 ```
 
-The app uses only `numpy`, `scipy`, `matplotlib`, and Python stdlib `tkinter`. Adjust sliders, then press `Recompute now` to update the plots. It renders Matplotlib plots through the non-GUI Agg backend, so it does not require `PIL.ImageTk`.
+The app uses only `numpy`, `scipy`, `matplotlib`, and Python stdlib `tkinter`. Adjust sliders, then press `Recompute now` to update the plots. Use `Load article example` to restore the paper example and the fixed article posterior `N(0.55, 0.50^2)`. It renders Matplotlib plots through the non-GUI Agg backend, so it does not require `PIL.ImageTk`.
 
 For a non-interactive numerical check against the article example:
 
