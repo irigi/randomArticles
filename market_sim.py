@@ -480,7 +480,7 @@ def draw_dashboard(fig: Figure, result: SimulationResult) -> None:
         3,
         height_ratios=[1.0, 1.0, 0.22],
         hspace=0.50,
-        wspace=0.34,
+        wspace=0.2,
     )
     ax_beta = fig.add_subplot(gs[0, 0])
     ax_shrink = fig.add_subplot(gs[0, 1])
@@ -688,14 +688,16 @@ def draw_dashboard(fig: Figure, result: SimulationResult) -> None:
         cost_line = ax_policy_right.plot(ns, costs, marker="s", linestyle="--", color="#6d597a", linewidth=1.8, label="cost/F")[0]
         cash_line = ax_policy_right.plot(ns, cash, marker="^", linestyle=":", color="#264653", alpha=0.75, linewidth=1.4, label="cash remaining")[0]
         ax_policy.xaxis.set_major_locator(MaxNLocator(integer=True))
-        # ax_policy.annotate("shares/F", xy=(ns[-1], shares[-1]), xytext=(0, 0), textcoords="offset points", va="center",
-        #                    fontsize=8.5, color=market_colors["F"])
-        # ax_policy_right.annotate("cost/F", xy=(ns[-1], costs[-1]), xytext=(6, 0), textcoords="offset points", va="center",
-        #                          fontsize=8.5, color="#6d597a")
-        # ax_policy_right.annotate("cash", xy=(ns[-1], cash[-1]), xytext=(6, 0), textcoords="offset points", va="center",
-        #                          fontsize=8.5, color="#264653")
-        ax_policy.legend([left_line, cost_line, cash_line], ["shares/F", "cost/F", "cash remaining"], fontsize=8.5,
-                         frameon=False, loc="lower center", bbox_to_anchor=(0.5, 0.85), ncol=3)
+        ax_policy.legend(
+            [left_line, cost_line, cash_line],
+            ["shares/F", "cost/F", "cash remaining"],
+            fontsize=8.5,
+            frameon=False,
+            loc="upper right",
+            bbox_to_anchor=(0.98, 0.98),
+            ncol=1,
+            borderaxespad=0.0,
+        )
 
         left_ymin, left_ymax = ax_policy.get_ylim()
         right_ymin, right_ymax = ax_policy_right.get_ylim()
@@ -723,7 +725,7 @@ def draw_dashboard(fig: Figure, result: SimulationResult) -> None:
     ax_metrics.text(0.70, 0.78, "OPTION VALUE", transform=ax_metrics.transAxes, fontsize=9.5, fontweight="bold", va="center")
     ax_metrics.text(0.70, 0.45, f"Extra retained cash: M {dynamic_cash - static_cash:.2f}", transform=ax_metrics.transAxes, fontsize=9.5, va="center")
     ax_metrics.text(0.70, 0.16, f"A reduction: {reduction_a:.2f}%   B reduction: {reduction_b:.2f}%", transform=ax_metrics.transAxes, fontsize=9.5, va="center")
-    fig.subplots_adjust(left=0.055, right=0.970, top=0.930, bottom=0.080)
+    fig.subplots_adjust(left=0.055, right=0.950, top=0.930, bottom=0.080)
 
 
 class MarketApp:
