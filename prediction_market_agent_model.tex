@@ -22,7 +22,7 @@
 \title{Beyond Fractional Kelly: A Continuous Calibration and Poisson Arrival Model for Automated Prediction Market Trading}
 
 \author{Jan~Ol\v{s}ina\\[1ex] Independent Researcher, Prague, Czech Republic\\
-email: \texttt{jan.olsina@gmail.com},  ORCID: \texttt{0009-0003-9816-3958}.}
+email: \texttt{jan.olsina@gmail.com}, ORCID: \texttt{0009-0003-9816-3958}.}
 
 
 \maketitle
@@ -32,7 +32,7 @@ This article develops a decision model for a prediction-market trading agent who
 \end{abstract}
 
 \begin{IEEEkeywords}
-prediction markets, Kelly criterion, Bayesian calibration, automated market maker, constant-product market maker, prediction markets, Poisson arrivals, stochastic control.
+prediction markets, Kelly criterion, Bayesian calibration, automated market maker, constant-product market maker, Poisson arrivals, stochastic control.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -192,6 +192,176 @@ with new pools $(y+a,n+a)$. This maintains Eq.~\eqref{eq:manifold-probability} a
 % At the consulted source revision, both the taker-fee constant and the flat trade fee are zero.
 
 If the prediction market platform also matches eligible opposing limit orders,  the executable cost curve presented to an actual bot can contain linear order-book segments joined to a curved CPMM segment.
+
+\subsection{Multiple-choice constant-share extension}
+\label{subsec:multiple-choice}
+
+Consider $J\geq2$ mutually exclusive and exhaustive outcomes with settlement
+indicators
+\begin{equation}
+Y_j\in\{0,1\},
+\qquad
+\sum_{j=1}^{J}Y_j=1.
+\label{eq:multichoice-settlement}
+\end{equation}
+The mechanism maintains one symmetric binary CPMM for each answer $j$, with
+pools $(y_j,n_j)$, invariant
+\begin{equation}
+y_jn_j=k_j^2,
+\label{eq:multichoice-invariant}
+\end{equation}
+and displayed probability
+\begin{equation}
+q_j=\frac{n_j}{y_j+n_j}.
+\label{eq:multichoice-probability}
+\end{equation}
+The individual pools are coupled by the no-arbitrage condition
+\begin{equation}
+\sum_{j=1}^{J}q_j=1.
+\label{eq:multichoice-sum-to-one}
+\end{equation}
+
+Let $K_j^{\mathrm{Y}}(s)$ and $K_j^{\mathrm{N}}(s)$ denote the exact costs of
+buying $s$ YES or NO shares from answer $j$'s binary CPMM. They are obtained
+from Eq.~\eqref{eq:manifold-yes-cost} and its NO analogue with $r=1/2$.
+Their marginal costs equal the post-trade claim prices,
+\begin{equation}
+K_j^{\mathrm{Y}\prime}(s)=q_j',
+\qquad
+K_j^{\mathrm{N}\prime}(s)=1-q_j'.
+\label{eq:multichoice-binary-marginals}
+\end{equation}
+
+The coupling follows from the complete-set identities
+\begin{align}
+\sum_{j\neq i}(1-Y_j)&=(J-2)+Y_i,
+\label{eq:multichoice-complement-yes}\\
+\sum_{j\neq i}Y_j&=1-Y_i.
+\label{eq:multichoice-complement-no}
+\end{align}
+Thus equal quantities of NO shares in all answers other than $i$ are
+equivalent to YES shares in $i$ together with cash, while equal quantities of
+YES shares in all other answers are equivalent to NO shares in $i$.
+
+For a target of $s$ YES shares in answer $i$, let $u$ shares be synthesized
+through NO purchases in the complementary answers. The corresponding cost is
+\begin{equation}
+\Phi_i^{\mathrm{Y}}(s,u)
+=
+K_i^{\mathrm{Y}}(s-u)
++
+\sum_{j\neq i}K_j^{\mathrm{N}}(u)
+-(J-2)u,
+\label{eq:multichoice-yes-decomposition}
+\end{equation}
+and the least-cost coupled execution is
+\begin{equation}
+K_i^{\mathrm{Y,mc}}(s)
+=
+\min_{0\leq u\leq s}
+\Phi_i^{\mathrm{Y}}(s,u).
+\label{eq:multichoice-yes-cost}
+\end{equation}
+At an interior minimizer,
+\begin{align}
+\frac{\partial\Phi_i^{\mathrm{Y}}}{\partial u}
+&=
+-q_i'
++\sum_{j\neq i}(1-q_j')
+-(J-2) \nonumber\\
+&=
+1-\sum_{j=1}^{J}q_j'
+=0.
+\label{eq:multichoice-yes-foc}
+\end{align}
+Hence the implementation's sum-to-one condition is precisely the first-order
+condition for the least-cost constant-share decomposition.
+
+Likewise, for a target of $s$ NO shares in answer $i$, define
+\begin{equation}
+\Phi_i^{\mathrm{N}}(s,u)
+=
+K_i^{\mathrm{N}}(s-u)
++
+\sum_{j\neq i}K_j^{\mathrm{Y}}(u),
+\label{eq:multichoice-no-decomposition}
+\end{equation}
+so that
+\begin{equation}
+K_i^{\mathrm{N,mc}}(s)
+=
+\min_{0\leq u\leq s}
+\Phi_i^{\mathrm{N}}(s,u).
+\label{eq:multichoice-no-cost}
+\end{equation}
+The corresponding first-order condition is
+\begin{align}
+\frac{\partial\Phi_i^{\mathrm{N}}}{\partial u}
+&=
+-(1-q_i')
++\sum_{j\neq i}q_j' \nonumber\\
+&=
+\sum_{j=1}^{J}q_j'-1
+=0.
+\label{eq:multichoice-no-foc}
+\end{align}
+
+Because the elementary binary cost curves are convex, these are
+one-dimensional convex optimization problems. In the source implementation,
+the optimizing auxiliary share quantity is found by binary search while
+simulating the individual binary fills. By the envelope theorem,
+\begin{equation}
+\frac{\mathrm{d}}{\mathrm{d}s}K_i^{\mathrm{Y,mc}}(s)=q_i',
+\qquad
+\frac{\mathrm{d}}{\mathrm{d}s}K_i^{\mathrm{N,mc}}(s)=1-q_i'.
+\label{eq:multichoice-marginals}
+\end{equation}
+Thus the coupled multi-answer execution has the same marginal-price
+interpretation as a binary prediction contract, even though one user trade may
+produce fills in several answer pools.
+
+At creation, a sum-to-one market with total ante $A$ and $J$ answer buckets
+uses
+\begin{equation}
+y_j=\frac{A}{2},
+\qquad
+n_j=\frac{A}{2(J-1)},
+\qquad
+q_j=\frac{1}{J}.
+\label{eq:multichoice-initial-pools}
+\end{equation}
+These pools satisfy both the binary CPMM probability formula and the collateral
+identity
+\begin{equation}
+y_j+(J-1)n_j=A.
+\label{eq:multichoice-collateral}
+\end{equation}
+The current source initializes sum-to-one multiple-choice markets in this
+form.
+
+Some multiple-choice markets include an Other bucket $O$. When a new answer
+$\nu$ is split from the old Other bucket, the settlement identities are
+\begin{align}
+Y_O^{\mathrm{old}}
+&=Y_{\nu}+Y_O^{\mathrm{new}},
+\label{eq:other-yes-split}\\
+1-Y_O^{\mathrm{old}}
+&=
+\sum_{j\in\mathcal{J}_{\mathrm{old}}\setminus\{O\}}Y_j.
+\label{eq:other-no-split}
+\end{align}
+Accordingly, an old YES share in Other becomes one YES share in the new answer
+plus one YES share in residual Other, while an old NO share in Other becomes
+one YES share in every previously named answer. The implementation rebuilds
+the new and residual-Other pools, restores
+Eq.~\eqref{eq:multichoice-sum-to-one} by an equal-NO-share arbitrage operation,
+and cancels outstanding limit orders on the old Other bucket.
+
+With fees or limit orders, each elementary $K_j^o$ is replaced by the exact
+fill curve for that answer. The minimization representation remains valid,
+although the objective may become piecewise smooth and its first-order
+condition must then be interpreted using one-sided derivatives or
+subgradients.
 
 \section{Continuous Uncertainty About the Agent's Estimate}
 \subsection{A latent calibration coefficient}
@@ -503,8 +673,8 @@ Equations~\eqref{eq:example-stage-two} and \eqref{eq:example-stage-one} are a fi
 
 The numerical solution is
 \begin{align}
- s_A^{\mathrm{dynamic}}&=127.605, & K_A&=\text{M}\,47.671,\\
- s_B^{\mathrm{dynamic}}&= 99.866, & K_B&=\text{M}\,29.911.
+ s_A^{\mathrm{dynamic}}&=127.605, & K_A&=\text{M}\,48.498,\\
+ s_B^{\mathrm{dynamic}}&= 99.866, & K_B&=\text{M}\,29.084.
 \end{align}
 The current commitment falls to M\,77.582 because cash has option value. Relative to the no-future-opportunity solution, the A position falls by $10.45\%$ and B by $8.62\%$.
 
@@ -531,6 +701,15 @@ $n$ & $u_n$ & Cost per F & Cash after purchases\\
 \end{table}
 
 All costs in Table~\ref{tab:future-policy} are obtained from the exact implicit CPMM equation. The Gaussian integrals were evaluated numerically, and the Poisson sum was evaluated through $n=15$; the omitted tail probability is $1.24\times10^{-7}$. The defining model remains Eqs.~\eqref{eq:example-stage-two}--\eqref{eq:example-stage-one}, whose numerical tolerance can be made arbitrarily small.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{article001.png}
+\caption{Numerical example dashboard for the article parameters. The upper-left panel shows the posterior distribution of the calibration coefficient $\beta$, including the probability mass assigned to anti-informative, partially informative, and underconfident regimes. The upper-middle panel compares the market quotes $q$, posterior predictive probabilities $\bar p$, and raw agent forecasts $p^*$ for markets A, B, and F, showing how calibration uncertainty shrinks the raw disagreements toward the market. The upper-right panel compares the joint predictive probabilities for A and B under the shared-$\beta$ model with the probabilities that would obtain from independent events with the same marginals; the excess mass in joint success and joint failure states is the common calibration-risk dependence. The lower-left panel plots CPMM post-trade marginal probabilities as functions of YES shares and marks the static and dynamic optima. The lower-middle panel decomposes current wealth into A cost, B cost, and retained cash under the static and dynamic policies. The lower-right panel shows the second-stage policy for future F markets as the realized Poisson count $n$ changes.}
+\label{fig:article-example-dashboard}
+\end{figure*}
+
+Figure~\ref{fig:article-example-dashboard} summarizes the numerical example. The posterior mean $\beta=0.55$ makes the agent's forecasts informative but shrinks them substantially: for example, A moves from $q_A=0.35$ and $p_A^*=0.70$ to $\bar p_A=0.541725$. The shared calibration coefficient also creates positive dependence between A and B, increasing the probability of joint success and joint failure relative to an independent model with the same marginal probabilities. The CPMM panel shows that the optimal trade stops where price impact has raised the marginal execution probability close to the marginal-utility-adjusted valuation. Introducing Poisson-arriving F opportunities reduces the current A and B positions and leaves more cash uncommitted; when more F opportunities arrive, the optimal number of shares per future market falls, so liquidity reservation and diversification arise endogenously from the log-utility dynamic program.
 
 \subsection{Interpretation}
 The example exhibits every component of the model:
