@@ -13,7 +13,7 @@
 
 \begin{document}
 
-\title{Allocating Responsibility for Market Externalities: Shapley Attribution, Elasticity Pivotality, and Pigouvian Counterfactual Blame}
+\title{Allocating Causal Contribution to Market Externalities: Shapley Attribution, Elasticity Pivotality, and Pigouvian Counterfactual Analysis}
 
 \author{Jan~Ol\v{s}ina\\[1ex] Independent Researcher, Prague, Czech Republic\\
 email: \texttt{jan.olsina@gmail.com},  ORCID: \texttt{0009-0003-9816-3958}.}
@@ -22,15 +22,23 @@ email: \texttt{jan.olsina@gmail.com},  ORCID: \texttt{0009-0003-9816-3958}.}
 \maketitle
 
 \begin{abstract}
-When a competitive market outcome generates a harmful externality (e.g., CO$_2$ emissions), it is unclear how to distribute moral responsibility among heterogeneous producers and consumers. This paper proposes three complementary, curve-based frameworks. First, a cooperative-game attribution assigns each actor a share of realized harm via the Shapley value of a characteristic function induced by coalition-specific market clearing. Second, a local (marginal) pivotality framework allocates realized harm using comparative statics: each agent's responsibility is proportional to the sensitivity of equilibrium quantity to a small, proportional scaling of that agent's supply or demand curve; this yields an explicit elasticity-based decomposition. Third, a Pigouvian-counterfactual framework distinguishes (i) unavoidable harm at the welfare-optimal (internalized) outcome from (ii) avoidable excess harm due to underpricing the externality, and allocates the latter according to private gains from the uncorrected equilibrium. The paper develops all three approaches for generic (nonlinear) supply and demand functions, and illustrates symbolic worked examples for two producers and three consumers. We also discuss how imperfect information about others' curves motivates ex ante (Bayesian) responsibility measures and a separation between causal contribution and culpability.
+When a competitive market outcome generates a harmful externality (e.g., CO$_2$ emissions), it is unclear how to distribute causal contribution to realized harm among heterogeneous producers and consumers. This paper proposes three complementary, curve-based frameworks. First, a cooperative-game attribution assigns each actor a share of realized harm via the Shapley value of a characteristic function induced by coalition-specific market clearing. Second, a local (marginal) pivotality framework allocates realized harm using comparative statics: each agent's contribution is proportional to the sensitivity of equilibrium quantity to a small, proportional scaling of that agent's supply or demand curve; this yields an explicit elasticity-based decomposition. Third, a Pigouvian-counterfactual framework distinguishes (i) unavoidable harm at the welfare-optimal (internalized) outcome from (ii) avoidable excess harm due to underpricing the externality, and allocates the latter according to private gains from the uncorrected equilibrium. The paper develops all three approaches for generic (nonlinear) supply and demand functions, and illustrates symbolic worked examples for two producers and three consumers. We also discuss how imperfect information about others' curves motivates ex ante (Bayesian) contribution measures, and we emphasize throughout that all three quantities are measures of causal contribution to an outcome, not measures of moral blame or culpability.
 \end{abstract}
 
 \section{Introduction}
-Markets coordinate production and consumption through prices, but when traded goods generate harmful externalities, the equilibrium quantity can exceed the socially desirable level. Beyond standard policy prescriptions (taxes, caps, regulation), there is a normative question: \emph{how should moral blame or responsibility be distributed between producers and consumers}, especially when each agent has a different supply or demand curve?
+Markets coordinate production and consumption through prices, but when traded goods generate harmful externalities, the equilibrium quantity can exceed the socially desirable level. Beyond standard policy prescriptions (taxes, caps, regulation), there is a normative question: \emph{how should causal contribution to realized harm be distributed between producers and consumers}, especially when each agent has a different supply or demand curve?
 
-This paper formalizes three complementary answers based on primitives familiar from microeconomic theory. The first is an \emph{attribution} approach: responsibility is allocated for the realized harm produced by the actual market outcome, using a cooperative-game interpretation and Shapley values. The second is a \emph{local pivotality} approach: responsibility is allocated for realized harm based on each agent's marginal influence on equilibrium quantity under a small proportional perturbation of their curve, yielding an elasticity-based split between the producer and consumer sides. The third is a \emph{counterfactual} approach: responsibility is allocated for \emph{avoidable} harm by comparing the unregulated equilibrium to a Pigouvian benchmark and distributing the resulting harm gap according to the private benefits of underpricing.
+This paper formalizes three complementary answers based on primitives familiar from microeconomic theory. The first is an \emph{attribution} approach: causal contribution is allocated for the realized harm produced by the actual market outcome, using a cooperative-game interpretation and Shapley values. The second is a \emph{local pivotality} approach: causal contribution is allocated for realized harm based on each agent's marginal influence on equilibrium quantity under a small proportional perturbation of their curve, yielding an elasticity-based split between the producer and consumer sides. The third is a \emph{counterfactual} approach: causal contribution to \emph{avoidable} harm is allocated by comparing the unregulated equilibrium to a Pigouvian benchmark and distributing the resulting harm gap according to the private benefits of underpricing.
 
-A key theme is that responsibility depends on (i) a harm model, (ii) an equilibrium/market-clearing institution, and (iii) a counterfactual baseline. We keep the environment simple (single good, competitive behavior, quantity-only harm) to highlight what is structural versus normative.
+A key theme is that a causal-contribution measure depends on (i) a harm model, (ii) an equilibrium/market-clearing institution, and (iii) a counterfactual baseline. We keep the environment simple (single good, competitive behavior, quantity-only harm) to highlight what is structural versus normative.
+
+\subsection{Causal Contribution versus Moral Blame}
+\label{sec:contribution_vs_blame}
+Before proceeding, it is worth being precise about what the quantities defined in this paper do and do not represent. Each of the three frameworks below takes a fixed, realized (or counterfactually specified) harm outcome and decomposes it into agent-level shares that sum back to the total. Formally, this is an exercise in \emph{causal contribution}: given a model of how the market outcome depends on each agent's participation, how much of that outcome traces back to each agent, under some well-defined counterfactual or marginal comparison (coalition averaging for Shapley, local comparative statics for pivotality, benefit from a policy gap for the Pigouvian measure). None of these constructions makes reference to an agent's knowledge, intentions, available alternatives, or the reasonableness of their conduct.
+
+\emph{Moral blame} (or culpability, fault, responsibility in the everyday normative sense) is a different and stricter notion. Two agents who make an identical causal contribution to harm are not automatically equally blameworthy: blame typically also depends on whether the agent could foreseeably have acted otherwise, whether a less harmful alternative was reasonably available to them, whether they possessed relevant information, and whether their conduct fell short of some standard of care. A producer who causes a given quantity of emissions using the best available technology and one who causes the identical quantity using needlessly dirty technology despite having an affordable cleaner alternative make the same causal contribution to the harm outcome, in the sense measured here, but few moral frameworks would treat them as equally at fault. Conversely, an agent with a very large causal contribution (e.g., a highly inelastic consumer who is nearly powerless to reduce their participation) may attract little blame precisely because they lacked a realistic alternative.
+
+Because all three constructions in this paper are purely structural decompositions of an outcome, we use \emph{causal contribution} throughout rather than \emph{blame} or \emph{culpability}, and we reserve the latter terms for the additional, separate judgment -- concerning fault, avoidability, and agency -- that would be required to turn a causal-contribution share into a genuine attribution of moral responsibility. Section~\ref{sec:exante} discusses one natural way to begin bridging this gap by conditioning contribution measures on an agent's available information.
 
 \section{Setup}
 \subsection{Agents and curves}
@@ -60,7 +68,7 @@ We assume a \emph{quantity-only} externality: total external harm depends on tot
 \begin{equation}
 H(Q),\qquad H(0)=0,\qquad H'(Q)\ge 0.
 \end{equation}
-We interpret $H(Q)$ as monetized damages, moral disvalue, or any agreed scalar measure of harm. The marginal harm is
+We interpret $H(Q)$ as monetized damages, or any agreed scalar measure of harm. The marginal harm is
 \begin{equation}
 MH(Q) \triangleq H'(Q).
 \end{equation}
@@ -81,7 +89,7 @@ H^\star \triangleq H(Q^\star).
 
 \section{Shapley Attribution for Realized Harm}
 \subsection{Characteristic function via coalition markets}
-To allocate responsibility for realized harm, we define a cooperative game where the \emph{value} of a coalition is the harm it generates when only members of the coalition participate in the market.
+To allocate causal contribution to realized harm, we define a cooperative game where the \emph{value} of a coalition is the harm it generates when only members of the coalition participate in the market.
 
 Let $T\subseteq \mathcal{N}$ be a coalition. Define coalition supply and demand:
 \begin{equation}
@@ -107,7 +115,7 @@ v(T)\triangleq H(Q(T)).
 This encodes the idea that harm is jointly produced by the coalition's capacity to supply and willingness to demand.
 
 \subsection{Shapley value}
-The Shapley value assigns each agent $a\in \mathcal{N}$ a responsibility share
+The Shapley value assigns each agent $a\in \mathcal{N}$ a causal-contribution share
 \begin{equation}
 \phi_a(v)\;=\mspace{-13mu}\sum_{T\subseteq \mathcal{N}\setminus\{a\}}
 \frac{|T|!\,(|\mathcal{N}|-|T|-1)!}{|\mathcal{N}|!}\Big(v(T\cup\{a\})-v(T)\Big).
@@ -120,7 +128,7 @@ Because $v(\varnothing)=0$, the Shapley value satisfies
 \begin{equation}
 \sum_{a\in \mathcal{N}} \phi_a(v)=v(\mathcal{N})=H(Q^\star)=H^\star,
 \end{equation}
-so total responsibility equals realized harm.
+so total causal contribution equals realized harm.
 
 \subsection{Quantity-only specialization}
 A commonly used special case sets
@@ -128,7 +136,7 @@ A commonly used special case sets
 H(Q)=\kappa Q,\qquad \kappa>0,
 \label{eq:linearharm}
 \end{equation}
-so that $v(T)=\kappa Q(T)$. Then Shapley responsibility is linear in coalition quantities:
+so that $v(T)=\kappa Q(T)$. Then Shapley contribution is linear in coalition quantities:
 \begin{equation}
 \phi_a(v)=\kappa\cdot \phi_a(Q),
 \end{equation}
@@ -155,7 +163,7 @@ Define the overlap parameter
 X \triangleq \alpha\delta-\beta\gamma.
 \label{eq:X_def}
 \end{equation}
-If $X\le 0$ (equivalently $\delta/\beta\le \gamma/\alpha$), there is no price at which both sides are simultaneously positive, so every coalition trades $0$ and all Shapley attributions are $0$. Below we assume $X>0$.
+If $X\le 0$ (equivalently $\delta/\beta\le \gamma/\alpha$), there is no price at which both sides are simultaneously positive, so every coalition trades $0$ and all Shapley contributions are $0$. Below we assume $X>0$.
 
 \paragraph{Coalition equilibrium quantity.}
 For any coalition containing $m\in\{0,1,\dots,N_P\}$ producers and $n\in\{0,1,\dots,N_C\}$ consumers, aggregate (untruncated) supply and demand are
@@ -204,7 +212,7 @@ Let $n_{\mathrm{tot}}=N_P+N_C$ be the total number of agents. In the Shapley for
 =\frac{1}{n_{\mathrm{tot}}}\cdot\frac{1}{\binom{n_{\mathrm{tot}}-1}{k}}.
 \label{eq:shapley_weight_binom}
 \end{equation}
-The number of predecessor sets with $(i,j)$ composition is $\binom{N_P-1}{i}\binom{N_C}{j}$, and $k=i+j$. Thus, for linear harm $H(Q)=\kappa Q$ the Shapley responsibility of one producer is
+The number of predecessor sets with $(i,j)$ composition is $\binom{N_P-1}{i}\binom{N_C}{j}$, and $k=i+j$. Thus, for linear harm $H(Q)=\kappa Q$ the Shapley causal contribution of one producer is
 \begin{equation}
 \phi_P
 =
@@ -216,8 +224,8 @@ The number of predecessor sets with $(i,j)$ composition is $\binom{N_P-1}{i}\bin
 \end{equation}
 with $\Delta_P(i,j)$ given by \eqref{eq:DeltaP}. By symmetry, all producers receive the same $\phi_P$.
 
-\paragraph{Total producer-side Shapley blame.}
-The combined Shapley responsibility of all producers is
+\paragraph{Total producer-side Shapley contribution.}
+The combined Shapley causal contribution of all producers is
 \begin{equation}
 B_P^{\mathrm{Sh}}=N_P\,\phi_P,
 \label{eq:BPSh_def}
@@ -227,7 +235,7 @@ and budget balance implies $B_P^{\mathrm{Sh}}+B_C^{\mathrm{Sh}}=\kappa Q(N_P,N_C
 Q(N_P,N_C)=\frac{N_PN_CX}{N_P\alpha+N_C\beta}.
 \label{eq:Q_grand}
 \end{equation}
-It is often convenient to consider the producer share of realized-harm responsibility,
+It is often convenient to consider the producer share of realized-harm causal contribution,
 \begin{equation}
 s_P^{\mathrm{Sh}}
 \triangleq
@@ -268,7 +276,7 @@ s_P^{\mathrm{Sh}} \xrightarrow[r\to \infty]{} \frac{1}{N_P+1},
 \label{eq:limit_rinf}
 \end{equation}
 
-\item \textbf{Symmetry point ($N_P=N_C$ and $r=1$).} When the two groups have equal counts and equal slopes ($\alpha=\beta$), the value function $Q(m,n)$ is invariant under exchanging the labels ``producer'' and ``consumer''. By Shapley symmetry, the total blame must split evenly:
+\item \textbf{Symmetry point ($N_P=N_C$ and $r=1$).} When the two groups have equal counts and equal slopes ($\alpha=\beta$), the value function $Q(m,n)$ is invariant under exchanging the labels ``producer'' and ``consumer''. By Shapley symmetry, the total causal contribution must split evenly:
 \begin{equation}
 N_P=N_C,\ r=1
 \quad\Rightarrow\quad
@@ -282,11 +290,11 @@ The limiting formulas \eqref{eq:limit_r0}--\eqref{eq:limit_rinf} provide a globa
 
 
 \subsection{Remarks}
-The Shapley attribution depends on (i) the coalition trading rule (here, coalition-specific competitive equilibrium) and (ii) the harm function. It allocates realized harm without invoking a policy baseline. Normatively, it corresponds to a cooperative ``causal contribution'' concept: who is pivotal for the market outcome that generates harm, averaged across coalition orderings. Section~\ref{sec:elasticity} develops a complementary local (marginal) pivotality measure that yields closed-form expressions in terms of slopes and elasticities at the observed equilibrium.
+The Shapley attribution depends on (i) the coalition trading rule (here, coalition-specific competitive equilibrium) and (ii) the harm function. It allocates realized harm without invoking a policy baseline. As emphasized in Section~\ref{sec:contribution_vs_blame}, it corresponds to a cooperative \emph{causal contribution} concept: who is pivotal for the market outcome that generates harm, averaged across coalition orderings -- not a judgment about fault or culpability. Section~\ref{sec:elasticity} develops a complementary local (marginal) pivotality measure that yields closed-form expressions in terms of slopes and elasticities at the observed equilibrium.
 
 \section{Local Pivotality Attribution via Elasticities}
 \label{sec:elasticity}
-Shapley values allocate realized harm by averaging marginal contributions across all coalition orderings. A complementary approach keeps the full market fixed and measures \emph{local pivotality}: how sensitive the equilibrium quantity is to a small, proportional change in a given agent's participation. This produces an attribution that is (i) curve-based, (ii) interpretable via comparative statics and incidence, and (iii) computable from local slope/elasticity information at equilibrium.
+Shapley values allocate realized harm by averaging marginal contributions across all coalition orderings. A complementary approach keeps the full market fixed and measures \emph{local pivotality}: how sensitive the equilibrium quantity is to a small, proportional change in a given agent's participation. This produces a causal-contribution measure that is (i) curve-based, (ii) interpretable via comparative statics and incidence, and (iii) computable from local slope/elasticity information at equilibrium.
 
 \subsection{Proportional participation perturbations}
 Introduce participation (scaling) parameters $\lambda_i>0$ for producers and $\mu_j>0$ for consumers:
@@ -391,7 +399,7 @@ Define
 \end{equation}
 Then $\frac{B}{A+B}=\frac{\Sigma_D}{\Sigma_S+\Sigma_D}$ and $\frac{A}{A+B}=\frac{\Sigma_S}{\Sigma_S+\Sigma_D}$.
 
-\subsection{Pivotality-based blame allocation for realized harm}
+\subsection{Pivotality-based causal-contribution allocation for realized harm}
 Let pivotality weights be the quantity sensitivities:
 \begin{equation}
 w_{P_i}\triangleq \frac{\partial Q}{\partial \theta_i}\Big|_\star,\qquad
@@ -421,10 +429,10 @@ H^\star\cdot \frac{x_j^\star}{Q^\star}\cdot \frac{\Sigma_S}{\Sigma_S+\Sigma_D},
 \qquad j\in\mathcal{C}.
 \label{eq:beta_cons}
 \end{align}
-Thus, the producer-side share of realized-harm responsibility is $\Sigma_D/(\Sigma_S+\Sigma_D)$ and the consumer-side share is $\Sigma_S/(\Sigma_S+\Sigma_D)$, with within-side allocations proportional to equilibrium quantities.
+Thus, the producer-side share of realized-harm causal contribution is $\Sigma_D/(\Sigma_S+\Sigma_D)$ and the consumer-side share is $\Sigma_S/(\Sigma_S+\Sigma_D)$, with within-side allocations proportional to equilibrium quantities.
 
-\section{Pigouvian Counterfactual Blame}
-Shapley attribution and elasticity pivotality allocate the harm produced by the actual outcome. A different moral question is: \emph{how much of that harm is avoidable given the existence of a welfare-improving internalization policy?} Pigouvian analysis provides a canonical counterfactual.
+\section{Pigouvian Counterfactual Contribution to Avoidable Harm}
+Shapley attribution and elasticity pivotality allocate the harm produced by the actual outcome. A different question is: \emph{how much of that harm is avoidable given the existence of a welfare-improving internalization policy, and who contributes causally to the avoidable portion?} Pigouvian analysis provides a canonical counterfactual.
 
 \subsection{Welfare and the efficient quantity}
 Assume aggregate demand and supply are invertible (at least locally) so we can define inverse demand and supply:
@@ -483,8 +491,8 @@ and the \emph{avoidable (excess) harm} due to underpricing as
 \end{equation}
 The Pigouvian counterfactual does \emph{not} declare $H^{\text{soc}}$ morally ``fine'' in an absolute sense; rather, it is the harm level consistent with maximizing \eqref{eq:welfare} under the model's welfare criterion. The counterfactual gap $\Delta H$ isolates harm that a marginal internalization policy would remove.
 
-\subsection{Pigouvian blame via private gains from underpricing}
-One principled blame rule is to allocate $\Delta H$ in proportion to each agent's private surplus \emph{gain} from moving from the Pigouvian outcome to the unregulated outcome.
+\subsection{Pigouvian causal contribution via private gains from underpricing}
+One principled contribution rule is to allocate $\Delta H$ in proportion to each agent's private surplus \emph{gain} from moving from the Pigouvian outcome to the unregulated outcome.
 
 Let each consumer $j$ have (quasi-linear) indirect surplus at price $p$:
 \begin{equation}
@@ -513,8 +521,8 @@ Let total private gain be
 \Delta \Pi \triangleq \sum_{j\in \mathcal{C}}\Delta CS_j + \sum_{i\in \mathcal{P}}\Delta PS_i.
 \end{equation}
 
-\paragraph{Pigouvian blame allocation.}
-Define blame shares
+\paragraph{Pigouvian causal-contribution allocation.}
+Define contribution shares
 \begin{equation}
 B_a \triangleq
 \Delta H\cdot \frac{\Delta \Pi_a}{\Delta \Pi},
@@ -532,19 +540,20 @@ Then
 \end{equation}
 
 \subsection{Interpretation and variants}
-Equation \eqref{eq:pigblame} ties avoidable-harm blame to who privately benefits from the uninternalized externality. Alternative Pigouvian blame notions include allocating by tax incidence (who bears welfare losses under the Pigouvian policy), by marginal contributions to the wedge, or by ability-to-abate. The key structural step is always the decomposition
+Equation \eqref{eq:pigblame} ties avoidable-harm causal contribution to who privately benefits from the uninternalized externality; note that this is best read as an \emph{unjust-enrichment}-style contribution rule rather than a fault-based one, since it says nothing about whether an agent could have known or acted otherwise. Alternative Pigouvian contribution notions include allocating by tax incidence (who bears welfare losses under the Pigouvian policy), by marginal contributions to the wedge, or by ability-to-abate. The key structural step is always the decomposition
 \begin{equation}
 H^\star = H^{\text{soc}} + \Delta H,
 \end{equation}
-and deciding which component (or both) is the object of moral allocation.
+and deciding which component (or both) is the object of allocation.
 
-\section{Imperfect Information: Ex Ante Responsibility}
-So far, curves are treated as known objects for the analyst. In many settings, agents do not know others' supply/demand schedules; they may observe only prices. This motivates an \emph{ex ante} perspective.
+\section{Imperfect Information: Ex Ante Contribution}
+\label{sec:exante}
+So far, curves are treated as known objects for the analyst. In many settings, agents do not know others' supply/demand schedules; they may observe only prices. This motivates an \emph{ex ante} perspective, which also offers one natural route toward the fault-sensitive notion of responsibility discussed in Section~\ref{sec:contribution_vs_blame}: conditioning contribution on what an agent could plausibly have known moves the measure a step closer to culpability, though it still stops short of a full account of blame, which would also need to consider available alternatives and standards of care.
 
 Let each producer have a private type $\theta_i$ determining $s_i(p;\theta_i)$ and each consumer a private type $\eta_j$ determining $d_j(p;\eta_j)$. Let $\omega=(\theta_1,\dots,\theta_N,\eta_1,\dots,\eta_M)$ be the type profile drawn from a common prior $\mathbb{P}$, and let $v_\omega(\cdot)$ be the realized characteristic function induced by $\omega$.
 
 \paragraph{Bayesian realized-harm attribution.}
-For any realized-harm attribution rule $R_a(\omega)$ (e.g., Shapley $\phi_a(v_\omega)$, or pivotality $\beta_a(\omega)$ computed from \eqref{eq:beta_prod}--\eqref{eq:beta_cons}), define ex ante responsibility as the expectation:
+For any realized-harm causal-contribution rule $R_a(\omega)$ (e.g., Shapley $\phi_a(v_\omega)$, or pivotality $\beta_a(\omega)$ computed from \eqref{eq:beta_prod}--\eqref{eq:beta_cons}), define ex ante contribution as the expectation:
 \begin{equation}
 \Phi_a \triangleq \mathbb{E}_\omega\big[R_a(\omega)\big].
 \end{equation}
@@ -554,7 +563,7 @@ If agent $a$ has information $\mathcal{I}_a$ (e.g., own type and observed price)
 \begin{equation}
 \Phi_a^{\text{info}} \triangleq \mathbb{E}\big[R_a(\omega)\mid \mathcal{I}_a\big],
 \end{equation}
-possibly supplemented by a risk-sensitive term capturing foreseeability of large contributions. This separates \emph{causal contribution} (ex post) from \emph{foreseeable responsibility} (ex ante).
+possibly supplemented by a risk-sensitive term capturing foreseeability of large contributions. This separates \emph{causal contribution} (ex post) from \emph{foreseeable responsibility} (ex ante); neither, on its own, is yet a complete account of moral blame in the sense of Section~\ref{sec:contribution_vs_blame}.
 
 \section{Symbolic Worked Examples (Two Producers, Three Consumers)}
 This section illustrates the mechanics with symbols only, for the case of two producers and three consumers:
@@ -576,7 +585,7 @@ Q(T)=S_T(p(T))=D_T(p(T)).
 \end{equation}
 The Shapley game is $v(T)=H(Q(T))$.
 
-\subsection{Shapley responsibility: explicit expansion for $P_1$}
+\subsection{Shapley contribution: explicit expansion for $P_1$}
 With $|\mathcal{N}|=5$, the Shapley value for $P_1$ is
 \begin{equation}
 \phi_{P_1}
@@ -616,7 +625,7 @@ Then the pivotality-based realized-harm allocation \eqref{eq:beta_prod}--\eqref{
 \end{align}
 These five shares sum to $H^\star$ by construction.
 
-\subsection{Pigouvian benchmark and blame in symbols}
+\subsection{Pigouvian benchmark and contribution in symbols}
 Let the unregulated equilibrium satisfy
 \begin{equation}
 S(p^\star)=D(p^\star),\qquad Q^\star=S(p^\star).
@@ -634,7 +643,7 @@ Avoidable harm is
 \begin{equation}
 \Delta H = H(Q^\star)-H(Q^{\text{soc}}).
 \end{equation}
-Pigouvian blame for each actor $a$ is then
+Pigouvian causal contribution for each actor $a$ is then
 \begin{equation}
 B_a=\Delta H\cdot \frac{\Delta \Pi_a}{\sum_{b\in \mathcal{N}} \Delta \Pi_b},
 \end{equation}
@@ -645,18 +654,18 @@ where (using \eqref{eq:cs} and \eqref{eq:pscost} for surplus)
 \end{align}
 
 \subsection{Discussion: realized-harm vs avoidable-harm objects}
-In the two-producer/three-consumer case, Shapley attribution and elasticity pivotality both allocate $H(Q^\star)$ across five players, but they operationalize ``pivotality'' differently: Shapley averages marginal contributions across coalition orderings, while pivotality allocates by local marginal influence on $Q^\star$ under proportional curve perturbations. Pigouvian blame allocates $\Delta H$ (the difference between the unregulated and internalized outcomes). These objects answer different moral questions:
+In the two-producer/three-consumer case, Shapley attribution and elasticity pivotality both allocate $H(Q^\star)$ across five players, but they operationalize ``pivotality'' differently: Shapley averages marginal contributions across coalition orderings, while pivotality allocates by local marginal influence on $Q^\star$ under proportional curve perturbations. Pigouvian contribution allocates $\Delta H$ (the difference between the unregulated and internalized outcomes). These objects answer different questions, all of which are causal-contribution questions rather than blame judgments (cf.\ Section~\ref{sec:contribution_vs_blame}):
 \begin{itemize}
 \item \textbf{Shapley:} ``Who causally contributes to the harm that actually occurs, under an order-averaged coalition notion?''
 \item \textbf{Elasticity pivotality:} ``Who is locally pivotal for the realized quantity, as measured by marginal comparative statics at the observed equilibrium?''
-\item \textbf{Pigouvian:} ``Who benefits from (and thus is blameworthy for) the harm that could be avoided by internalization?''
+\item \textbf{Pigouvian:} ``Who benefits from, and thus causally contributes to, the harm that could be avoided by internalization?''
 \end{itemize}
-A complete normative account may allocate both $H(Q^{\text{soc}})$ and $\Delta H$ under different principles.
+A complete normative account of blame would need to allocate both $H(Q^{\text{soc}})$ and $\Delta H$ under some further, fault-sensitive principle -- this paper provides the causal-contribution decomposition on which such a principle could be layered, but does not itself supply that principle.
 
 \section{Conclusion}
-This paper proposed three curve-based frameworks for distributing responsibility for harmful market externalities. Shapley attribution provides an axiomatic, coalition-based allocation of realized harm, while elasticity pivotality provides a local (comparative-statics) allocation of realized harm that can be expressed transparently in terms of slopes and elasticities at the observed equilibrium. Pigouvian-counterfactual blame uses the welfare-optimal benchmark to isolate avoidable harm and allocate it according to private gains from underpricing. The derivations were given for generic (nonlinear) individual supply and demand functions and illustrated symbolically for a small asymmetric market.
+This paper proposed three curve-based frameworks for distributing causal contribution to harmful market externalities. Shapley attribution provides an axiomatic, coalition-based allocation of realized harm, while elasticity pivotality provides a local (comparative-statics) allocation of realized harm that can be expressed transparently in terms of slopes and elasticities at the observed equilibrium. Pigouvian-counterfactual analysis uses the welfare-optimal benchmark to isolate avoidable harm and allocates causal contribution to it according to private gains from underpricing. The derivations were given for generic (nonlinear) individual supply and demand functions and illustrated symbolically for a small asymmetric market. As discussed in Section~\ref{sec:contribution_vs_blame}, all three measures quantify causal contribution to an outcome; none of them, on its own, constitutes a judgment of moral blame, which would additionally require accounting for fault, foreseeability, and the availability of less harmful alternatives.
 
-Several extensions are immediate: incorporating heterogeneous emissions intensity, adding abatement choices, treating uncertainty formally via Bayesian equilibria, and evaluating alternative welfare criteria (rights-based constraints, caps, distributional objectives) that change the definition of the ``acceptable'' benchmark harm.
+Several extensions are immediate: incorporating heterogeneous emissions intensity and avoidable-technology choice, adding abatement choices, treating uncertainty formally via Bayesian equilibria, evaluating alternative welfare criteria (rights-based constraints, caps, distributional objectives) that change the definition of the ``acceptable'' benchmark harm, and developing a fault-sensitive layer on top of the causal-contribution measures presented here that would be needed to move from contribution to genuine blame.
 
 \bibliographystyle{IEEEtran}
 % \bibliography{refs}
