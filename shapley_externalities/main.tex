@@ -1,0 +1,664 @@
+\documentclass[journal, a4paper]{IEEEtran}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{stfloats}
+\usepackage{placeins}
+\usepackage{url}
+\usepackage{cuted}
+\usepackage{amssymb}
+\usepackage{lipsum}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\sisetup{output-exponent-marker=\ensuremath{\mathrm{e}}}
+
+\begin{document}
+
+\title{Allocating Responsibility for Market Externalities: Shapley Attribution, Elasticity Pivotality, and Pigouvian Counterfactual Blame}
+
+\author{Jan~Ol\v{s}ina\\[1ex] Independent Researcher, Prague, Czech Republic\\
+email: \texttt{jan.olsina@gmail.com},  ORCID: \texttt{0009-0003-9816-3958}.}
+
+
+\maketitle
+
+\begin{abstract}
+When a competitive market outcome generates a harmful externality (e.g., CO$_2$ emissions), it is unclear how to distribute moral responsibility among heterogeneous producers and consumers. This paper proposes three complementary, curve-based frameworks. First, a cooperative-game attribution assigns each actor a share of realized harm via the Shapley value of a characteristic function induced by coalition-specific market clearing. Second, a local (marginal) pivotality framework allocates realized harm using comparative statics: each agent's responsibility is proportional to the sensitivity of equilibrium quantity to a small, proportional scaling of that agent's supply or demand curve; this yields an explicit elasticity-based decomposition. Third, a Pigouvian-counterfactual framework distinguishes (i) unavoidable harm at the welfare-optimal (internalized) outcome from (ii) avoidable excess harm due to underpricing the externality, and allocates the latter according to private gains from the uncorrected equilibrium. The paper develops all three approaches for generic (nonlinear) supply and demand functions, and illustrates symbolic worked examples for two producers and three consumers. We also discuss how imperfect information about others' curves motivates ex ante (Bayesian) responsibility measures and a separation between causal contribution and culpability.
+\end{abstract}
+
+\section{Introduction}
+Markets coordinate production and consumption through prices, but when traded goods generate harmful externalities, the equilibrium quantity can exceed the socially desirable level. Beyond standard policy prescriptions (taxes, caps, regulation), there is a normative question: \emph{how should moral blame or responsibility be distributed between producers and consumers}, especially when each agent has a different supply or demand curve?
+
+This paper formalizes three complementary answers based on primitives familiar from microeconomic theory. The first is an \emph{attribution} approach: responsibility is allocated for the realized harm produced by the actual market outcome, using a cooperative-game interpretation and Shapley values. The second is a \emph{local pivotality} approach: responsibility is allocated for realized harm based on each agent's marginal influence on equilibrium quantity under a small proportional perturbation of their curve, yielding an elasticity-based split between the producer and consumer sides. The third is a \emph{counterfactual} approach: responsibility is allocated for \emph{avoidable} harm by comparing the unregulated equilibrium to a Pigouvian benchmark and distributing the resulting harm gap according to the private benefits of underpricing.
+
+A key theme is that responsibility depends on (i) a harm model, (ii) an equilibrium/market-clearing institution, and (iii) a counterfactual baseline. We keep the environment simple (single good, competitive behavior, quantity-only harm) to highlight what is structural versus normative.
+
+\section{Setup}
+\subsection{Agents and curves}
+There are $N$ producers indexed by $i\in \mathcal{P}=\{1,\dots,N\}$ and $M$ consumers indexed by $j\in \mathcal{C}=\{1,\dots,M\}$. Let the set of all agents be $\mathcal{N}=\mathcal{P}\cup \mathcal{C}$.
+
+\paragraph{Supply.}
+Producer $i$ supplies
+\begin{equation}
+s_i(p)\ge 0,\qquad s_i'(p)\ge 0,
+\end{equation}
+for price $p\ge 0$.
+
+\paragraph{Demand.}
+Consumer $j$ demands
+\begin{equation}
+d_j(p)\ge 0,\qquad d_j'(p)\le 0.
+\end{equation}
+
+\paragraph{Aggregation.}
+Aggregate supply and demand are
+\begin{equation}
+S(p)=\sum_{i\in \mathcal{P}} s_i(p),\qquad D(p)=\sum_{j\in \mathcal{C}} d_j(p).
+\end{equation}
+
+\subsection{External harm}
+We assume a \emph{quantity-only} externality: total external harm depends on total traded quantity $Q$ via
+\begin{equation}
+H(Q),\qquad H(0)=0,\qquad H'(Q)\ge 0.
+\end{equation}
+We interpret $H(Q)$ as monetized damages, moral disvalue, or any agreed scalar measure of harm. The marginal harm is
+\begin{equation}
+MH(Q) \triangleq H'(Q).
+\end{equation}
+
+\subsection{Competitive equilibrium}
+A (Walrasian) competitive equilibrium price $p^\star$ solves
+\begin{equation}
+S(p^\star)=D(p^\star),
+\end{equation}
+with equilibrium quantity
+\begin{equation}
+Q^\star = S(p^\star)=D(p^\star),
+\end{equation}
+and realized harm
+\begin{equation}
+H^\star \triangleq H(Q^\star).
+\end{equation}
+
+\section{Shapley Attribution for Realized Harm}
+\subsection{Characteristic function via coalition markets}
+To allocate responsibility for realized harm, we define a cooperative game where the \emph{value} of a coalition is the harm it generates when only members of the coalition participate in the market.
+
+Let $T\subseteq \mathcal{N}$ be a coalition. Define coalition supply and demand:
+\begin{equation}
+S_T(p)=\sum_{i\in T\cap \mathcal{P}} s_i(p),\qquad
+D_T(p)=\sum_{j\in T\cap \mathcal{C}} d_j(p).
+\end{equation}
+A coalition market-clearing price $p(T)$ solves
+\begin{equation}
+S_T(p(T))=D_T(p(T)),
+\end{equation}
+whenever $T$ contains at least one producer and one consumer and a clearing price exists. Define the coalition quantity as
+\begin{equation}
+Q(T)=S_T(p(T))=D_T(p(T)).
+\end{equation}
+For coalitions that cannot trade (no producers or no consumers, or no clearing), we set $Q(T)=0$.
+
+\paragraph{Quantity-only harm game.}
+Define the characteristic function
+\begin{equation}
+v(T)\triangleq H(Q(T)).
+\label{eq:charfunc}
+\end{equation}
+This encodes the idea that harm is jointly produced by the coalition's capacity to supply and willingness to demand.
+
+\subsection{Shapley value}
+The Shapley value assigns each agent $a\in \mathcal{N}$ a responsibility share
+\begin{equation}
+\phi_a(v)\;=\mspace{-13mu}\sum_{T\subseteq \mathcal{N}\setminus\{a\}}
+\frac{|T|!\,(|\mathcal{N}|-|T|-1)!}{|\mathcal{N}|!}\Big(v(T\cup\{a\})-v(T)\Big).
+\label{eq:shapley}
+\end{equation}
+Interpretation: $\phi_a(v)$ is the expected marginal increase in harm caused by adding agent $a$ to a random ordering of all agents.
+
+\paragraph{Budget balance.}
+Because $v(\varnothing)=0$, the Shapley value satisfies
+\begin{equation}
+\sum_{a\in \mathcal{N}} \phi_a(v)=v(\mathcal{N})=H(Q^\star)=H^\star,
+\end{equation}
+so total responsibility equals realized harm.
+
+\subsection{Quantity-only specialization}
+A commonly used special case sets
+\begin{equation}
+H(Q)=\kappa Q,\qquad \kappa>0,
+\label{eq:linearharm}
+\end{equation}
+so that $v(T)=\kappa Q(T)$. Then Shapley responsibility is linear in coalition quantities:
+\begin{equation}
+\phi_a(v)=\kappa\cdot \phi_a(Q),
+\end{equation}
+where $\phi_a(Q)$ is computed from \eqref{eq:shapley} with $v(T)=Q(T)$.
+
+
+\subsection{Closed-form Shapley attribution for identical linear agents}
+\label{sec:shapley_linear_identical}
+This subsection provides an explicit Shapley attribution in a tractable special case: $N_P$ identical producers and $N_C$ identical consumers with linear (truncated) curves, and quantity-only harm. The goal is to make the dependence of the producer--consumer split on slope parameters transparent.
+
+\paragraph{Identical truncated-linear curves.}
+Let each producer have supply
+\begin{equation}
+q^s(p)=\max\{0,\ \alpha p-\gamma\},\qquad \alpha>0,
+\label{eq:lin_supply}
+\end{equation}
+and each consumer have demand
+\begin{equation}
+q^d(p)=\max\{0,\ \delta-\beta p\},\qquad \beta>0.
+\label{eq:lin_demand}
+\end{equation}
+Define the overlap parameter
+\begin{equation}
+X \triangleq \alpha\delta-\beta\gamma.
+\label{eq:X_def}
+\end{equation}
+If $X\le 0$ (equivalently $\delta/\beta\le \gamma/\alpha$), there is no price at which both sides are simultaneously positive, so every coalition trades $0$ and all Shapley attributions are $0$. Below we assume $X>0$.
+
+\paragraph{Coalition equilibrium quantity.}
+For any coalition containing $m\in\{0,1,\dots,N_P\}$ producers and $n\in\{0,1,\dots,N_C\}$ consumers, aggregate (untruncated) supply and demand are
+\begin{equation}
+Q_m^s(p)=m(\alpha p-\gamma),\qquad Q_n^d(p)=n(\delta-\beta p).
+\end{equation}
+For $m,n>0$, coalition market clearing yields
+\begin{equation}
+p(m,n)=\frac{n\delta+m\gamma}{m\alpha+n\beta},
+\end{equation}
+and the cleared coalition quantity is
+\begin{equation}
+Q(m,n)
+=\frac{mn(\alpha\delta-\beta\gamma)}{m\alpha+n\beta}
+=\frac{mnX}{m\alpha+n\beta}.
+\label{eq:Qmn}
+\end{equation}
+When $X>0$, the clearing price $p(m,n)$ lies between $\gamma/\alpha$ and $\delta/\beta$, so truncation does not bind and \eqref{eq:Qmn} is valid. We therefore define the quantity-only characteristic function
+\begin{equation}
+v(m,n)=
+\begin{cases}
+0, & m=0\ \text{or}\ n=0,\\[4pt]
+\displaystyle H(Q(m,n)), & m,n>0,
+\end{cases}
+\end{equation}
+and in the linear-harm case \eqref{eq:linearharm} this reduces to $v(m,n)=\kappa Q(m,n)$.
+
+\paragraph{Marginal contribution of an additional producer.}
+Fix a particular producer. Consider a predecessor set in a Shapley permutation containing
+\begin{align*}
+i&\in\{0,\dots,N_P-1\}\ \text{other producers},\\
+j&\in\{0,\dots,N_C\}\ \text{consumers}.
+\end{align*}
+For $j=0$, trade is impossible and the marginal contribution is zero. For $j\ge 1$, the marginal increase in coalition quantity from adding one producer is
+\begin{align}
+\Delta_P(i,j)
+&\triangleq Q(i+1,j)-Q(i,j)\nonumber\\
+&=\frac{j^2\,\beta\,X}{(i\alpha+j\beta)\big((i+1)\alpha+j\beta\big)}.
+\label{eq:DeltaP}
+\end{align}
+
+\paragraph{Exact Shapley value for one producer (finite sum).}
+Let $n_{\mathrm{tot}}=N_P+N_C$ be the total number of agents. In the Shapley formula \eqref{eq:shapley}, each predecessor set $T$ with $|T|=k$ carries weight
+\begin{equation}
+\frac{k!\,(n_{\mathrm{tot}}-k-1)!}{n_{\mathrm{tot}}!}
+=\frac{1}{n_{\mathrm{tot}}}\cdot\frac{1}{\binom{n_{\mathrm{tot}}-1}{k}}.
+\label{eq:shapley_weight_binom}
+\end{equation}
+The number of predecessor sets with $(i,j)$ composition is $\binom{N_P-1}{i}\binom{N_C}{j}$, and $k=i+j$. Thus, for linear harm $H(Q)=\kappa Q$ the Shapley responsibility of one producer is
+\begin{equation}
+\phi_P
+=
+\kappa\sum_{i=0}^{N_P-1}\sum_{j=1}^{N_C}
+\binom{N_P-1}{i}\binom{N_C}{j}\;
+\frac{1}{n_{\mathrm{tot}}}\frac{1}{\binom{n_{\mathrm{tot}}-1}{i+j}}\;
+\Delta_P(i,j),
+\label{eq:phiP_general}
+\end{equation}
+with $\Delta_P(i,j)$ given by \eqref{eq:DeltaP}. By symmetry, all producers receive the same $\phi_P$.
+
+\paragraph{Total producer-side Shapley blame.}
+The combined Shapley responsibility of all producers is
+\begin{equation}
+B_P^{\mathrm{Sh}}=N_P\,\phi_P,
+\label{eq:BPSh_def}
+\end{equation}
+and budget balance implies $B_P^{\mathrm{Sh}}+B_C^{\mathrm{Sh}}=\kappa Q(N_P,N_C)$ where
+\begin{equation}
+Q(N_P,N_C)=\frac{N_PN_CX}{N_P\alpha+N_C\beta}.
+\label{eq:Q_grand}
+\end{equation}
+It is often convenient to consider the producer share of realized-harm responsibility,
+\begin{equation}
+s_P^{\mathrm{Sh}}
+\triangleq
+\frac{B_P^{\mathrm{Sh}}}{\kappa Q(N_P,N_C)}.
+\label{eq:sP_def}
+\end{equation}
+Because both numerator and denominator are proportional to $X$, the share $s_P^{\mathrm{Sh}}$ depends on $\gamma,\delta$ only through the feasibility condition $X>0$, and otherwise depends on $(N_P,N_C)$ and the slope ratio
+\begin{equation}
+r\triangleq \frac{\alpha}{\beta}.
+\label{eq:r_def}
+\end{equation}
+
+\paragraph{Simple limiting cases.}
+The Shapley share \eqref{eq:sP_def} admits transparent limits as $r$ varies.
+
+\begin{itemize}
+\item \textbf{Inelastic supply ($r\to 0$).} In this limit, for $j\ge 1$ the coalition quantity becomes essentially independent of $j$:
+\begin{equation}
+Q(m,n)=\frac{mnX}{m\alpha+n\beta}\xrightarrow[r\to 0]{}\frac{mX}{\beta}\qquad (n>0),
+\end{equation}
+so each additional producer adds approximately $X/\beta$ once any consumer is present. Under random arrival orderings, the expected fraction of producers arriving after the first consumer is $N_C/(N_C+1)$, yielding
+\begin{equation}
+s_P^{\mathrm{Sh}} \xrightarrow[r\to 0]{} \frac{N_C}{N_C+1},
+\qquad
+1-s_P^{\mathrm{Sh}} \xrightarrow[r\to 0]{} \frac{1}{N_C+1}.
+\label{eq:limit_r0}
+\end{equation}
+
+\item \textbf{Elastic supply ($r\to \infty$).} In this limit, for $m\ge 1$ the coalition quantity becomes essentially independent of $m$:
+\begin{equation}
+Q(m,n)\xrightarrow[r\to \infty]{}\frac{nX}{\alpha}\qquad (m>0),
+\end{equation}
+so only the first producer to arrive matters. The producer-side Shapley share tends to
+\begin{equation}
+s_P^{\mathrm{Sh}} \xrightarrow[r\to \infty]{} \frac{1}{N_P+1},
+\qquad
+1-s_P^{\mathrm{Sh}} \xrightarrow[r\to \infty]{} \frac{N_P}{N_P+1}.
+\label{eq:limit_rinf}
+\end{equation}
+
+\item \textbf{Symmetry point ($N_P=N_C$ and $r=1$).} When the two groups have equal counts and equal slopes ($\alpha=\beta$), the value function $Q(m,n)$ is invariant under exchanging the labels ``producer'' and ``consumer''. By Shapley symmetry, the total blame must split evenly:
+\begin{equation}
+N_P=N_C,\ r=1
+\quad\Rightarrow\quad
+s_P^{\mathrm{Sh}}=\frac{1}{2}.
+\label{eq:symmetry_half}
+\end{equation}
+\end{itemize}
+
+\paragraph{Remark (comparison to elasticity pivotality).}
+The limiting formulas \eqref{eq:limit_r0}--\eqref{eq:limit_rinf} provide a global (order-averaged) notion of producer pivotality. By contrast, Section~\ref{sec:elasticity} shows that local pivotality at the observed equilibrium yields producer-side share $\Sigma_D/(\Sigma_S+\Sigma_D)$; in linear symmetric environments these two measures often agree qualitatively, but generally differ because Shapley attribution averages marginal contributions across the entire coalition lattice rather than taking a local derivative at the grand-coalition equilibrium.
+
+
+\subsection{Remarks}
+The Shapley attribution depends on (i) the coalition trading rule (here, coalition-specific competitive equilibrium) and (ii) the harm function. It allocates realized harm without invoking a policy baseline. Normatively, it corresponds to a cooperative ``causal contribution'' concept: who is pivotal for the market outcome that generates harm, averaged across coalition orderings. Section~\ref{sec:elasticity} develops a complementary local (marginal) pivotality measure that yields closed-form expressions in terms of slopes and elasticities at the observed equilibrium.
+
+\section{Local Pivotality Attribution via Elasticities}
+\label{sec:elasticity}
+Shapley values allocate realized harm by averaging marginal contributions across all coalition orderings. A complementary approach keeps the full market fixed and measures \emph{local pivotality}: how sensitive the equilibrium quantity is to a small, proportional change in a given agent's participation. This produces an attribution that is (i) curve-based, (ii) interpretable via comparative statics and incidence, and (iii) computable from local slope/elasticity information at equilibrium.
+
+\subsection{Proportional participation perturbations}
+Introduce participation (scaling) parameters $\lambda_i>0$ for producers and $\mu_j>0$ for consumers:
+\begin{equation}
+S(p;\lambda)=\sum_{i\in\mathcal{P}} \lambda_i s_i(p),\qquad
+D(p;\mu)=\sum_{j\in\mathcal{C}} \mu_j d_j(p),
+\end{equation}
+with baseline $\lambda_i=\mu_j=1$ for all $i,j$. The (perturbed) market-clearing condition is
+\begin{equation}
+F(p;\lambda,\mu)\triangleq S(p;\lambda)-D(p;\mu)=0.
+\label{eq:F}
+\end{equation}
+Define log-parameters $\theta_i\triangleq \ln \lambda_i$ and $\psi_j\triangleq \ln \mu_j$. A differential $d\theta_i$ is an equal proportional (percent) perturbation across agents.
+
+Let $p(\lambda,\mu)$ be the clearing price solving \eqref{eq:F}, and define the corresponding cleared quantity
+\begin{equation}
+Q(\lambda,\mu)\triangleq S(p(\lambda,\mu);\lambda)=D(p(\lambda,\mu);\mu).
+\end{equation}
+We write $p^\star=p(\mathbf{1},\mathbf{1})$ and $Q^\star=Q(\mathbf{1},\mathbf{1})$ for the baseline equilibrium.
+
+\subsection{Comparative statics at equilibrium}
+Assume differentiability and that the implicit-function regularity condition holds at $(p^\star,\mathbf{1},\mathbf{1})$:
+\begin{equation}
+F_p(p^\star;\mathbf{1},\mathbf{1})=S'(p^\star)-D'(p^\star)>0,
+\end{equation}
+where $S'(p)=\sum_{i} s_i'(p)$ and $D'(p)=\sum_{j} d_j'(p)\le 0$. Define the positive slope aggregates
+\begin{equation}
+A \triangleq S'(p^\star)=\sum_{i\in\mathcal{P}} s_i'(p^\star),\qquad
+B \triangleq -D'(p^\star)= -\sum_{j\in\mathcal{C}} d_j'(p^\star),
+\label{eq:AB}
+\end{equation}
+so that $F_p=A+B$.
+
+Let each producer's equilibrium quantity be $q_i^\star \triangleq s_i(p^\star)$ and each consumer's equilibrium quantity be $x_j^\star \triangleq d_j(p^\star)$, so $\sum_i q_i^\star=\sum_j x_j^\star=Q^\star$.
+
+\paragraph{Producer pivotality.}
+Differentiate \eqref{eq:F} with respect to $\theta_i$ at baseline. Since $\partial S/\partial \theta_i=\lambda_i s_i(p)$ and $\partial D/\partial \theta_i=0$,
+\begin{equation}
+\frac{\partial p}{\partial \theta_i}\Big|_\star = -\frac{q_i^\star}{A+B}.
+\label{eq:dp_dtheta}
+\end{equation}
+The derivative of cleared quantity with respect to $\theta_i$ is
+\begin{equation}
+\frac{\partial Q}{\partial \theta_i}\Big|_\star
+=
+\underbrace{q_i^\star}_{\text{direct scale}}
++
+\underbrace{A\,\frac{\partial p}{\partial \theta_i}\Big|_\star}_{\text{price feedback}}
+=
+q_i^\star\left(1-\frac{A}{A+B}\right)
+=
+q_i^\star\,\frac{B}{A+B}.
+\label{eq:dQ_dtheta}
+\end{equation}
+
+\paragraph{Consumer pivotality.}
+Similarly, for $\psi_j$ we have $\partial D/\partial \psi_j=\mu_j d_j(p)$ and $\partial S/\partial \psi_j=0$, so
+\begin{equation}
+\frac{\partial p}{\partial \psi_j}\Big|_\star = +\frac{x_j^\star}{A+B},
+\end{equation}
+and the cleared quantity response is
+\begin{equation}
+\frac{\partial Q}{\partial \psi_j}\Big|_\star
+=
+A\,\frac{\partial p}{\partial \psi_j}\Big|_\star
+=
+x_j^\star\,\frac{A}{A+B}.
+\label{eq:dQ_dpsi}
+\end{equation}
+
+\paragraph{Normalization.}
+Summing \eqref{eq:dQ_dtheta} and \eqref{eq:dQ_dpsi} over all agents yields
+\begin{equation}
+\sum_{i\in\mathcal{P}}\frac{\partial Q}{\partial \theta_i}\Big|_\star
++
+\sum_{j\in\mathcal{C}}\frac{\partial Q}{\partial \psi_j}\Big|_\star
+=
+\frac{B}{A+B}\sum_i q_i^\star+\frac{A}{A+B}\sum_j x_j^\star
+=
+Q^\star,
+\label{eq:pivotal_sum}
+\end{equation}
+so pivotality weights aggregate to total quantity.
+
+\subsection{Elasticity representation}
+Define individual point elasticities at equilibrium:
+\begin{equation}
+\eta_i \triangleq \frac{p^\star}{q_i^\star}\,s_i'(p^\star)\quad(>0),\qquad
+\varepsilon_j \triangleq -\frac{p^\star}{x_j^\star}\,d_j'(p^\star)\quad(>0).
+\end{equation}
+Then
+\begin{equation}
+A=\frac{1}{p^\star}\sum_{i\in\mathcal{P}}\eta_i q_i^\star,\qquad
+B=\frac{1}{p^\star}\sum_{j\in\mathcal{C}}\varepsilon_j x_j^\star.
+\label{eq:AB_elast}
+\end{equation}
+Define
+\begin{equation}
+\Sigma_S \triangleq \sum_{i\in\mathcal{P}}\eta_i q_i^\star,\qquad
+\Sigma_D \triangleq \sum_{j\in\mathcal{C}}\varepsilon_j x_j^\star.
+\label{eq:SigmaSD}
+\end{equation}
+Then $\frac{B}{A+B}=\frac{\Sigma_D}{\Sigma_S+\Sigma_D}$ and $\frac{A}{A+B}=\frac{\Sigma_S}{\Sigma_S+\Sigma_D}$.
+
+\subsection{Pivotality-based blame allocation for realized harm}
+Let pivotality weights be the quantity sensitivities:
+\begin{equation}
+w_{P_i}\triangleq \frac{\partial Q}{\partial \theta_i}\Big|_\star,\qquad
+w_{C_j}\triangleq \frac{\partial Q}{\partial \psi_j}\Big|_\star.
+\end{equation}
+A natural realized-harm allocation assigns shares proportional to these weights:
+\begin{equation}
+\beta_a \triangleq H^\star\cdot \frac{w_a}{Q^\star},\qquad a\in\mathcal{N}.
+\label{eq:beta_def}
+\end{equation}
+By \eqref{eq:pivotal_sum}, the allocation is budget balanced: $\sum_{a\in\mathcal{N}}\beta_a=H^\star$.
+
+Combining \eqref{eq:dQ_dtheta}--\eqref{eq:dQ_dpsi} with \eqref{eq:beta_def}, we obtain explicit formulas:
+\begin{align}
+\beta_{P_i}
+&=
+H^\star\cdot \frac{q_i^\star}{Q^\star}\cdot \frac{B}{A+B}
+=
+H^\star\cdot \frac{q_i^\star}{Q^\star}\cdot \frac{\Sigma_D}{\Sigma_S+\Sigma_D},
+\qquad i\in\mathcal{P},
+\label{eq:beta_prod}\\
+\beta_{C_j}
+&=
+H^\star\cdot \frac{x_j^\star}{Q^\star}\cdot \frac{A}{A+B}
+=
+H^\star\cdot \frac{x_j^\star}{Q^\star}\cdot \frac{\Sigma_S}{\Sigma_S+\Sigma_D},
+\qquad j\in\mathcal{C}.
+\label{eq:beta_cons}
+\end{align}
+Thus, the producer-side share of realized-harm responsibility is $\Sigma_D/(\Sigma_S+\Sigma_D)$ and the consumer-side share is $\Sigma_S/(\Sigma_S+\Sigma_D)$, with within-side allocations proportional to equilibrium quantities.
+
+\section{Pigouvian Counterfactual Blame}
+Shapley attribution and elasticity pivotality allocate the harm produced by the actual outcome. A different moral question is: \emph{how much of that harm is avoidable given the existence of a welfare-improving internalization policy?} Pigouvian analysis provides a canonical counterfactual.
+
+\subsection{Welfare and the efficient quantity}
+Assume aggregate demand and supply are invertible (at least locally) so we can define inverse demand and supply:
+\begin{equation}
+p_D(Q) = D^{-1}(Q),\qquad p_S(Q)=S^{-1}(Q),
+\end{equation}
+with $p_D'(Q)\le 0$, $p_S'(Q)\ge 0$.
+
+Define utilitarian social welfare (quasi-linear, no income effects) as
+\begin{equation}
+W(Q)=\int_0^Q p_D(q)\,dq - \int_0^Q p_S(q)\,dq - H(Q).
+\label{eq:welfare}
+\end{equation}
+An interior welfare optimum $Q^{\text{soc}}$ satisfies the first-order condition
+\begin{equation}
+p_D(Q^{\text{soc}})=p_S(Q^{\text{soc}})+MH(Q^{\text{soc}}).
+\label{eq:foceff}
+\end{equation}
+This is the standard \emph{marginal benefit equals marginal social cost} rule.
+
+\subsection{Pigouvian tax schedule and implementation}
+Consider a per-unit tax (or fee) $t$ that creates a wedge between consumer and producer prices:
+\begin{equation}
+p_c - p_p = t.
+\end{equation}
+With a constant tax $t$, equilibrium must satisfy
+\begin{equation}
+S(p_p)=D(p_c),\qquad p_c=p_p+t.
+\end{equation}
+Equivalently, in $p_c$ alone:
+\begin{equation}
+S(p_c-t)=D(p_c).
+\label{eq:wedgeeq}
+\end{equation}
+
+In general, if marginal harm varies with $Q$, the Pigouvian instrument is a \emph{schedule}:
+\begin{equation}
+t(Q)=MH(Q).
+\label{eq:pigtaxschedule}
+\end{equation}
+At any implemented quantity $Q$, market equilibrium implies $p_c=p_D(Q)$ and $p_p=p_S(Q)$, and thus
+\begin{equation}
+p_D(Q)-p_S(Q)=t(Q).
+\end{equation}
+Setting $t(Q)=MH(Q)$ yields \eqref{eq:foceff}, implementing $Q^{\text{soc}}$ under standard regularity assumptions.
+
+\subsection{Avoidable harm and the counterfactual gap}
+Define the Pigouvian benchmark harm
+\begin{equation}
+H^{\text{soc}} \triangleq H(Q^{\text{soc}}),
+\end{equation}
+and the \emph{avoidable (excess) harm} due to underpricing as
+\begin{equation}
+\Delta H \triangleq H(Q^\star)-H(Q^{\text{soc}})=H^\star-H^{\text{soc}} \ge 0.
+\label{eq:deltaH}
+\end{equation}
+The Pigouvian counterfactual does \emph{not} declare $H^{\text{soc}}$ morally ``fine'' in an absolute sense; rather, it is the harm level consistent with maximizing \eqref{eq:welfare} under the model's welfare criterion. The counterfactual gap $\Delta H$ isolates harm that a marginal internalization policy would remove.
+
+\subsection{Pigouvian blame via private gains from underpricing}
+One principled blame rule is to allocate $\Delta H$ in proportion to each agent's private surplus \emph{gain} from moving from the Pigouvian outcome to the unregulated outcome.
+
+Let each consumer $j$ have (quasi-linear) indirect surplus at price $p$:
+\begin{equation}
+CS_j(p)=\int_{p}^{\infty} d_j(x)\,dx,
+\label{eq:cs}
+\end{equation}
+assuming the integral exists (e.g., compact support or sufficiently fast decay). Let each producer $i$ have producer surplus at producer price $p$:
+\begin{equation}
+PS_i(p)=\int_{0}^{p} s_i(x)\,dx - \int_0^{s_i(p)} MC_i(q)\,dq,
+\end{equation}
+or, equivalently, when supply is derived from a convex cost function $C_i(q)$:
+\begin{equation}
+PS_i(p)=p\,s_i(p)-C_i(s_i(p)).
+\label{eq:pscost}
+\end{equation}
+
+Let $(p_c^{\text{soc}},p_p^{\text{soc}})$ denote the consumer and producer prices at the Pigouvian-implemented allocation (with wedge $t(Q^{\text{soc}})$), and let $p^\star$ denote the unregulated market price (where $p_c=p_p=p^\star$).
+
+Define each agent's private gain from underpricing:
+\begin{align}
+\Delta CS_j &\triangleq CS_j(p^\star)-CS_j(p_c^{\text{soc}}),\\
+\Delta PS_i &\triangleq PS_i(p^\star)-PS_i(p_p^{\text{soc}}).
+\end{align}
+Let total private gain be
+\begin{equation}
+\Delta \Pi \triangleq \sum_{j\in \mathcal{C}}\Delta CS_j + \sum_{i\in \mathcal{P}}\Delta PS_i.
+\end{equation}
+
+\paragraph{Pigouvian blame allocation.}
+Define blame shares
+\begin{equation}
+B_a \triangleq
+\Delta H\cdot \frac{\Delta \Pi_a}{\Delta \Pi},
+\qquad
+\Delta \Pi_a=
+\begin{cases}
+\Delta PS_a, & a\in \mathcal{P},\\
+\Delta CS_a, & a\in \mathcal{C}.
+\end{cases}
+\label{eq:pigblame}
+\end{equation}
+Then
+\begin{equation}
+\sum_{a\in \mathcal{N}} B_a = \Delta H.
+\end{equation}
+
+\subsection{Interpretation and variants}
+Equation \eqref{eq:pigblame} ties avoidable-harm blame to who privately benefits from the uninternalized externality. Alternative Pigouvian blame notions include allocating by tax incidence (who bears welfare losses under the Pigouvian policy), by marginal contributions to the wedge, or by ability-to-abate. The key structural step is always the decomposition
+\begin{equation}
+H^\star = H^{\text{soc}} + \Delta H,
+\end{equation}
+and deciding which component (or both) is the object of moral allocation.
+
+\section{Imperfect Information: Ex Ante Responsibility}
+So far, curves are treated as known objects for the analyst. In many settings, agents do not know others' supply/demand schedules; they may observe only prices. This motivates an \emph{ex ante} perspective.
+
+Let each producer have a private type $\theta_i$ determining $s_i(p;\theta_i)$ and each consumer a private type $\eta_j$ determining $d_j(p;\eta_j)$. Let $\omega=(\theta_1,\dots,\theta_N,\eta_1,\dots,\eta_M)$ be the type profile drawn from a common prior $\mathbb{P}$, and let $v_\omega(\cdot)$ be the realized characteristic function induced by $\omega$.
+
+\paragraph{Bayesian realized-harm attribution.}
+For any realized-harm attribution rule $R_a(\omega)$ (e.g., Shapley $\phi_a(v_\omega)$, or pivotality $\beta_a(\omega)$ computed from \eqref{eq:beta_prod}--\eqref{eq:beta_cons}), define ex ante responsibility as the expectation:
+\begin{equation}
+\Phi_a \triangleq \mathbb{E}_\omega\big[R_a(\omega)\big].
+\end{equation}
+
+\paragraph{Information-conditioned culpability.}
+If agent $a$ has information $\mathcal{I}_a$ (e.g., own type and observed price), a culpability-oriented measure can be defined by conditioning:
+\begin{equation}
+\Phi_a^{\text{info}} \triangleq \mathbb{E}\big[R_a(\omega)\mid \mathcal{I}_a\big],
+\end{equation}
+possibly supplemented by a risk-sensitive term capturing foreseeability of large contributions. This separates \emph{causal contribution} (ex post) from \emph{foreseeable responsibility} (ex ante).
+
+\section{Symbolic Worked Examples (Two Producers, Three Consumers)}
+This section illustrates the mechanics with symbols only, for the case of two producers and three consumers:
+\begin{align}
+\mathcal{P}&=\{P_1,P_2\},\\
+\mathcal{C}&=\{C_1,C_2,C_3\},\\
+\mathcal{N}&=\{P_1,P_2,C_1,C_2,C_3\}.
+\end{align}
+
+\subsection{Generic coalition quantities}
+For any coalition $T\subseteq \mathcal{N}$, define
+\begin{equation}
+S_T(p)=\sum_{P_i\in T} s_i(p),\qquad
+D_T(p)=\sum_{C_j\in T} d_j(p).
+\end{equation}
+Coalition market clearing yields $p(T)$ such that $S_T(p(T))=D_T(p(T))$ and
+\begin{equation}
+Q(T)=S_T(p(T))=D_T(p(T)).
+\end{equation}
+The Shapley game is $v(T)=H(Q(T))$.
+
+\subsection{Shapley responsibility: explicit expansion for $P_1$}
+With $|\mathcal{N}|=5$, the Shapley value for $P_1$ is
+\begin{equation}
+\phi_{P_1}
+=\mspace{-20mu}
+\sum_{T\subseteq \mathcal{N}\setminus\{P_1\}}\mspace{-15mu}
+\frac{|T|!\,(4-|T|)!}{5!}\big(H(Q(T\cup\{P_1\}))-H(Q(T))\big).
+\end{equation}
+Writing $\mathcal{N}\setminus\{P_1\}=\{P_2,C_1,C_2,C_3\}$, we can group terms by $k=|T|$:
+\begin{align}
+\phi_{P_1}&=\sum_{k=0}^{4} w_k \mspace{-33mu} \sum_{\substack{|T|=k\\T\subseteq \{P_2,C_1,C_2,C_3\} }}\mspace{-33mu}
+\big(H(Q(T\cup\{P_1\}))-H(Q(T))\big),\\[1ex]
+w_k&\triangleq \frac{k!\,(4-k)!}{5!}.
+\end{align}
+This expression is fully symbolic; evaluation reduces to computing the relevant coalition equilibrium quantities $Q(T)$.
+
+\subsection{Elasticity pivotality: explicit realized-harm shares}
+Let $(p^\star,Q^\star)$ be the unregulated equilibrium. Define equilibrium individual quantities
+\begin{align}
+q_1^\star&=s_1(p^\star),\; q_2^\star=s_2(p^\star),\\
+x_1^\star&=d_1(p^\star),\; x_2^\star=d_2(p^\star),\; x_3^\star=d_3(p^\star),
+\end{align}
+with $Q^\star=q_1^\star+q_2^\star=x_1^\star+x_2^\star+x_3^\star$.
+Define point elasticities
+\begin{align}
+\eta_1&=\frac{p^\star}{q_1^\star}s_1'(p^\star),\quad
+\eta_2=\frac{p^\star}{q_2^\star}s_2'(p^\star),\\
+\varepsilon_j&=-\frac{p^\star}{x_j^\star}d_j'(p^\star),\; j=1,2,3.
+\end{align}
+Let $\Sigma_S=\eta_1 q_1^\star+\eta_2 q_2^\star$ and $\Sigma_D=\varepsilon_1 x_1^\star+\varepsilon_2 x_2^\star+\varepsilon_3 x_3^\star$.
+Then the pivotality-based realized-harm allocation \eqref{eq:beta_prod}--\eqref{eq:beta_cons} gives
+\begin{align}
+\beta_{P_1} &= H^\star\cdot \frac{q_1^\star}{Q^\star}\cdot \frac{\Sigma_D}{\Sigma_S+\Sigma_D},\\
+\beta_{P_2} &= H^\star\cdot \frac{q_2^\star}{Q^\star}\cdot \frac{\Sigma_D}{\Sigma_S+\Sigma_D},\\[2ex]
+\beta_{C_1} &= H^\star\cdot \frac{x_1^\star}{Q^\star}\cdot \frac{\Sigma_S}{\Sigma_S+\Sigma_D},\\
+\beta_{C_2} &= H^\star\cdot \frac{x_2^\star}{Q^\star}\cdot \frac{\Sigma_S}{\Sigma_S+\Sigma_D},\\
+\beta_{C_3} &= H^\star\cdot \frac{x_3^\star}{Q^\star}\cdot \frac{\Sigma_S}{\Sigma_S+\Sigma_D}.
+\end{align}
+These five shares sum to $H^\star$ by construction.
+
+\subsection{Pigouvian benchmark and blame in symbols}
+Let the unregulated equilibrium satisfy
+\begin{equation}
+S(p^\star)=D(p^\star),\qquad Q^\star=S(p^\star).
+\end{equation}
+Let the welfare optimum solve
+\begin{equation}
+p_D(Q^{\text{soc}})=p_S(Q^{\text{soc}})+MH(Q^{\text{soc}}),
+\end{equation}
+with Pigouvian schedule $t(Q)=MH(Q)$ and corresponding prices
+\begin{align}
+p_c^{\text{soc}}&=p_D(Q^{\text{soc}}),\\ p_p^{\text{soc}}&=p_S(Q^{\text{soc}}),\\
+p_c^{\text{soc}}-p_p^{\text{soc}}&=MH(Q^{\text{soc}}).
+\end{align}
+Avoidable harm is
+\begin{equation}
+\Delta H = H(Q^\star)-H(Q^{\text{soc}}).
+\end{equation}
+Pigouvian blame for each actor $a$ is then
+\begin{equation}
+B_a=\Delta H\cdot \frac{\Delta \Pi_a}{\sum_{b\in \mathcal{N}} \Delta \Pi_b},
+\end{equation}
+where (using \eqref{eq:cs} and \eqref{eq:pscost} for surplus)
+\begin{align}
+\Delta CS_j &= CS_j(p^\star)-CS_j(p_c^{\text{soc}}),\qquad j\in\{1,2,3\},\\
+\Delta PS_i &= PS_i(p^\star)-PS_i(p_p^{\text{soc}}),\qquad i\in\{1,2\}.
+\end{align}
+
+\subsection{Discussion: realized-harm vs avoidable-harm objects}
+In the two-producer/three-consumer case, Shapley attribution and elasticity pivotality both allocate $H(Q^\star)$ across five players, but they operationalize ``pivotality'' differently: Shapley averages marginal contributions across coalition orderings, while pivotality allocates by local marginal influence on $Q^\star$ under proportional curve perturbations. Pigouvian blame allocates $\Delta H$ (the difference between the unregulated and internalized outcomes). These objects answer different moral questions:
+\begin{itemize}
+\item \textbf{Shapley:} ``Who causally contributes to the harm that actually occurs, under an order-averaged coalition notion?''
+\item \textbf{Elasticity pivotality:} ``Who is locally pivotal for the realized quantity, as measured by marginal comparative statics at the observed equilibrium?''
+\item \textbf{Pigouvian:} ``Who benefits from (and thus is blameworthy for) the harm that could be avoided by internalization?''
+\end{itemize}
+A complete normative account may allocate both $H(Q^{\text{soc}})$ and $\Delta H$ under different principles.
+
+\section{Conclusion}
+This paper proposed three curve-based frameworks for distributing responsibility for harmful market externalities. Shapley attribution provides an axiomatic, coalition-based allocation of realized harm, while elasticity pivotality provides a local (comparative-statics) allocation of realized harm that can be expressed transparently in terms of slopes and elasticities at the observed equilibrium. Pigouvian-counterfactual blame uses the welfare-optimal benchmark to isolate avoidable harm and allocate it according to private gains from underpricing. The derivations were given for generic (nonlinear) individual supply and demand functions and illustrated symbolically for a small asymmetric market.
+
+Several extensions are immediate: incorporating heterogeneous emissions intensity, adding abatement choices, treating uncertainty formally via Bayesian equilibria, and evaluating alternative welfare criteria (rights-based constraints, caps, distributional objectives) that change the definition of the ``acceptable'' benchmark harm.
+
+\bibliographystyle{IEEEtran}
+% \bibliography{refs}
+
+\end{document}
