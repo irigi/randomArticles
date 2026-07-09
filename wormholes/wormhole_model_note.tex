@@ -646,106 +646,330 @@ with
 The factor \(M/m\) illustrates why a mouth can be dynamically affected by the polarization constraint even if its ordinary gravity is negligible to the planet. This model is not automatically compatible with the equivalence principle because the induced gravitational coefficient was varied while the inertial mouth mass was held fixed.
 
 \section{Relation to General Relativity}
+\label{sec:relation_to_gr}
 
-\subsection{Weak-field outer region}
+The Newtonian polarization calculation has a natural interpretation as the
+weak-field, exterior limit of general relativity.  The approximation is local
+to the vacuum or nearly vacuum buffer regions surrounding the mouths and the
+planet.  The throat-supporting region may contain large curvature and exotic
+stress--energy; its detailed structure is represented, from the exterior point
+of view, by matching conditions, junction conditions, and response
+coefficients.  The purpose of this section is to derive the scalar equation
+used above from the linearized Einstein equations and to identify which parts
+of the monopole response are fixed by weak-field gravity alone.
 
-In a stationary weak field,
+\subsection{Linearized field equations}
+
+In an exterior buffer region choose asymptotically inertial coordinates and
+write
+\begin{equation}
+    g_{\mu\nu}=\eta_{\mu\nu}+h_{\mu\nu},
+    \qquad |h_{\mu\nu}|\ll1.
+    \label{eq:metric_perturbation}
+\end{equation}
+Let
+\begin{equation}
+    \bar h_{\mu\nu}
+    =
+    h_{\mu\nu}
+    -\frac{1}{2}\eta_{\mu\nu}h,
+    \qquad
+    h=\eta^{\alpha\beta}h_{\alpha\beta}
+\end{equation}
+be the trace-reversed perturbation.  In harmonic gauge,
+\begin{equation}
+    \partial^\mu\bar h_{\mu\nu}=0,
+\end{equation}
+the Einstein equations reduce, to first order in the perturbation, to
+\begin{equation}
+    \Box\bar h_{\mu\nu}
+    =
+    -\frac{16\pi G}{c^4}T_{\mu\nu}.
+    \label{eq:linearized_einstein}
+\end{equation}
+For a stationary source whose internal velocities are small compared with
+\(c\),
+\begin{equation}
+    T_{00}\simeq \rho c^2,
+    \qquad
+    |T_{0i}|\ll T_{00},
+    \qquad
+    |T_{ij}|\ll T_{00}.
+\end{equation}
+The dominant component of \eqref{eq:linearized_einstein} is therefore
+\begin{equation}
+    \nabla^2\bar h_{00}
+    =
+    -\frac{16\pi G}{c^2}\rho .
+    \label{eq:hbar00_poisson}
+\end{equation}
+Define the Newtonian potential by
+\begin{equation}
+    \bar h_{00}=-\frac{4\Phi}{c^2}.
+    \label{eq:Phi_from_hbar}
+\end{equation}
+Then \eqref{eq:hbar00_poisson} becomes
+\begin{equation}
+    \boxed{\nabla^2\Phi=4\pi G\rho.}
+    \label{eq:poisson_from_linearized_gr}
+\end{equation}
+The Poisson equation used in the scalar model is thus the Newtonian limit of
+the linearized Einstein equations in the weak exterior regions.
+
+When exterior anisotropic stress is negligible, the temporal and spatial
+scalar perturbations are determined by the same potential.  The metric may be
+written as
 \begin{equation}
 \begin{split}
-\mathrm{d}s^2={}&
--\left(1+\frac{2\phi}{c^2}\right)c^2\mathrm{d}t^2\\
-&+
-\left(1-\frac{2\psi}{c^2}\right)
-\delta_{ij}\mathrm{d}x^i\mathrm{d}x^j
-+O(c^{-4}).
+    \mathrm{d}s^2={}&
+    -\left(1+\frac{2\Phi}{c^2}\right)c^2\mathrm{d}t^2\\
+    &+
+    \left(1-\frac{2\Phi}{c^2}\right)
+    \delta_{ij}\mathrm{d}x^i\mathrm{d}x^j
+    +O(c^{-4}).
+    \label{eq:weak_metric_from_h}
 \end{split}
 \end{equation}
-For slowly moving matter,
+Equivalently,
 \begin{equation}
-    \nabla^2\psi=4\pi G\rho.
+    h_{00}=-\frac{2\Phi}{c^2},
+    \qquad
+    h_{ij}=-\frac{2\Phi}{c^2}\delta_{ij}.
 \end{equation}
-If exterior anisotropic stress is negligible, \(\phi=\psi\), and a slow test body satisfies
+For a slowly moving test body, the spatial part of the geodesic equation gives
 \begin{equation}
-    \ddot{\mathbf x}=-\boldsymbol\nabla\phi.
+    \frac{\mathrm{d}^2x^i}{\mathrm{d}t^2}
+    =
+    -c^2\Gamma^i{}_{00}
+    =
+    \frac{c^2}{2}\partial_i h_{00}
+    =
+    -\partial_i\Phi,
+    \label{eq:newtonian_acceleration_from_h}
 \end{equation}
-The Newtonian scalar equation is therefore a controlled outer limit of general relativity. It need not be valid uniformly through the exotic throat material.
+fixing the sign convention used throughout the Newtonian sections.
 
-\subsection{Thin-shell junctions}
+\subsection{Vacuum buffer regions and mouth monopoles}
 
-In a cut-and-paste wormhole, the induced metric \(h_{ab}\) must be continuous. A jump in extrinsic curvature is supported by a surface stress tensor:
+Outside the planet, the mouths, and the material supporting the throat, the
+leading weak-field equation is harmonic:
+\begin{equation}
+    \rho=0,
+    \qquad
+    \nabla^2\Phi=0.
+\end{equation}
+In a buffer region around a compact nearly spherical mouth \(i\), the general
+stationary solution can be expanded as
+\begin{equation}
+    \Phi_i
+    =
+    U_i
+    -\frac{G\delta M_i}{r_i}
+    +
+    \sum_{\ell\geq1}\sum_m
+    \frac{\Phi_{i,\ell m}}{r_i^{\ell+1}}
+    Y_{\ell m}(\theta_i,\varphi_i)
+    +\Phi_i^{\rm tidal}.
+    \label{eq:buffer_multipole_expansion}
+\end{equation}
+Here \(U_i\) is the externally imposed potential at the mouth center, with the
+mouth's own induced field excluded.  The term \(\Phi_i^{\rm tidal}\) denotes
+regular external multipoles, while \(\delta M_i\) is the coefficient of the
+local \(1/r_i\) field.  In the weak relativistic expansion this coefficient is
+the perturbation of the local Schwarzschild mass parameter, or equivalently
+the ADM or Komar mass perturbation associated with that exterior end when the
+corresponding asymptotic construction is available.  In terms of the metric
+perturbation,
+\begin{equation}
+    h_{00}^{(i)}
+    =
+    -\frac{2}{c^2}
+    \left(
+    U_i-\frac{G\delta M_i}{r_i}+\cdots
+    \right).
+\end{equation}
+Thus the apparent mouth monopoles used in the Newtonian model are the
+weak-field mass monopoles of the exterior metric.
+
+\subsection{Lapse matching at synchronized mouths}
+
+For a static mouth, the lapse is
+\begin{equation}
+    N_i=\sqrt{-g_{tt}^{(i)}}
+    =
+    1+\frac{\Phi_i}{c^2}+O(c^{-4}).
+\end{equation}
+If the two mouth worldtubes are identified using the same internal time label,
+and if no additional redshift layer is inserted into the gluing map, continuity
+of the induced metric requires equality of the pulled-back lapse:
+\begin{equation}
+    N_A(\Omega)=N_B(\mathcal O\Omega).
+\end{equation}
+At leading weak-field order this becomes
+\begin{equation}
+    \Phi_A(\Omega)
+    =
+    \Phi_B(\mathcal O\Omega)
+    +O(c^{-2}\Phi^2).
+    \label{eq:lapse_matching_phi}
+\end{equation}
+Equation~\eqref{eq:lapse_matching_phi} is the weak-GR origin of the
+equal-potential boundary condition used in the scalar polarization model.  It
+is a condition on the induced metric, specifically on \(g_{tt}\) or
+\(h_{00}\).  It does not determine the normal derivatives of the metric.  Those
+normal derivatives are part of the gravitational flux data and are controlled
+by the stress tensor and equation of state of the throat-supporting material.
+
+\subsection{Induced monopoles in the linearized metric}
+
+Retain only the monopole terms and let the two nearly spherical mouths have a
+common radius \(a\) and separation \(L\gg a\).  Let \(U_A\) and \(U_B\) denote
+the external potentials at the mouth centers, excluding the induced mouth
+fields.  On the surface of mouth \(A\), the potential entering \(h_{00}\) is,
+to monopole order,
+\begin{equation}
+    \Phi_A^{\rm surf}
+    =
+    U_A
+    -\frac{G\delta M_A}{a}
+    -\frac{G\delta M_B}{L}.
+\end{equation}
+Similarly,
+\begin{equation}
+    \Phi_B^{\rm surf}
+    =
+    U_B
+    -\frac{G\delta M_B}{a}
+    -\frac{G\delta M_A}{L}.
+\end{equation}
+Because \(h_{00}=-2\Phi/c^2\), equality of the pulled-back lapse is equivalent,
+at this order, to equality of these surface potentials:
+\begin{equation}
+    U_A
+    -\frac{G\delta M_A}{a}
+    -\frac{G\delta M_B}{L}
+    =
+    U_B
+    -\frac{G\delta M_B}{a}
+    -\frac{G\delta M_A}{L}.
+    \label{eq:GR_monopole_matching}
+\end{equation}
+This relation fixes only the difference of the induced monopoles.  A second
+condition specifies the global homogeneous mode and the bookkeeping convention
+for total mass.  In the idealized fixed-total-mass, zero-added-flux convention,
+\begin{equation}
+    \delta M_A+\delta M_B=0.
+    \label{eq:GR_zero_sum}
+\end{equation}
+Equations~\eqref{eq:GR_monopole_matching} and \eqref{eq:GR_zero_sum} give
+\begin{equation}
+    \boxed{
+    \delta M_A
+    =
+    \frac{U_A-U_B}
+    {2G(a^{-1}-L^{-1})},
+    \qquad
+    \delta M_B=-\delta M_A .
+    }
+    \label{eq:GR_induced_monopoles}
+\end{equation}
+For \(L\gg a\),
+\begin{equation}
+    \delta M_A\simeq \frac{a}{2G}(U_A-U_B),
+    \qquad
+    \delta M_B\simeq-\delta M_A.
+\end{equation}
+If a planet of mass \(M\) is close to mouth \(A\), with \(D_A=D\), while mouth
+\(B\) is far away, then
+\begin{equation}
+    U_A\simeq-\frac{GM}{D},
+    \qquad
+    U_B\simeq0,
+\end{equation}
+and therefore
+\begin{equation}
+    \boxed{
+    \delta M_A\simeq-\frac{Ma}{2D},
+    \qquad
+    \delta M_B\simeq+\frac{Ma}{2D}.
+    }
+\end{equation}
+The near mouth then carries a negative induced mass monopole and the distant
+mouth an equal positive one in this ideal response convention.  The result is a
+redistribution of the exterior weak-field monopole, not a creation of net
+asymptotic mass.
+
+\subsection{Thin-shell junctions and response coefficients}
+
+For a cut-and-paste wormhole, the induced metric \(q_{ab}\) on the throat is
+continuous, while a jump in extrinsic curvature is supported by a surface
+stress tensor:
 \begin{equation}
     \boxed{
     S_{ab}
     =
     -\frac{c^4}{8\pi G}
     \left(
-    [K_{ab}]-h_{ab}[K]
+    [K_{ab}]-q_{ab}[K]
     \right).
     }
     \label{eq:israel}
 \end{equation}
-This is the Israel junction condition \cite{Israel1966,PoissonToolkit}. It supports:
-\begin{itemize}
-    \item a distributionally thin throat;
-    \item local stress--energy conservation on the shell;
-    \item weak exterior fields with local \(1/r\) monopoles.
-\end{itemize}
-It does not imply a universal gravitational-conductor law.
+These Israel junction conditions relate the discontinuity in the normal
+derivatives of the metric to the surface energy density, pressure, and tension
+of the throat.  In the weak-field description, continuity of \(q_{tt}\) gives
+the lapse matching condition, while the jump in \(\partial_n h_{\mu\nu}\)
+contains the gravitational flux response of the supporting shell.
 
-For static synchronized mouths, equality of the induced lapse gives equal weak-field potentials at corresponding points. However, normal derivatives of the metric are determined by \(S_{ab}\). The flux response, susceptibility, and stability depend on the shell equation of state.
-
-\subsection{GR interpretation of the monopoles}
-
-In a buffer region around each nearly spherical mouth,
-\begin{equation}
-    \phi_i
-    =
-    U_i-\frac{G\delta M_i}{r_i}
-    +
-    \sum_{\ell\geq1}
-    \frac{\phi_{i,\ell m}}{r_i^{\ell+1}}
-    Y_{\ell m}.
-\end{equation}
-A stationary spherical vacuum monopole perturbation is a perturbation of the local Schwarzschild mass parameter. Thus the \(1/r\) coefficients have a clear relativistic meaning.
-
-Under the additional assumptions that total asymptotic mass, intrinsic shell mass, radiation content, and the homogeneous throat-flux mode remain fixed, one expects
-\begin{equation}
-    \delta M_A+\delta M_B=0.
-\end{equation}
-Exchange symmetry and invariance under adding a constant to \(U\) then imply the linear response
+The preceding derivation therefore fixes the exterior Poisson equation, the
+identification of \(1/r\) coefficients with weak-field mass monopoles, and the
+equal-lapse condition for synchronized mouths.  It does not fix a universal
+susceptibility.  In a more general throat model one should write
 \begin{equation}
     \delta M_A=-\delta M_B
     =
-    \chi_0(U_A-U_B).
+    \chi_0(U_A-U_B),
     \label{eq:GR_susceptibility}
 \end{equation}
-The ideal scalar model predicts
+where \(\chi_0\) is determined by the throat geometry, supporting fields,
+external constraints, and choice of homogeneous mode.  The ideal scalar model
+corresponds to
 \begin{equation}
     \chi_0^{\mathrm{ideal}}
     =
     \frac{1}{2G(a^{-1}-L^{-1})}.
 \end{equation}
-General relativity does not make this coefficient universal. It depends on throat geometry, supporting fields, and their constitutive law.
 
-\subsection{Supported and unsupported claims}
+\subsection{Status of the relativistic extension}
 
-The following statements have a controlled geometric or weak-field basis:
+The following ingredients have a controlled weak-field or junction-condition
+basis:
 \begin{itemize}
-    \item local Poisson behavior outside a weakly gravitating throat;
-    \item equality of lapse at synchronized identified points;
-    \item local mass multipoles in buffer regions;
-    \item total stress--energy conservation;
-    \item junction stresses for thin shells.
+    \item the reduction of the linearized Einstein equations to
+    \(\nabla^2\Phi=4\pi G\rho\) in weak exterior regions;
+    \item the Newtonian acceleration law
+    \(\mathrm{d}^2\mathbf x/\mathrm{d}t^2=-\boldsymbol\nabla\Phi\) for slow test
+    bodies;
+    \item the interpretation of a local \(1/r\) term in \(\Phi\) as a
+    weak-field mass monopole;
+    \item equality of lapse, and hence equality of \(\Phi\) to leading order,
+    at synchronized identified mouth points;
+    \item support of jumps in the normal derivatives of the metric by shell
+    stresses through the Israel junction conditions.
 \end{itemize}
 
-The following are model assumptions rather than generic consequences of the Einstein equations:
+The following ingredients are constitutive assumptions of the effective model:
 \begin{itemize}
-    \item a perfectly rigid mouth under arbitrary acceleration or tidal loading;
-    \item a universal equal-potential susceptibility;
-    \item fixed inertial mass while a gravitational monopole changes;
-    \item a unique division of recoil between the mouths;
-    \item a stable passive gravitational conductor.
+    \item the value of the susceptibility \(\chi_0\);
+    \item the fixed-total-monopole condition
+    \(\delta M_A+\delta M_B=0\), rather than a change in homogeneous throat flux
+    or stored throat energy;
+    \item rigidity of the mouths under acceleration or tidal loading;
+    \item the division of recoil, stored energy, and stress between the two
+    mouths;
+    \item stability of any passive gravitational-conductor-like response.
 \end{itemize}
+
 
 \section{Accelerated Mouths and Time Slip}
 
