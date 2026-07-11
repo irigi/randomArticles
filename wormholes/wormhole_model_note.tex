@@ -1,282 +1,296 @@
-\documentclass[journal, a4paper]{IEEEtran}
-\usepackage{booktabs}
-\usepackage{graphicx}
-\usepackage{stfloats}
-\usepackage{placeins}
-\usepackage{url}
-\usepackage{cite}
-\usepackage{cuted}
-\usepackage{amssymb}
-\usepackage{lipsum}
+\documentclass[journal,a4paper]{IEEEtran}
+
 \usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{placeins}
 \usepackage{siunitx}
+\usepackage{stfloats}
+\usepackage{url}
 \sisetup{output-exponent-marker=\ensuremath{\mathrm{e}}}
 
 \begin{document}
 
-\title{Effective Models of Traversable Wormhole Mouths: Fields, Momentum Transfer, Polarization, and Time Slip}
+\title{Effective Models of Traversable Wormhole Mouths:\\
+Geometry, Fields, Response, and Temporal Holonomy}
 
-\author{Jan~Ol\v{s}ina\\[1ex] Independent Researcher, Prague, Czech Republic\\
-email: \texttt{jan.olsina@gmail.com},  ORCID: \texttt{0009-0003-9816-3958}.}
+\author{Jan~Ol\v{s}ina\\[1ex]
+Independent Researcher, Prague, Czech Republic\\
+email: \texttt{jan.olsina@gmail.com}, ORCID: \texttt{0009-0003-9816-3958}.}
 
 \maketitle
 
 \begin{abstract}
-This note collects and systematizes a sequence of exploratory calculations concerning an idealized traversable wormhole with two compact mouths. The purpose is not to claim a new exact solution of the Einstein equations, but to build a transparent hierarchy of models in which questions about fields, induced monopoles, momentum transfer, mouth orientation, and time offsets can be stated precisely. The simplest model excises two spherical regions and identifies their boundaries through a zero-length throat. In this setting, electrostatic and Newtonian scalar fields are described by boundary matching conditions, while matter crossing the throat is mapped by a local Lorentz transformation between mouth frames. Exact image constructions are reviewed for a conducting sphere and for a simple spherical wormhole; the latter generally requires a distributed image rather than a single Kelvin point charge. Cubical mouths are discussed as a piecewise-flat variant in which crossing kinematics simplifies but the Green function becomes a boundary-integral problem with edge and corner singularities. A weak-field gravitational polarization model is then derived, including the equal-and-opposite apparent mouth monopoles induced by unequal external potentials. The relation of this model to general relativity is assessed using weak-field expansions and junction conditions. Finally, a constant time slip between static mouths is represented as temporal holonomy. A smooth finite-length Ellis-type throat is used to show explicitly that a constant time slip can be introduced without additional local curvature or test-particle force, even though it can have important global, causal, wave-interference, and self-interaction consequences. Throughout, results that follow from geometry or conservation laws are distinguished from assumptions about the exotic material supporting the throat.
+This note develops a hierarchy of effective models for a traversable wormhole with two compact mouths. It does not propose a new exact solution of the Einstein equations. Its purpose is to separate consequences of the mouth identification from additional assumptions about field matching, homogeneous topological sectors, and the exotic system that supports the throat. A zero-length spherical model is used to formulate traversal kinematics. The differential of the boundary identification fixes tangential motion, whereas a complete four-momentum map also requires a prescription for the transverse throat direction; an ideal elastic prescription reverses the mouth-normal component and applies a Lorentz transformation between mouth frames. Static scalar fields obey their usual local equations away from the throat, supplemented by pointwise potential and normal-flux matching in a chosen global-potential sector. For two flat exteriors glued at a sphere, the electrostatic response of a point charge is derived explicitly. Unlike the Kelvin image of a grounded conductor, the same-side wormhole field is represented by a uniform line image ending at the Kelvin point, up to a separately specified source-free flux mode. The Newtonian limit of general relativity is then used to interpret local mass-type monopoles near the mouths. In the ideal short-throat, fixed-total-monopole convention, unequal external potentials produce equal-and-opposite monopole coefficients, but this is an effective boundary-model result rather than a universal passive material response. Finally, accelerated mouths and a final constant clock offset are described by a time translation in the gluing map. A smooth Ellis-type throat shows that the local coordinate transition associated with a prescribed constant offset adds neither curvature nor a force on structureless test particles. The offset becomes invariant temporal holonomy only in the completed multiply connected spacetime, where it can affect waves, self-interaction, and global causality.
 \end{abstract}
 
 \begin{IEEEkeywords}
-wormholes, traversable wormholes, image charges, self-force, Newtonian limit, thin shells, temporal holonomy, time machines, effective field theory.
+traversable wormholes, boundary identification, image charges, self-force, Newtonian limit, thin shells, temporal holonomy, time machines, effective models.
 \end{IEEEkeywords}
 
-\section{Purpose and Status of the Note}
+\section{Scope and Hierarchy of Assumptions}
+\label{sec:scope}
 
-This document is a structured record of an exploratory model-building discussion. It is intended primarily as a note to the author and to other interested readers. It is not presented as a complete theory of traversable wormholes, nor as a proof that the assumed mouths can be constructed from physically reasonable matter.
+This document is an exploratory effective-model note. It is not a construction theorem for traversable wormholes, and it does not establish that the assumed mouth geometries can be supported by physically reasonable matter. Under the standard assumptions of classical general relativity, static traversable throats require violations of the null energy condition at or near the throat \cite{MorrisThorne1988,Visser1995}. Thin-shell models make the required surface stress explicit through the junction conditions \cite{Israel1966,PoissonToolkit}.
 
-The guiding strategy is to separate four logically distinct ingredients:
+The analysis will keep five logically distinct ingredients separate:
 \begin{enumerate}
-    \item the topology and geometry used to identify the two mouths;
+    \item the exterior geometry and topology;
+    \item the identification of corresponding points on the two mouth worldtubes;
     \item the local equations obeyed by matter and fields away from the throat;
-    \item matching conditions imposed at the throat;
-    \item the constitutive law of the material or field that supports the throat.
+    \item matching conditions and homogeneous topological field sectors;
+    \item the constitutive response of the throat-supporting system.
 \end{enumerate}
-The first three ingredients determine many kinematic and conservation statements. The fourth is needed to determine stability, recoil, deformation, energy storage, and the detailed response of the throat.
+The first three ingredients determine much of the kinematics. The fourth fixes the boundary-value problem for a chosen field sector. The fifth is needed for stability, recoil, energy storage, deformation, and the dynamical response of the supporting matter.
 
-Traversable wormholes in classical general relativity usually require stress--energy violating the standard pointwise energy conditions \cite{MorrisThorne1988,Visser1995}. Thin-shell constructions make this requirement especially explicit through the junction conditions \cite{Israel1966,PoissonToolkit}. The effective models below should therefore be read as boundary theories whose microscopic support has intentionally been left unspecified.
+Throughout the note, the following terminology is used.
+\begin{itemize}
+    \item A \emph{geometric consequence} follows from the quotient geometry or from a local field equation.
+    \item A \emph{matching assumption} specifies how fields or tangent vectors continue through the throat.
+    \item A \emph{homogeneous-mode convention} fixes source-free flux or a common asymptotic monopole that is not determined by local sources.
+    \item A \emph{constitutive model} specifies the response and stored energy of the throat-supporting system.
+\end{itemize}
+This hierarchy is important because several simple formulas below are exact within a stated boundary model but are not universal predictions of general relativity.
 
-\section{Geometric Model of Two Mouths}
+\section{Mouth Geometry and Identification}
+\label{sec:geometry}
 
-\subsection{Spherical zero-length identification}
+\subsection{Spherical zero-length model}
 
-Let two spherical mouths of radius \(a\) have centers \(\mathbf X_A(t)\) and \(\mathbf X_B(t)\), with body-frame orientations \(R_A(t)\) and \(R_B(t)\). Remove the interiors of the two spheres from an otherwise weakly curved external space. A point on mouth \(A\) can be written
+Let two spherical mouths of radius \(a\) have centers \(\mathbf X_A(t)\) and \(\mathbf X_B(t)\), with body-frame orientations \(R_A(t),R_B(t)\in SO(3)\). Remove the interiors of the two spheres from the exterior space. A boundary point on mouth \(A\) is
 \begin{equation}
     \mathbf x_A=\mathbf X_A+aR_A\mathbf n,
-    \qquad
-    |\mathbf n|=1.
+    \qquad |\mathbf n|=1.
 \end{equation}
 The corresponding point on mouth \(B\) is
 \begin{equation}
     \mathbf x_B=\mathbf X_B+aR_BP\mathbf n,
 \end{equation}
-where \(P\) is an orthogonal map describing the internal orientation of the throat. The relative orientation seen in the external frame is
+where \(P\in O(3)\) specifies the internal angular identification. Define
 \begin{equation}
-    \mathcal O=R_BPR_A^{-1}.
+    \mathcal O=R_BPR_A^T.
+    \label{eq:relative_orientation}
+\end{equation}
+The radial unit normals pointing from the mouth centers into their respective exteriors are
+\begin{equation}
+    \boldsymbol\nu_A=R_A\mathbf n,
+    \qquad
+    \boldsymbol\nu_B=R_BP\mathbf n
+    =\mathcal O\boldsymbol\nu_A.
 \end{equation}
 
-A spacetime version of the gluing rule is
+A spacetime identification can be written
 \begin{equation}
-    (\tau,\Omega)_A\sim(\tau,\mathcal O\Omega)_B,
+    (\tau,\mathbf n)_A
+    \sim
+    (\tau,P\mathbf n)_B,
     \label{eq:basic_identification}
 \end{equation}
-where \(\Omega=(\theta,\varphi)\) labels a point on the mouth and \(\tau\) is an internal throat-time label.
+where \(\tau\) is an internal throat-time label. Equation~\eqref{eq:basic_identification} is an equivalence relation. Before the quotient, its two sides are distinct boundary events; after the quotient, they represent one event in the completed spacetime. A traversing worldline may therefore appear discontinuous in one exterior chart while remaining continuous in an atlas adapted to the quotient.
 
-Equation~\eqref{eq:basic_identification} is an \emph{equivalence relation}, not a homotopy. Before taking the quotient, the two labels denote different boundary events. After taking the quotient, they denote one event of the completed spacetime. A worldline that looks discontinuous in a single exterior coordinate chart can therefore be continuous in the quotient spacetime.
+The differential of the boundary map acts only on vectors tangent to the mouth. It does not, by itself, determine how a vector is continued in the transverse direction. A full traversal rule must therefore specify an extension from the boundary tangent bundle to the normal bundle.
 
 \subsection{Finite throat}
 
-A smooth finite throat may instead be described by a proper longitudinal coordinate \(l\):
+A smooth static spherical throat may be written in proper longitudinal coordinate \(l\) as
 \begin{equation}
     \mathrm{d}s^2=
-    -N^2(l)c^2\mathrm{d}\tau^2+
-    \mathrm{d}l^2+
-    r^2(l)\mathrm{d}\Omega^2.
+    -N^2(l)c^2\mathrm{d}\tau^2
+    +\mathrm{d}l^2
+    +r^2(l)\mathrm{d}\Omega^2,
     \label{eq:generic_throat}
 \end{equation}
-The function \(r(l)\) has a positive minimum at the throat. The two mouths may be attached at \(l=-\ell/2\) and \(l=+\ell/2\). The zero-length model is an idealized limiting boundary theory, not the only possible geometry.
+where \(r(l)\) has a positive minimum. Exterior regions can be attached at two values of \(l\), or may arise as the two asymptotic ends of the same smooth solution. The zero-length model is a boundary-theory idealization of such a geometry, not its unique regularization.
 
-\section{Kinematics of Traversal}
+\section{Traversal Kinematics}
+\label{sec:kinematics}
+
+\subsection{Normal reversal and the ideal elastic extension}
+
+Let an incoming spatial momentum at mouth \(A\) be decomposed as
+\begin{equation}
+    \mathbf p_{\rm in}
+    =\mathbf p_{\parallel}
+    +p_{\perp}\boldsymbol\nu_A,
+    \qquad
+    \mathbf p_{\parallel}\cdot\boldsymbol\nu_A=0.
+\end{equation}
+A trajectory approaching the mouth from its exterior has \(p_{\perp}<0\). To emerge into the destination exterior, its outgoing normal component relative to \(\boldsymbol\nu_B\) must be positive. The simplest elastic extension of the boundary differential is therefore
+\begin{equation}
+    J(\mathbf n)
+    =\mathcal O
+    \left(I-2\boldsymbol\nu_A\boldsymbol\nu_A^T\right).
+    \label{eq:spatial_traversal_map}
+\end{equation}
+It satisfies
+\begin{equation}
+    J\boldsymbol\nu_A=-\boldsymbol\nu_B,
+    \qquad
+    J\mathbf v_{\parallel}=\mathcal O\mathbf v_{\parallel}.
+\end{equation}
+Thus the tangential components follow the differential of the mouth identification, while the transverse component reverses. This normal reversal is part of the chosen ideal traversal prescription; it is not fixed by the boundary map alone.
 
 \subsection{Four-momentum map}
 
-Let \(e_A{}^{\hat a}{}_\mu\) and \(e_B{}^\mu{}_{\hat a}\) be orthonormal tetrads carried by the mouths. Let \(W^{\hat a}{}_{\hat b}\) be the Lorentz transformation implemented by the internal throat map. Then an incoming four-momentum transforms as
+Let \(e_A{}^{\hat a}{}_{\mu}\) and \(e_B{}^{\mu}{}_{\hat a}\) be orthonormal tetrads at the entrance and exit events. A general idealized traversal law can be represented by a Lorentz transformation \(W^{\hat a}{}_{\hat b}\):
 \begin{equation}
-    p_{\mathrm{out}}^\mu=
-    e_B{}^\mu{}_{\hat a}
+    p_{\rm out}^{\mu}
+    =e_B{}^{\mu}{}_{\hat a}
     W^{\hat a}{}_{\hat b}
-    e_A{}^{\hat b}{}_\nu
-    p_{\mathrm{in}}^\nu.
+    e_A{}^{\hat b}{}_{\nu}
+    p_{\rm in}^{\nu}.
     \label{eq:four_momentum_map}
 \end{equation}
-Because \(W\) is Lorentz,
-\begin{equation}
-    p_{\mathrm{out}}^\mu p^{\mathrm{out}}_\mu
-    =
-    p_{\mathrm{in}}^\mu p^{\mathrm{in}}_\mu.
-\end{equation}
-The rest mass of a freely traversing object is therefore unchanged in the ideal elastic model.
-
-For static synchronized mouths,
+For static synchronized mouths in a common approximately inertial frame, the ideal elastic choice is
 \begin{equation}
     W=
     \begin{pmatrix}
-    1&0\\
-    0&\mathcal O
-    \end{pmatrix},
+        1&0\\
+        0&J(\mathbf n)
+    \end{pmatrix}.
+    \label{eq:static_W}
 \end{equation}
-and
+Because this \(W\) is Lorentz,
 \begin{equation}
-    E_{\mathrm{out}}=E_{\mathrm{in}},
-    \qquad
-    \mathbf p_{\mathrm{out}}=\mathcal O\mathbf p_{\mathrm{in}}.
+    p_{\rm out}^{\mu}p^{\rm out}_{\mu}
+    =p_{\rm in}^{\mu}p^{\rm in}_{\mu}.
 \end{equation}
+The mass shell is therefore preserved by assumption in the ideal elastic model. This is not a consequence of topology alone; an inelastic or radiative throat could obey a different effective map.
 
-\subsection{Impulse delivered to the wormhole}
+\subsection{Momentum bookkeeping}
 
-In a common approximately Minkowskian external frame, conservation of total four-momentum gives
+Four-momenta at separated events in a curved spacetime cannot be subtracted without a transport prescription. In a fixed asymptotically inertial frame, however, and neglecting radiation or momentum exchanged with external supports during the crossing interval, the net change assigned to the wormhole-plus-support system is approximately
 \begin{equation}
-    \Delta P^\mu_{\mathrm{wh}}
-    =
-    p^\mu_{\mathrm{in}}-p^\mu_{\mathrm{out}}.
+    \Delta P_{\rm wh}^{\mu}
+    \simeq p_{\rm in}^{\mu}-p_{\rm out}^{\mu}.
     \label{eq:wormhole_impulse}
 \end{equation}
-A useful localized bookkeeping convention is
+A useful local bookkeeping split is
 \begin{equation}
-    \Delta P_A^\mu\simeq p_{\mathrm{in}}^\mu,
+    \Delta P_A^{\mu}\simeq p_{\rm in}^{\mu},
     \qquad
-    \Delta P_B^\mu\simeq-p_{\mathrm{out}}^\mu.
+    \Delta P_B^{\mu}\simeq-p_{\rm out}^{\mu}.
 \end{equation}
-Only the sum in \eqref{eq:wormhole_impulse} is model-independent. The exact division between mouth recoil, throat stress, radiation, and external supports depends on the throat action.
+Only the total asymptotic balance is invariant under changes in how recoil, shell stress, radiation, and actuator momentum are partitioned.
 
-For a static spatial rotation through an angle \(\alpha\),
+If a spatial map rotates a momentum of magnitude \(p\) through an angle \(\alpha\), then
 \begin{equation}
-    \left|\Delta\mathbf P_{\mathrm{wh}}\right|
-    =
-    2p\sin\left(\frac{\alpha}{2}\right).
+    |\Delta\mathbf P_{\rm wh}|
+    =2p\sin\left(\frac{\alpha}{2}\right).
 \end{equation}
-A reversal gives \(2p\); identical input and output directions give zero net impulse to the pair, although the two mouths still receive opposite local impulses.
+A reversal gives \(2p\). Identical asymptotic input and output momenta give no net impulse to the pair, although the two mouths can still receive opposite local impulses.
 
 \subsection{Moving and rotating mouths}
 
-In the nonrelativistic limit, let the surface velocities at the crossing points be
+In the nonrelativistic limit, let the surface velocity at a crossing point be
 \begin{equation}
-    \mathbf v_i^{\mathrm{surf}}
-    =
-    \mathbf V_i+\boldsymbol\Omega_i\times\mathbf r_i.
+    \mathbf v_i^{\rm surf}
+    =\mathbf V_i+\boldsymbol\omega_i\times\mathbf r_i.
 \end{equation}
-The natural elastic map is
+The elastic velocity rule corresponding to \eqref{eq:spatial_traversal_map} is
 \begin{equation}
-\begin{split}
-    \mathbf u_{\mathrm{out}}
-    =
-    \mathbf v_B^{\mathrm{surf}}
-    +\mathcal O\left(
-    \mathbf u_{\mathrm{in}}-\mathbf v_A^{\mathrm{surf}}
-    \right).
+    \mathbf u_{\rm out}
+    =\mathbf v_B^{\rm surf}
+    +J(\mathbf n)
+    \left(\mathbf u_{\rm in}-\mathbf v_A^{\rm surf}\right).
     \label{eq:moving_mouth_velocity}
-\end{split}
 \end{equation}
-The mechanical energy transferred to the wormhole and its actuators is
+The kinetic-energy change of a particle of mass \(m\) is
 \begin{equation}
-    \Delta E_{\mathrm{wh}}
-    =
-    \frac{m}{2}
-    \left(
-    |\mathbf u_{\mathrm{in}}|^2-
-    |\mathbf u_{\mathrm{out}}|^2
-    \right).
+    \Delta E_{\rm particle}
+    =\frac{m}{2}
+    \left(|\mathbf u_{\rm out}|^2-|\mathbf u_{\rm in}|^2\right).
 \end{equation}
-Thus moving mouths can accelerate a particle, but the energy comes from mouth kinetic energy, an actuator, or an internal throat reservoir.
+Any gain is supplied by mouth motion, an actuator, or an internal reservoir. Equation~\eqref{eq:moving_mouth_velocity} is a nonrelativistic approximation to composing the two mouth boosts with the internal Lorentz map \(W\).
 
-\section{Classical Effective Action}
+\section{Local Field Equations and Throat Matching}
+\label{sec:fields}
+
+\subsection{Effective action}
 
 A broad relativistic action is
 \begin{equation}
 \begin{split}
-S={}&
-\frac{c^3}{16\pi G}
+S={}&\frac{c^3}{16\pi G}
 \int R\sqrt{-g}\,\mathrm{d}^4x
 -\frac{1}{4\mu_0}
 \int F_{\mu\nu}F^{\mu\nu}\sqrt{-g}\,\mathrm{d}^4x\\
-&+S_{\mathrm{support}}
--mc\int\mathrm{d}s
-+q\int A_\mu\mathrm{d}x^\mu.
+&+S_{\rm support}+S_{\rm matter}.
 \label{eq:relativistic_action}
 \end{split}
 \end{equation}
-The unknown term \(S_{\mathrm{support}}\) holds the throat open and determines its mechanical response.
+The unknown term \(S_{\rm support}\) maintains the throat and determines its mechanical and field response.
 
-A quasistatic weak-field analog uses an electrostatic potential \(\phi\) and a Newtonian potential \(\Phi\):
+For quasistatic scalar fields in an exterior spatial domain \(\mathcal V\), a convenient weak-field functional is
 \begin{equation}
 \begin{split}
-L={}&
-\frac{m}{2}\dot{\mathbf x}^{\,2}
-+\sum_{i=A,B}
-\left[
-\frac{M_i}{2}\dot{\mathbf X}_i^{\,2}
-+\frac{1}{2}\boldsymbol\Omega_i^TI_i\boldsymbol\Omega_i
-\right]
--U_{\mathrm{mount}}\\
-&+\int_\Omega
+L_{\rm fields}={}&
+\int_{\mathcal V}
 \left[
 \frac{\epsilon_0}{2}|\boldsymbol\nabla\phi|^2
+-\rho_e\phi
+\right]\mathrm{d}^3x\\
+&+\int_{\mathcal V}
+\left[
 -\frac{1}{8\pi G}|\boldsymbol\nabla\Phi|^2
-\right]\mathrm{d}^3x
--q\phi(\mathbf x)-m\Phi(\mathbf x).
-\label{eq:weak_action}
+-\rho_m\Phi
+\right]\mathrm{d}^3x.
+\label{eq:weak_field_functional}
 \end{split}
 \end{equation}
-Variation gives
+The source densities may include point-particle delta functions. Variation gives
 \begin{equation}
     \nabla^2\phi=-\frac{\rho_e}{\epsilon_0},
     \qquad
     \nabla^2\Phi=4\pi G\rho_m.
+    \label{eq:poisson_equations}
 \end{equation}
-The unusual information is contained in the topology and boundary matching, not in these local equations.
+The topology does not alter these local equations away from the throat. It alters their global solution space and boundary matching.
 
-\section{Potentials, Flux, and Self-Interaction}
+\subsection{Potential and flux matching}
 
-\subsection{Potential matching}
-
-For a synchronized static throat whose induced metric and gauge potential are continuous, corresponding mouth points satisfy
+Assume a static gauge in which a single-valued scalar potential exists on the completed spacetime, with no voltage layer or nontrivial gauge transition inserted at the throat. Then corresponding points obey
 \begin{equation}
-    \phi_A(\Omega)=\phi_B(\mathcal O\Omega).
-    \label{eq:electrostatic_matching}
+    \phi_A(\mathbf n)=\phi_B(P\mathbf n).
+    \label{eq:potential_matching}
 \end{equation}
-In the weak-field metric
+Let \(\partial_{\nu_i}\) denote differentiation in the radial direction from mouth \(i\) into its exterior. Smooth continuation through a short throat gives
 \begin{equation}
-    g_{tt}\simeq-\left(1+\frac{2\Phi}{c^2}\right),
+    \partial_{\nu_A}\phi_A(\mathbf n)
+    =-\partial_{\nu_B}\phi_B(P\mathbf n),
+    \label{eq:normal_matching}
 \end{equation}
-continuity of the lapse similarly gives
+when no surface charge is inserted at the gluing surface. The minus sign reflects the reversal between the two exterior radial directions.
+
+The same local equations can admit source-free harmonic fields. In the simplest two-ended electrostatic problem, these are characterized by flux through the throat rather than by independent higher multipoles \cite{Krasnikov2008}. Fixing both asymptotic potentials to the same value removes this homogeneous flux mode. Allowing different asymptotic potential constants permits an additional source-free throat flux. The charge-generated field and the source-free field must therefore be specified separately.
+
+\subsection{Topological self-interaction}
+
+For a static Green function, write
 \begin{equation}
-    \Phi_A(\Omega)=\Phi_B(\mathcal O\Omega)
+    G_{\rm wh}(\mathbf x,\mathbf x')
+    =G_0(\mathbf x,\mathbf x')
+    +G_{\rm top}(\mathbf x,\mathbf x'),
 \end{equation}
-at leading order.
-
-This statement requires a globally exact static potential and excludes a distributional voltage or redshift layer at the throat. Multiply connected spaces can also support source-free harmonic modes. In electrostatics these modes are labeled by the flux threading the throat, an example of Wheeler's ``charge without charge'' idea. Krasnikov separates the charge-generated and source-free components explicitly \cite{Krasnikov2008}.
-
-\subsection{Equal potential does not imply zero force}
-
-The field Green function may be decomposed as
+where \(G_0\) contains the local Coulomb singularity. After regularization, a charge has self-energy
 \begin{equation}
-    G_{\mathrm{wh}}(\mathbf x,\mathbf x')
-    =
-    G_0(\mathbf x,\mathbf x')
-    +G_{\mathrm{top}}(\mathbf x,\mathbf x').
+    U_{\rm self}(\mathbf x)
+    =\frac{q^2}{2}G_{\rm top}(\mathbf x,\mathbf x)
 \end{equation}
-After subtraction of the local Coulomb singularity, a charge has regularized self-energy
+under the convention used to normalize the Green function, and self-force
 \begin{equation}
-    U_{\mathrm{self}}(\mathbf x)
-    =
-    \frac{q^2}{2}G_{\mathrm{top}}(\mathbf x,\mathbf x),
+    \mathbf F_{\rm self}=-\boldsymbol\nabla U_{\rm self}.
 \end{equation}
-and self-force
-\begin{equation}
-    \mathbf F_{\mathrm{self}}
-    =
-    -\boldsymbol\nabla U_{\mathrm{self}}.
-\end{equation}
-Explicit wormhole calculations find nonzero attractive electromagnetic self-forces even in smooth or short-throat geometries \cite{KhusnutdinovBakhmatov2007,Krasnikov2008}.
+Explicit calculations for symmetric wormhole profiles find topology-dependent self-forces. Their detailed expressions depend on the geometry and on the treatment of the source-free flux sector; in the models of Khusnutdinov and Bakhmatov the force is attractive, while Krasnikov emphasizes a different source-generated/source-free decomposition and obtains a different short-throat result \cite{KhusnutdinovBakhmatov2007,Krasnikov2008}.
 
-\section{Conducting-Sphere Analog}
+\section{Spherical Electrostatic Boundary Problem}
+\label{sec:spherical_electrostatics}
 
-\subsection{Grounded sphere}
+\subsection{Conducting-sphere benchmark}
 
-Let a charge \(q\) be at
-\begin{equation}
-    \mathbf x_0=D\hat{\mathbf n},
-    \qquad D>a,
-\end{equation}
-outside a grounded conducting sphere of radius \(a\). The exact Kelvin image is
+A point charge \(q\) at \(\mathbf x_0=D\hat{\mathbf n}\), with \(D>a\), outside a grounded conducting sphere of radius \(a\) is represented by the Kelvin image
 \begin{equation}
     \mathbf x'=\frac{a^2}{D}\hat{\mathbf n},
     \qquad
@@ -285,831 +299,445 @@ outside a grounded conducting sphere of radius \(a\). The exact Kelvin image is
 \end{equation}
 The exterior potential is
 \begin{equation}
-    \phi(\mathbf x)
-    =
-    \frac{1}{4\pi\epsilon_0}
+    \phi(\mathbf x)=\frac{1}{4\pi\epsilon_0}
     \left[
     \frac{q}{|\mathbf x-\mathbf x_0|}
-    +
-    \frac{q'}{|\mathbf x-\mathbf x'|}
-    \right].
+    +\frac{q'}{|\mathbf x-\mathbf x'|}
+    \right],
 \end{equation}
-The physical induced surface density is
+with induced surface density
 \begin{equation}
     \sigma(\theta)
-    =
-    -\frac{q}{4\pi a}
+    =-\frac{q}{4\pi a}
     \frac{D^2-a^2}
-    {\left(D^2+a^2-2aD\cos\theta\right)^{3/2}}.
+    {(D^2+a^2-2aD\cos\theta)^{3/2}}.
 \end{equation}
-For an isolated neutral sphere, a central image \(+qa/D\) is added.
+An isolated neutral sphere requires an additional central image that restores zero total induced charge \cite{Jackson1999,Smythe1989}.
 
-\subsection{Two connected conducting spheres}
-
-For two equal conducting spheres, charges and potentials are related by a capacitance matrix,
+For two equal conducting spheres in a symmetric source-free environment, equal conductor potentials imply equal charges by exchange symmetry. In a general asymmetric external field, however, the relation is
 \begin{equation}
-    \begin{pmatrix}
-    Q_A\\Q_B
-    \end{pmatrix}
-    =
-    \begin{pmatrix}
-    C_{11}&C_{12}\\
-    C_{12}&C_{11}
-    \end{pmatrix}
-    \begin{pmatrix}
-    V_A\\V_B
-    \end{pmatrix}.
+    V_i=V_i^{\rm ext}+\sum_j P_{ij}Q_j,
 \end{equation}
-An electrical connection imposes \(V_A=V_B\). For \(L\gg a\), the monopole approximation gives
-\begin{equation}
-    V_A\simeq
-    \frac{1}{4\pi\epsilon_0}
-    \left(
-    \frac{Q_A}{a}+\frac{Q_B}{L}
-    \right),
-\end{equation}
-with an analogous expression for \(V_B\). Equal potentials and equal radii imply \(Q_A=Q_B\).
-
-This conductor analog is useful but stronger than a wormhole boundary condition. A wormhole matches corresponding points; it does not generally make each entire mouth equipotential.
-
-\section{Exact Spherical Wormhole Image Structure}
+so equal total potentials need not imply equal induced charges. This distinction matters because a conductor enforces one constant potential over an entire connected surface, whereas a wormhole imposes pointwise matching only between corresponding mouth points.
 
 \subsection{Two flat exteriors glued at a sphere}
 
-Consider two copies of the region \(r>a\), with their \(r=a\) spheres identified. A point charge \(q\) is in the \(+\) exterior at \(r_0>a\). Expand the same-side potential as
+Consider two copies of \(r>a\), denoted \(+\) and \(-\), whose spheres at \(r=a\) are identified. A point charge \(q\) is in the \(+\) exterior at \(r_0>a\). Assume:
+\begin{enumerate}
+    \item both asymptotic potentials vanish;
+    \item the potentials are continuous at corresponding points;
+    \item their radial derivatives into the two exteriors are opposite;
+    \item no additional source-free throat-flux mode is added.
+\end{enumerate}
+For an axis through the charge, expand
 \begin{equation}
 \begin{split}
 4\pi\epsilon_0\phi_+
-={}&
-\frac{q}{|\mathbf x-\mathbf x_0|}
+={}&\frac{q}{|\mathbf x-\mathbf x_0|}
 +\sum_{\ell=0}^{\infty}
-\frac{A_\ell}{r^{\ell+1}}
-P_\ell(\cos\gamma),
+\frac{A_\ell}{r^{\ell+1}}P_\ell(\cos\gamma),
+\label{eq:phi_plus_expansion}
 \end{split}
 \end{equation}
-and the transmitted field as
 \begin{equation}
     4\pi\epsilon_0\phi_-
-    =
-    \sum_{\ell=0}^{\infty}
-    \frac{B_\ell}{r^{\ell+1}}
-    P_\ell(\cos\gamma).
+    =\sum_{\ell=0}^{\infty}
+    \frac{B_\ell}{r^{\ell+1}}P_\ell(\cos\gamma).
+    \label{eq:phi_minus_expansion}
 \end{equation}
-Potential and normal-flux matching give
+At \(r=a<r_0\),
+\begin{equation}
+    \frac{q}{|\mathbf x-\mathbf x_0|}
+    =q\sum_{\ell=0}^{\infty}
+    \frac{a^\ell}{r_0^{\ell+1}}P_\ell(\cos\gamma).
+\end{equation}
+Potential continuity gives
+\begin{equation}
+    B_\ell
+    =q\frac{a^{2\ell+1}}{r_0^{\ell+1}}+A_\ell.
+    \label{eq:continuity_coeff}
+\end{equation}
+Using \(\partial_r\phi_+=-\partial_r\phi_-\) at the two radial exteriors then gives
 \begin{equation}
     A_\ell
-    =
-    -\frac{q}{2(\ell+1)}
+    =-\frac{q}{2(\ell+1)}
     \frac{a^{2\ell+1}}{r_0^{\ell+1}},
     \label{eq:spherical_coeff_A}
 \end{equation}
 \begin{equation}
     B_\ell
-    =
-    \frac{q(2\ell+1)}{2(\ell+1)}
-    \frac{a^{2\ell+1}}{r_0^{\ell+1}},
+    =\frac{q(2\ell+1)}{2(\ell+1)}
+    \frac{a^{2\ell+1}}{r_0^{\ell+1}}.
+    \label{eq:spherical_coeff_B}
 \end{equation}
-for the convention in which both asymptotic potentials vanish and no additional homogeneous flux mode is added.
+The result differs from the grounded conductor because the wormhole imposes coupled continuity and flux conditions rather than a Dirichlet condition on one surface.
 
-\subsection{Line-image representation}
+\subsection{Uniform line-image representation}
 
 Define the Kelvin radius
 \begin{equation}
     b=\frac{a^2}{r_0}.
 \end{equation}
-The coefficients \eqref{eq:spherical_coeff_A} are generated by a uniform fictitious line charge extending from the center to the Kelvin point:
+The same-side coefficients \eqref{eq:spherical_coeff_A} are generated by a uniform fictitious line charge
 \begin{equation}
-    \mathbf x_{\mathrm{im}}(s)=s\hat{\mathbf n}_0,
-    \qquad
-    0\leq s\leq b,
+    \mathbf x_{\rm im}(s)=s\hat{\mathbf n}_0,
+    \qquad 0\leq s\leq b,
 \end{equation}
 with density
 \begin{equation}
     \lambda=-\frac{q}{2a}.
+    \label{eq:line_density}
 \end{equation}
 Indeed,
 \begin{equation}
 \begin{split}
-\int_0^b
-\frac{\lambda\,\mathrm{d}s}
+\int_0^b\frac{\lambda\,\mathrm{d}s}
 {|\mathbf x-s\hat{\mathbf n}_0|}
-={}&
--\frac{q}{2a}
+={}&-\frac{q}{2a}
 \sum_{\ell=0}^{\infty}
-\frac{b^{\ell+1}}
-{(\ell+1)r^{\ell+1}}
+\frac{b^{\ell+1}}{(\ell+1)r^{\ell+1}}
 P_\ell(\cos\gamma).
 \end{split}
 \end{equation}
 The total line-image charge is
 \begin{equation}
-    Q_{\mathrm{line}}=-\frac{qa}{2r_0}.
+    Q_{\rm line}=-\frac{qa}{2r_0}.
 \end{equation}
-A different choice of source-free throat flux may add an opposite central image and asymptotic potential offset. Thus the Kelvin point remains geometrically important, but for the wormhole it is generally the endpoint of a distributed image rather than the location of one point image.
+Thus the Kelvin point remains geometrically distinguished, but it is the endpoint of a distributed image rather than the location of a single point image. A different homogeneous flux convention can add a monopolar source-free contribution together with a relative asymptotic potential offset.
 
-\subsection{Self-energy}
+\subsection{Self-energy in the fixed-flux convention}
 
-At the source,
+At the source position,
 \begin{equation}
     \int_0^b\frac{\mathrm{d}s}{r_0-s}
-    =
-    -\ln\left(1-\frac{a^2}{r_0^2}\right).
+    =-\ln\left(1-\frac{a^2}{r_0^2}\right).
 \end{equation}
-The regularized self-energy depends on the chosen homogeneous monopole convention. In the fixed induced-monopole convention used above, the line contribution is attractive and diverges as the charge approaches the ideal sharp mouth. Smooth-throat calculations remove the distributional mouth while retaining a nonzero topology-sensitive self-force \cite{KhusnutdinovBakhmatov2007}.
-
-\section{Cubical Mouths}
-
-\subsection{Geometry and traversal}
-
-Let a mouth be a cube
+The regular potential generated by the line image is therefore
 \begin{equation}
-    C=\{\mathbf y:|y_x|,|y_y|,|y_z|\leq a\}.
+    \phi_{\rm reg}(r_0)
+    =\frac{q}{8\pi\epsilon_0 a}
+    \ln\left(1-\frac{a^2}{r_0^2}\right),
 \end{equation}
-A globally consistent face identification is represented by a signed permutation matrix \(P\). On a face with outward body-frame normal \(\mathbf n_f\), the normal component of a traversing velocity must reverse, while tangential coordinates are mapped by \(P\). The body-frame velocity map is
-\begin{equation}
-    J_f=P\left(I-2\mathbf n_f\mathbf n_f^T\right).
-\end{equation}
-For static mouths,
-\begin{equation}
-    \mathbf p_{\mathrm{out}}
-    =
-    R_BJ_fR_A^T\mathbf p_{\mathrm{in}}.
-\end{equation}
-This map is constant across each face, making the kinematics simpler than for a spherical mouth.
-
-The ideal rule is ambiguous exactly on an edge or vertex because multiple face normals are available. A physical model should round the edges or specify an edge-scattering law.
-
-\subsection{Curvature concentration}
-
-Each face is intrinsically flat. The two-dimensional surface curvature is concentrated at the vertices through angle deficits. In the three-dimensional space obtained by gluing two cube exteriors, a transverse section through an edge combines two exterior wedges of angle \(3\pi/2\), producing a cone angle
-\begin{equation}
-    \alpha_{\mathrm{edge}}=3\pi.
-\end{equation}
-The resulting angular excess is \(-\pi\). Thus edges as well as vertices are singular in the ideal sharp spatial geometry.
-
-\subsection{Green-function decomposition}
-
-Let \(G_D\) and \(G_N\) be the exterior-cube Dirichlet and Neumann Green functions. For a source on side \(A\), the exact wormhole Green functions satisfy
+and the corresponding self-energy is
 \begin{equation}
     \boxed{
-    G_{AA}=\frac{1}{2}(G_N+G_D),
-    \qquad
-    G_{BA}=\frac{1}{2}(G_N-G_D).
+    U_{\rm self}(r_0)
+    =\frac{q^2}{16\pi\epsilon_0 a}
+    \ln\left(1-\frac{a^2}{r_0^2}\right).
     }
-    \label{eq:DN_decomposition}
+    \label{eq:spherical_self_energy}
 \end{equation}
-At the boundary, \(G_D=0\) and \(\partial_nG_N=0\), so \eqref{eq:DN_decomposition} enforces potential continuity and opposite normal derivatives.
-
-For an infinite plane,
+The radial force is
 \begin{equation}
-    G_D=G_0-G_{\mathrm{im}},
-    \qquad
-    G_N=G_0+G_{\mathrm{im}}.
+    \boxed{
+    F_r
+    =-\frac{q^2a}
+    {8\pi\epsilon_0 r_0(r_0^2-a^2)}.
+    }
+    \label{eq:spherical_self_force}
 \end{equation}
-Therefore,
+It points toward the ideal mouth and diverges as \(r_0\rightarrow a^+\). The divergence reflects the sharp zero-length boundary idealization. A smooth throat removes the distributional mouth, although a nonzero topology-sensitive self-force generally remains. Equations~\eqref{eq:spherical_self_energy} and \eqref{eq:spherical_self_force} apply only to the homogeneous-mode convention stated above.
+
+\section{Weak-Field Gravitational Interpretation}
+\label{sec:weak_gravity}
+
+\subsection{Newtonian limit of the exterior metric}
+
+In a weak exterior region, write
 \begin{equation}
-    G_{AA}=G_0,
-    \qquad
-    G_{BA}=G_{\mathrm{im}}.
+    g_{\mu\nu}=\eta_{\mu\nu}+h_{\mu\nu},
+    \qquad |h_{\mu\nu}|\ll1.
 \end{equation}
-A perfectly flat infinite wormhole face produces no leading same-side image force: the Dirichlet and Neumann image terms cancel. The residual field of a finite cubical mouth is therefore associated with its finite extent, edges, corners, and global topology.
-
-There is no Kelvin inversion preserving a cube. The exact ``image charge'' is a continuous equivalent distribution on the six faces, obtained from boundary integral equations. Near a conducting cube edge, the surface charge behaves generically as an integrable fractional singularity, of the form
+With the trace-reversed perturbation
 \begin{equation}
-    \sigma\sim\rho^{-1/3},
+    \bar h_{\mu\nu}
+    =h_{\mu\nu}-\frac{1}{2}\eta_{\mu\nu}h
 \end{equation}
-where \(\rho\) is the distance to the edge.
-
-\section{Newtonian Gravitational Polarization}
-
-\subsection{Apparent mouth monopoles}
-
-Let two spherical mouths of radius \(a\) be separated by \(L\gg a\). Let \(U_A\) and \(U_B\) denote the externally imposed Newtonian potentials at their centers, excluding the induced mouth fields.
-
-Introduce apparent monopoles \(m_A\) and \(m_B\):
+and harmonic gauge \(\partial^\mu\bar h_{\mu\nu}=0\), the linearized Einstein equations are
 \begin{equation}
-    \delta\Phi_A=-\frac{Gm_A}{r_A},
-    \qquad
-    \delta\Phi_B=-\frac{Gm_B}{r_B}.
+    \Box\bar h_{\mu\nu}
+    =-\frac{16\pi G}{c^4}T_{\mu\nu}.
+    \label{eq:linearized_einstein}
 \end{equation}
-For a fixed zero source-free throat-flux mode, the newly induced monopoles satisfy
+For a stationary nonrelativistic source, \(T_{00}\simeq\rho c^2\). Defining
 \begin{equation}
-    m_A+m_B=0.
-    \label{eq:zero_net_monopole}
+    \bar h_{00}=-\frac{4\Phi}{c^2}
 \end{equation}
-Potential continuity gives
+gives
+\begin{equation}
+    \boxed{\nabla^2\Phi=4\pi G\rho.}
+    \label{eq:poisson_from_gr}
+\end{equation}
+When exterior anisotropic stress is negligible,
 \begin{equation}
 \begin{split}
-U_A-\frac{Gm_A}{a}-\frac{Gm_B}{L}
-={}&
-U_B-\frac{Gm_B}{a}-\frac{Gm_A}{L}.
+    \mathrm{d}s^2={}&
+    -\left(1+\frac{2\Phi}{c^2}\right)c^2\mathrm{d}t^2\\
+    &+\left(1-\frac{2\Phi}{c^2}\right)
+    \delta_{ij}\mathrm{d}x^i\mathrm{d}x^j
+    +O(c^{-4}).
+    \label{eq:weak_metric}
 \end{split}
 \end{equation}
-Combining this with \eqref{eq:zero_net_monopole},
+The slow-particle geodesic equation then gives
+\begin{equation}
+    \frac{\mathrm{d}^2\mathbf x}{\mathrm{d}t^2}
+    =-\boldsymbol\nabla\Phi.
+\end{equation}
+
+\subsection{Lapse matching and its limits}
+
+For a static mouth, the lapse is
+\begin{equation}
+    N_i=1+\frac{\Phi_i}{c^2}+O(c^{-4}).
+\end{equation}
+If corresponding mouth events use the same internal time label and no additional redshift layer or time rescaling is inserted in the gluing map, continuity of the pulled-back induced metric requires
+\begin{equation}
+    N_A(\mathbf n)=N_B(P\mathbf n).
+\end{equation}
+At leading order,
+\begin{equation}
+    \Phi_A(\mathbf n)=\Phi_B(P\mathbf n).
+    \label{eq:weak_lapse_matching}
+\end{equation}
+This is a conditional matching statement. A different identification of the mouth time parameters, a finite internal redshift profile, or an explicit shell layer can modify the relation. Equality of the lapse does not determine its normal derivatives; those are related to the supporting stress and other gravitational degrees of freedom.
+
+\subsection{Local mass-type monopoles}
+
+In a vacuum buffer region around a compact nearly spherical mouth \(i\), write
+\begin{equation}
+\begin{split}
+    \Phi_i={}&U_i
+    -\frac{G\delta M_i}{r_i}
+    +\Phi_i^{\rm tidal}\\
+    &+\sum_{\ell\geq1}\sum_m
+    \frac{\Phi_{i,\ell m}}{r_i^{\ell+1}}
+    Y_{\ell m}(\theta_i,\varphi_i).
+    \label{eq:buffer_expansion}
+\end{split}
+\end{equation}
+Here \(U_i\) is the regular external potential at the mouth center, excluding the mouth's own response, and \(\delta M_i\) is a local mass-type monopole coefficient. In a geometry possessing a separate asymptotic end, an asymptotic \(1/r\) coefficient may be related to the ADM mass of that end. For two mouths in one common exterior, however, the individual local coefficients near the mouths are not separately ADM masses; ADM mass is defined at spatial infinity. A Komar interpretation additionally requires stationarity and an appropriate Killing field \cite{Wald1984,PoissonToolkit}.
+
+\subsection{Ideal spherical response and homogeneous mode}
+
+Let two nearly spherical mouths of radius \(a\) be separated by \(L\gg a\). Retain only the regular external potentials \(U_A,U_B\) and local monopoles \(\delta M_A,\delta M_B\). To monopole order, lapse matching gives
+\begin{equation}
+\begin{split}
+U_A-\frac{G\delta M_A}{a}-\frac{G\delta M_B}{L}
+={}&
+U_B-\frac{G\delta M_B}{a}-\frac{G\delta M_A}{L}.
+\label{eq:monopole_matching}
+\end{split}
+\end{equation}
+Equivalently,
+\begin{equation}
+    \delta M_A-\delta M_B
+    =\frac{U_A-U_B}
+    {G(a^{-1}-L^{-1})}.
+    \label{eq:antisymmetric_monopole}
+\end{equation}
+The matching condition fixes the antisymmetric monopole in this ideal boundary model but not the common mode \(\delta M_A+\delta M_B\). The latter represents additional asymptotic mass, stored throat energy, or a homogeneous response and must be fixed by a separate convention or constitutive law.
+
+Under the fixed-total-monopole convention
+\begin{equation}
+    \delta M_A+\delta M_B=0,
+    \label{eq:zero_sum_monopole}
+\end{equation}
+one obtains
 \begin{equation}
     \boxed{
-    m_A=
-    \frac{U_A-U_B}
+    \delta M_A
+    =\frac{U_A-U_B}
     {2G(a^{-1}-L^{-1})},
     \qquad
-    m_B=-m_A.
+    \delta M_B=-\delta M_A.
     }
-    \label{eq:induced_monopoles}
+    \label{eq:ideal_induced_monopoles}
 \end{equation}
 For \(L\gg a\),
 \begin{equation}
-    m_A\simeq\frac{a}{2G}(U_A-U_B),
-    \qquad
-    m_B=-m_A.
+    \delta M_A\simeq\frac{a}{2G}(U_A-U_B).
+\end{equation}
+Equation~\eqref{eq:ideal_induced_monopoles} is exact only within the stated monopole truncation, lapse-matching prescription, and common-mode convention.
+
+A broader effective model may be parameterized by
+\begin{equation}
+    \delta M_-
+    \equiv\frac{\delta M_A-\delta M_B}{2}
+    =\chi_0(U_A-U_B),
+    \label{eq:susceptibility}
+\end{equation}
+where \(\chi_0\) summarizes finite-throat geometry, redshift layers, higher multipoles, support dynamics, and control laws. The ideal short spherical model has
+\begin{equation}
+    \chi_0^{\rm ideal}
+    =\frac{1}{2G(a^{-1}-L^{-1})}.
 \end{equation}
 
-Only the potential difference matters. An additive constant in the Newtonian potential cannot induce the pair.
+\subsection{Examples}
 
-\subsection{Equal source potentials}
-
-Suppose a point mass \(M\) is at equal distance \(D\) from both mouths. The spherical average of its potential over either mouth equals the potential at the center:
+If a point mass \(M\) is outside both mouth spheres and is at equal distance \(D>a\) from their centers, the mean-value property for harmonic functions gives the same spherical average of its potential on both mouths:
 \begin{equation}
     U_A=U_B=-\frac{GM}{D}.
 \end{equation}
-Consequently,
-\begin{equation}
-    m_A=m_B=0.
-\end{equation}
-Higher multipoles may remain if the angular field patterns differ, but there is no induced \(1/r\) monopole.
+The ideal antisymmetric monopole then vanishes, although higher multipoles can remain if the angular patterns differ.
 
-\subsection{A source near only one mouth}
-
-Let the mass be at distance \(D_A\) from \(A\) and \(D_B\) from \(B\). Then
+If the source is at distances \(D_A,D_B>a\),
 \begin{equation}
     U_A=-\frac{GM}{D_A},
     \qquad
     U_B=-\frac{GM}{D_B}.
 \end{equation}
-Equation~\eqref{eq:induced_monopoles} gives
+Under \eqref{eq:zero_sum_monopole},
 \begin{equation}
-    \boxed{
-    m_A=
-    -\frac{M}{2}
+    \delta M_A
+    =-\frac{M}{2}
     \frac{D_A^{-1}-D_B^{-1}}
     {a^{-1}-L^{-1}},
     \qquad
-    m_B=-m_A.
-    }
+    \delta M_B=-\delta M_A.
 \end{equation}
-If \(D_A=D\), \(D_B\gg D\), and \(L\gg a\),
+For \(D_A=D\), \(D_B\gg D\), and \(L\gg a\),
 \begin{equation}
-    \boxed{
-    m_A\simeq-\frac{Ma}{2D},
-    \qquad
-    m_B\simeq+\frac{Ma}{2D}.
-    }
-\end{equation}
-The near mouth acquires a negative apparent monopole and the remote mouth an equal positive one. This is a redistribution of gravitational flux in the scalar model, not creation of net mass.
-
-\subsection{Caution about gravitational conductors}
-
-An electrical conductor passively equalizes potential because mobile like charges repel. Positive gravitational mass attracts and clumps. If one writes
-\begin{equation}
-    m_A=\frac{\mathcal M}{2}+\delta,
-    \qquad
-    m_B=\frac{\mathcal M}{2}-\delta,
-\end{equation}
-the Newtonian gravitational self-energy contains
-\begin{equation}
-    -G\delta^2\left(\frac{1}{a}-\frac{1}{L}\right),
-\end{equation}
-so equal division is an unstable maximum. A gravitational-conductor response must therefore be imposed by exotic stress or active control.
-
-\section{Coupled Motion Near Two Remote Equal Planets}
-
-Although not central to the later relativistic discussion, the earlier orbital model is recorded here for completeness. Let two fixed planets have equal mass \(M\), and let a light mouth of inertial mass \(m\) orbit each planet. Let the local orbital radii be \(r_1\) and \(r_2\), and assume the planetary systems are mutually very distant.
-
-The external potential mismatch is
-\begin{equation}
-    \Delta\Psi
-    =
-    -GM\left(\frac{1}{r_1}-\frac{1}{r_2}\right).
-\end{equation}
-The constrained induced monopole is
-\begin{equation}
-    \mu
-    =
-    -\frac{Ma}{2}
-    \left(\frac{1}{r_1}-\frac{1}{r_2}\right).
-\end{equation}
-A convenient effective polarization term is
-\begin{equation}
-    V_{\mathrm{pol}}
-    =
-    \frac{GM^2a}{4}
-    \left(
-    \frac{1}{r_1}-\frac{1}{r_2}
-    \right)^2.
-    \label{eq:orbital_polarization}
-\end{equation}
-This term should be understood as the energy of an actively constrained response, not as the stable minimum energy of passive positive masses.
-
-The effective Lagrangian is
-\begin{equation}
-\begin{split}
-L={}&
-\sum_{i=1}^{2}
-\left[
-\frac{m}{2}|\dot{\mathbf r}_i|^2+
-\frac{GMm}{r_i}
-\right]\\
-&-
-\frac{GM^2a}{4}
-\left(
-\frac{1}{r_1}-\frac{1}{r_2}
-\right)^2.
-\end{split}
-\end{equation}
-At leading order each force remains radial, so the two individual orbital angular momenta are conserved. The radial motions are coupled. The invariant symmetric family
-\begin{equation}
-    r_1(t)=r_2(t)
-\end{equation}
-has zero induced monopole and consists of ordinary Kepler orbits.
-
-Near equal circular radii \(r_0\), write \(r_i=r_0+x_i\). The differential mode \(x_-=x_1-x_2\) obeys
-\begin{equation}
-    \ddot x_-+\omega_-^2x_-=0,
-\end{equation}
-with
-\begin{equation}
-    \omega_-^2=
-    \frac{GM}{r_0^3}
-    \left(
-    1+\frac{M}{m}\frac{a}{r_0}
-    \right).
-\end{equation}
-The factor \(M/m\) illustrates why a mouth can be dynamically affected by the polarization constraint even if its ordinary gravity is negligible to the planet. This model is not automatically compatible with the equivalence principle because the induced gravitational coefficient was varied while the inertial mouth mass was held fixed.
-
-\section{Relation to General Relativity}
-\label{sec:relation_to_gr}
-
-The Newtonian polarization calculation has a natural interpretation as the
-weak-field, exterior limit of general relativity.  The approximation is local
-to the vacuum or nearly vacuum buffer regions surrounding the mouths and the
-planet.  The throat-supporting region may contain large curvature and exotic
-stress--energy; its detailed structure is represented, from the exterior point
-of view, by matching conditions, junction conditions, and response
-coefficients.  The purpose of this section is to derive the scalar equation
-used above from the linearized Einstein equations and to identify which parts
-of the monopole response are fixed by weak-field gravity alone.
-
-\subsection{Linearized field equations}
-
-In an exterior buffer region choose asymptotically inertial coordinates and
-write
-\begin{equation}
-    g_{\mu\nu}=\eta_{\mu\nu}+h_{\mu\nu},
-    \qquad |h_{\mu\nu}|\ll1.
-    \label{eq:metric_perturbation}
-\end{equation}
-Let
-\begin{equation}
-    \bar h_{\mu\nu}
-    =
-    h_{\mu\nu}
-    -\frac{1}{2}\eta_{\mu\nu}h,
-    \qquad
-    h=\eta^{\alpha\beta}h_{\alpha\beta}
-\end{equation}
-be the trace-reversed perturbation.  In harmonic gauge,
-\begin{equation}
-    \partial^\mu\bar h_{\mu\nu}=0,
-\end{equation}
-the Einstein equations reduce, to first order in the perturbation, to
-\begin{equation}
-    \Box\bar h_{\mu\nu}
-    =
-    -\frac{16\pi G}{c^4}T_{\mu\nu}.
-    \label{eq:linearized_einstein}
-\end{equation}
-For a stationary source whose internal velocities are small compared with
-\(c\),
-\begin{equation}
-    T_{00}\simeq \rho c^2,
-    \qquad
-    |T_{0i}|\ll T_{00},
-    \qquad
-    |T_{ij}|\ll T_{00}.
-\end{equation}
-The dominant component of \eqref{eq:linearized_einstein} is therefore
-\begin{equation}
-    \nabla^2\bar h_{00}
-    =
-    -\frac{16\pi G}{c^2}\rho .
-    \label{eq:hbar00_poisson}
-\end{equation}
-Define the Newtonian potential by
-\begin{equation}
-    \bar h_{00}=-\frac{4\Phi}{c^2}.
-    \label{eq:Phi_from_hbar}
-\end{equation}
-Then \eqref{eq:hbar00_poisson} becomes
-\begin{equation}
-    \boxed{\nabla^2\Phi=4\pi G\rho.}
-    \label{eq:poisson_from_linearized_gr}
-\end{equation}
-The Poisson equation used in the scalar model is thus the Newtonian limit of
-the linearized Einstein equations in the weak exterior regions.
-
-When exterior anisotropic stress is negligible, the temporal and spatial
-scalar perturbations are determined by the same potential.  The metric may be
-written as
-\begin{equation}
-\begin{split}
-    \mathrm{d}s^2={}&
-    -\left(1+\frac{2\Phi}{c^2}\right)c^2\mathrm{d}t^2\\
-    &+
-    \left(1-\frac{2\Phi}{c^2}\right)
-    \delta_{ij}\mathrm{d}x^i\mathrm{d}x^j
-    +O(c^{-4}).
-    \label{eq:weak_metric_from_h}
-\end{split}
-\end{equation}
-Equivalently,
-\begin{equation}
-    h_{00}=-\frac{2\Phi}{c^2},
-    \qquad
-    h_{ij}=-\frac{2\Phi}{c^2}\delta_{ij}.
-\end{equation}
-For a slowly moving test body, the spatial part of the geodesic equation gives
-\begin{equation}
-    \frac{\mathrm{d}^2x^i}{\mathrm{d}t^2}
-    =
-    -c^2\Gamma^i{}_{00}
-    =
-    \frac{c^2}{2}\partial_i h_{00}
-    =
-    -\partial_i\Phi,
-    \label{eq:newtonian_acceleration_from_h}
-\end{equation}
-fixing the sign convention used throughout the Newtonian sections.
-
-\subsection{Vacuum buffer regions and mouth monopoles}
-
-Outside the planet, the mouths, and the material supporting the throat, the
-leading weak-field equation is harmonic:
-\begin{equation}
-    \rho=0,
-    \qquad
-    \nabla^2\Phi=0.
-\end{equation}
-In a buffer region around a compact nearly spherical mouth \(i\), the general
-stationary solution can be expanded as
-\begin{equation}
-    \Phi_i
-    =
-    U_i
-    -\frac{G\delta M_i}{r_i}
-    +
-    \sum_{\ell\geq1}\sum_m
-    \frac{\Phi_{i,\ell m}}{r_i^{\ell+1}}
-    Y_{\ell m}(\theta_i,\varphi_i)
-    +\Phi_i^{\rm tidal}.
-    \label{eq:buffer_multipole_expansion}
-\end{equation}
-Here \(U_i\) is the externally imposed potential at the mouth center, with the
-mouth's own induced field excluded.  The term \(\Phi_i^{\rm tidal}\) denotes
-regular external multipoles, while \(\delta M_i\) is the coefficient of the
-local \(1/r_i\) field.  In the weak relativistic expansion this coefficient is
-the perturbation of the local Schwarzschild mass parameter, or equivalently
-the ADM or Komar mass perturbation associated with that exterior end when the
-corresponding asymptotic construction is available.  In terms of the metric
-perturbation,
-\begin{equation}
-    h_{00}^{(i)}
-    =
-    -\frac{2}{c^2}
-    \left(
-    U_i-\frac{G\delta M_i}{r_i}+\cdots
-    \right).
-\end{equation}
-Thus the apparent mouth monopoles used in the Newtonian model are the
-weak-field mass monopoles of the exterior metric.
-
-\subsection{Lapse matching at synchronized mouths}
-
-For a static mouth, the lapse is
-\begin{equation}
-    N_i=\sqrt{-g_{tt}^{(i)}}
-    =
-    1+\frac{\Phi_i}{c^2}+O(c^{-4}).
-\end{equation}
-If the two mouth worldtubes are identified using the same internal time label,
-and if no additional redshift layer is inserted into the gluing map, continuity
-of the induced metric requires equality of the pulled-back lapse:
-\begin{equation}
-    N_A(\Omega)=N_B(\mathcal O\Omega).
-\end{equation}
-At leading weak-field order this becomes
-\begin{equation}
-    \Phi_A(\Omega)
-    =
-    \Phi_B(\mathcal O\Omega)
-    +O(c^{-2}\Phi^2).
-    \label{eq:lapse_matching_phi}
-\end{equation}
-Equation~\eqref{eq:lapse_matching_phi} is the weak-GR origin of the
-equal-potential boundary condition used in the scalar polarization model.  It
-is a condition on the induced metric, specifically on \(g_{tt}\) or
-\(h_{00}\).  It does not determine the normal derivatives of the metric.  Those
-normal derivatives are part of the gravitational flux data and are controlled
-by the stress tensor and equation of state of the throat-supporting material.
-
-\subsection{Induced monopoles in the linearized metric}
-
-Retain only the monopole terms and let the two nearly spherical mouths have a
-common radius \(a\) and separation \(L\gg a\).  Let \(U_A\) and \(U_B\) denote
-the external potentials at the mouth centers, excluding the induced mouth
-fields.  On the surface of mouth \(A\), the potential entering \(h_{00}\) is,
-to monopole order,
-\begin{equation}
-    \Phi_A^{\rm surf}
-    =
-    U_A
-    -\frac{G\delta M_A}{a}
-    -\frac{G\delta M_B}{L}.
-\end{equation}
-Similarly,
-\begin{equation}
-    \Phi_B^{\rm surf}
-    =
-    U_B
-    -\frac{G\delta M_B}{a}
-    -\frac{G\delta M_A}{L}.
-\end{equation}
-Because \(h_{00}=-2\Phi/c^2\), equality of the pulled-back lapse is equivalent,
-at this order, to equality of these surface potentials:
-\begin{equation}
-    U_A
-    -\frac{G\delta M_A}{a}
-    -\frac{G\delta M_B}{L}
-    =
-    U_B
-    -\frac{G\delta M_B}{a}
-    -\frac{G\delta M_A}{L}.
-    \label{eq:GR_monopole_matching}
-\end{equation}
-This relation fixes only the difference of the induced monopoles.  A second
-condition specifies the global homogeneous mode and the bookkeeping convention
-for total mass.  In the idealized fixed-total-mass, zero-added-flux convention,
-\begin{equation}
-    \delta M_A+\delta M_B=0.
-    \label{eq:GR_zero_sum}
-\end{equation}
-Equations~\eqref{eq:GR_monopole_matching} and \eqref{eq:GR_zero_sum} give
-\begin{equation}
-    \boxed{
-    \delta M_A
-    =
-    \frac{U_A-U_B}
-    {2G(a^{-1}-L^{-1})},
-    \qquad
-    \delta M_B=-\delta M_A .
-    }
-    \label{eq:GR_induced_monopoles}
-\end{equation}
-For \(L\gg a\),
-\begin{equation}
-    \delta M_A\simeq \frac{a}{2G}(U_A-U_B),
-    \qquad
-    \delta M_B\simeq-\delta M_A.
-\end{equation}
-If a planet of mass \(M\) is close to mouth \(A\), with \(D_A=D\), while mouth
-\(B\) is far away, then
-\begin{equation}
-    U_A\simeq-\frac{GM}{D},
-    \qquad
-    U_B\simeq0,
-\end{equation}
-and therefore
-\begin{equation}
-    \boxed{
     \delta M_A\simeq-\frac{Ma}{2D},
     \qquad
     \delta M_B\simeq+\frac{Ma}{2D}.
-    }
 \end{equation}
-The near mouth then carries a negative induced mass monopole and the distant
-mouth an equal positive one in this ideal response convention.  The result is a
-redistribution of the exterior weak-field monopole, not a creation of net
-asymptotic mass.
+Under the fixed-total convention, this is best described as a redistribution of exterior \(1/r\) coefficients. In a relativistic support model, changes in shell energy, binding energy, or radiation can alter the total asymptotic mass budget.
 
-\subsection{Thin-shell junctions and response coefficients}
+\subsection{Junction conditions and stability}
 
-For a cut-and-paste wormhole, the induced metric \(q_{ab}\) on the throat is
-continuous, while a jump in extrinsic curvature is supported by a surface
-stress tensor:
+For a cut-and-paste throat, the induced metric \(q_{ab}\) is continuous while a jump in extrinsic curvature is supported by a surface stress tensor:
 \begin{equation}
     \boxed{
-    S_{ab}
-    =
-    -\frac{c^4}{8\pi G}
-    \left(
-    [K_{ab}]-q_{ab}[K]
-    \right).
+    S_{ab}=-\frac{c^4}{8\pi G}
+    \left([K_{ab}]-q_{ab}[K]\right).
     }
     \label{eq:israel}
 \end{equation}
-These Israel junction conditions relate the discontinuity in the normal
-derivatives of the metric to the surface energy density, pressure, and tension
-of the throat.  In the weak-field description, continuity of \(q_{tt}\) gives
-the lapse matching condition, while the jump in \(\partial_n h_{\mu\nu}\)
-contains the gravitational flux response of the supporting shell.
+The junction conditions relate normal derivatives of the metric to the surface energy density and stresses \cite{Israel1966,PoissonToolkit}. They do not supply an equation of state or guarantee that a quasistatic branch satisfying \eqref{eq:ideal_induced_monopoles} is stable.
 
-The preceding derivation therefore fixes the exterior Poisson equation, the
-identification of \(1/r\) coefficients with weak-field mass monopoles, and the
-equal-lapse condition for synchronized mouths.  It does not fix a universal
-susceptibility.  In a more general throat model one should write
+A passive gravitational conductor is particularly problematic. For a schematic split
 \begin{equation}
-    \delta M_A=-\delta M_B
-    =
-    \chi_0(U_A-U_B),
-    \label{eq:GR_susceptibility}
+    M_A=\frac{\mathcal M}{2}+\delta,
+    \qquad
+    M_B=\frac{\mathcal M}{2}-\delta,
 \end{equation}
-where \(\chi_0\) is determined by the throat geometry, supporting fields,
-external constraints, and choice of homogeneous mode.  The ideal scalar model
-corresponds to
+the \(\delta\)-dependent gravitational self-energy has the generic form
 \begin{equation}
-    \chi_0^{\mathrm{ideal}}
-    =
-    \frac{1}{2G(a^{-1}-L^{-1})}.
+    E(\delta)=E(0)
+    -C_{\rm self}\frac{G\delta^2}{a}
+    +C_{\rm int}\frac{G\delta^2}{L}+\cdots,
+    \label{eq:schematic_grav_energy}
 \end{equation}
+with positive geometry-dependent coefficients. For \(L\gg a\), the negative self-energy term dominates, so equal division is not a passive minimum. Any stable equalizing response requires exotic stresses, active control, or another constitutive mechanism.
 
-\subsection{Status of the relativistic extension}
+\section{Time-Dependent Identification and Temporal Holonomy}
+\label{sec:time_holonomy}
 
-The following ingredients have a controlled weak-field or junction-condition
-basis:
-\begin{itemize}
-    \item the reduction of the linearized Einstein equations to
-    \(\nabla^2\Phi=4\pi G\rho\) in weak exterior regions;
-    \item the Newtonian acceleration law
-    \(\mathrm{d}^2\mathbf x/\mathrm{d}t^2=-\boldsymbol\nabla\Phi\) for slow test
-    bodies;
-    \item the interpretation of a local \(1/r\) term in \(\Phi\) as a
-    weak-field mass monopole;
-    \item equality of lapse, and hence equality of \(\Phi\) to leading order,
-    at synchronized identified mouth points;
-    \item support of jumps in the normal derivatives of the metric by shell
-    stresses through the Israel junction conditions.
-\end{itemize}
+The preceding sections assumed synchronized mouths. We now retain the spatial mouth map while allowing the two mouth time coordinates to acquire a relative offset.
 
-The following ingredients are constitutive assumptions of the effective model:
-\begin{itemize}
-    \item the value of the susceptibility \(\chi_0\);
-    \item the fixed-total-monopole condition
-    \(\delta M_A+\delta M_B=0\), rather than a change in homogeneous throat flux
-    or stored throat energy;
-    \item rigidity of the mouths under acceleration or tidal loading;
-    \item the division of recoil, stored energy, and stress between the two
-    mouths;
-    \item stability of any passive gravitational-conductor-like response.
-\end{itemize}
+\subsection{Accumulated clock difference}
 
-
-\section{Accelerated Mouths and Time Slip}
-
-\subsection{Accumulated proper-time difference}
-
-Let mouth \(A\) remain at rest while \(B\) undergoes an accelerated journey and later returns to rest. If \(\tau\) is the common internal throat label, write
+Let the two mouth worldtubes be parametrized by a common internal label \(\tau\):
 \begin{equation}
     t_A=T_A(\tau),
     \qquad
     t_B=T_B(\tau).
 \end{equation}
-The external time slip is
+The external time difference is
 \begin{equation}
     \Delta(\tau)=T_B(\tau)-T_A(\tau).
 \end{equation}
-
-For a special-relativistic trip with \(A\) at rest and \(\tau\) chosen as the proper time of \(B\),
+For a special-relativistic trip in which \(A\) remains inertial and \(\tau\) is the proper time of \(B\),
 \begin{equation}
-    \Delta
-    =
-    \int
-    \left(\gamma_B-1\right)\mathrm{d}\tau,
+    \Delta=\int(\gamma_B-1)\,\mathrm{d}\tau
+    =\int\left[1-\sqrt{1-\frac{v_B^2}{c^2}}\right]\mathrm{d}t.
 \end{equation}
-or equivalently
+At low speed,
 \begin{equation}
-    \Delta
-    =
-    \int
-    \left[
-    1-\sqrt{1-\frac{v_B^2}{c^2}}
-    \right]\mathrm{d}t.
+    \Delta\simeq\frac{1}{2c^2}\int v_B^2\,\mathrm{d}t.
 \end{equation}
-At low velocity,
-\begin{equation}
-    \Delta\simeq
-    \frac{1}{2c^2}
-    \int v_B^2\,\mathrm{d}t.
-\end{equation}
-In a weak gravitational field,
+In a weak gravitational field, the differential proper-time accumulation is
 \begin{equation}
 \begin{split}
-\tau_A-\tau_B\simeq
-\frac{1}{c^2}\int
+\tau_A-\tau_B\simeq\frac{1}{c^2}\int
 \left[
 \Phi_A-\Phi_B
 -\frac{v_A^2-v_B^2}{2}
 \right]\mathrm{d}t.
 \end{split}
 \end{equation}
-The standard moving-mouth time-machine construction is discussed by Morris, Thorne, and Yurtsever \cite{MorrisThorneYurtsever1988}.
+The moving-mouth construction of a wormhole time machine is discussed by Morris, Thorne, and Yurtsever \cite{MorrisThorneYurtsever1988}.
 
-\subsection{Final static identification}
+\subsection{Final constant translation}
 
-After the acceleration ends, suppose both mouths are again static with equal clock rates. The gluing relation becomes
+After the acceleration ends, suppose both mouths are again static and their clock rates agree. The remaining identification can be
 \begin{equation}
     \boxed{
-    (t,\Omega)_A
+    (t,\mathbf n)_A
     \sim
-    (t+\Delta,\mathcal O\Omega)_B,
+    (t+\Delta,P\mathbf n)_B,
     }
     \label{eq:time_shift_identification}
 \end{equation}
-with constant \(\Delta\).
-
-For local static mouth metrics
+with constant \(\Delta\). Because
 \begin{equation}
-    \mathrm{d}s_i^2
-    =
-    -N_i^2(r_i)c^2\mathrm{d}t_i^2
-    +
-    A_i^2(r_i)\mathrm{d}r_i^2+
-    r_i^2\mathrm{d}\Omega_i^2,
+    \mathrm{d}(t+\Delta)=\mathrm{d}t,
 \end{equation}
-pullback through \(t_B=t_A+\Delta\) gives
-\begin{equation}
-    \mathrm{d}(t_A+\Delta)=\mathrm{d}t_A.
-\end{equation}
-Therefore the constant shift does not change the induced metric or the local junction equations. Frolov, Krtou\v{s}, and Zelnikov discuss an explicit constant-gap quotient with a locally unchanged metric \cite{Frolov2023}.
+a constant translation has the identity differential. It does not, by itself, alter the local induced metric, the local junction equations, or the tangent-space energy map. Frolov, Krtou\v{s}, and Zelnikov discuss constant time-gap identifications and distinguish them from dynamical situations in which a locally static but globally non-potential gravitational field makes the gap grow \cite{Frolov2023}.
 
-\subsection{Temporal holonomy}
+\subsection{Holonomy in a one-exterior handle}
 
-On a spatial manifold containing a handle, choose a smooth closed one-form \(\eta\) such that
+The constant offset becomes invariant only when a path can traverse the throat and return through the same exterior, so that the comparison forms a closed loop. On a spatial manifold with a handle, choose a smooth closed one-form \(\eta\) satisfying
 \begin{equation}
     \mathrm{d}\eta=0,
     \qquad
     \oint_\gamma\eta=1,
 \end{equation}
-where \(\gamma\) passes through the wormhole and returns through exterior space. A stationary metric carrying the time slip is
+where \(\gamma\) passes through the throat and returns externally. A stationary metric encoding the offset is
 \begin{equation}
     \boxed{
-    \mathrm{d}s^2=
-    -N^2c^2(\mathrm{d}T-\Delta\eta)^2
-    +
-    h_{ij}\mathrm{d}x^i\mathrm{d}x^j.
+    \mathrm{d}s^2
+    =-N^2c^2(\mathrm{d}T-\Delta\eta)^2
+    +h_{ij}\mathrm{d}x^i\mathrm{d}x^j.
     }
     \label{eq:holonomy_metric}
 \end{equation}
-Locally, \(\eta=\mathrm{d}\chi\), and the transformation
-\begin{equation}
-    \tau=T-\Delta\chi
-\end{equation}
-removes the cross term. Globally, no single-valued \(\chi\) exists because
+Locally, \(\eta=\mathrm{d}\chi\), so \(\tau=T-\Delta\chi\) removes the cross term. Globally, no single-valued \(\chi\) exists when \(\eta\) has nonzero period. The invariant statement is
 \begin{equation}
     \oint_\gamma\Delta\eta=\Delta.
 \end{equation}
-The slip is therefore locally pure gauge but globally measurable by comparing the wormhole path with an exterior path.
+Thus the time slip is locally removable but globally measurable by comparing the throat path with an exterior path.
 
-\section{Smooth Finite-Throat Check}
+\section{Smooth Local Realization of a Constant Offset}
+\label{sec:smooth_realization}
 
-\subsection{Ellis-type throat}
+The following Ellis-throat calculation does not, by itself, create nontrivial temporal holonomy. On a two-ended spacetime with disconnected asymptotic regions, it is a global change of clock convention. Its purpose is narrower: it shows that the local transition required by a prescribed asymptotic offset can be distributed smoothly through a finite region without adding curvature or a force on structureless test particles. The offset becomes holonomy only after the two ends are embedded or identified within a common exterior so that the relevant loop closes.
 
-To test whether the absence of a local force is an artifact of an infinitely short or sharp throat, consider the smooth ultrastatic Ellis geometry \cite{Ellis1973,Bronnikov1973}:
+\subsection{Ellis geometry and smooth clock interpolation}
+
+Consider the ultrastatic Ellis geometry \cite{Ellis1973,Bronnikov1973}:
 \begin{equation}
     \boxed{
     \mathrm{d}s_0^2
-    =
-    -c^2\mathrm{d}\tau^2+
-    \mathrm{d}l^2+
-    (l^2+a^2)\mathrm{d}\Omega^2.
+    =-c^2\mathrm{d}\tau^2
+    +\mathrm{d}l^2
+    +(l^2+a^2)\mathrm{d}\Omega^2.
     }
     \label{eq:ellis_metric}
 \end{equation}
-The throat at \(l=0\) is smooth. The Ricci scalar is
+The throat at \(l=0\) is smooth, and
 \begin{equation}
-    R=-\frac{2a^2}{(l^2+a^2)^2},
+    R=-\frac{2a^2}{(l^2+a^2)^2}
 \end{equation}
-which is finite everywhere.
+is finite everywhere.
 
-Choose a smooth interpolation
+Choose any smooth step function \(F(l)\) such that, for some finite \(L_F>0\),
 \begin{equation}
-    F(-\infty)=0,
+    F(l)=0\quad(l\leq-L_F),
     \qquad
-    F(+\infty)=1,
-\end{equation}
-for example
-\begin{equation}
-    F(l)=\frac{1}{2}
-    \left[
-    1+\tanh\left(\frac{l}{L_F}\right)
-    \right].
+    F(l)=1\quad(l\geq L_F).
+    \label{eq:compact_step}
 \end{equation}
 Define
 \begin{equation}
@@ -1119,193 +747,259 @@ Then
 \begin{equation}
     \boxed{
     \mathrm{d}s_\Delta^2
-    =
-    -c^2
-    \left[
-    \mathrm{d}t-\Delta F'(l)\mathrm{d}l
-    \right]^2
-    +
-    \mathrm{d}l^2+
-    (l^2+a^2)\mathrm{d}\Omega^2.
+    =-c^2[\mathrm{d}t-\Delta F'(l)\mathrm{d}l]^2
+    +\mathrm{d}l^2
+    +(l^2+a^2)\mathrm{d}\Omega^2.
     }
     \label{eq:smooth_slip_metric}
 \end{equation}
-All components are smooth, and the transition can be spread over an arbitrarily long but finite part of the throat.
+The coordinate transition is confined to \(|l|<L_F\).
 
-\subsection{No new curvature}
+\subsection{No added local curvature}
 
-Equation~\eqref{eq:smooth_slip_metric} follows from the smooth coordinate transformation
+Equation~\eqref{eq:smooth_slip_metric} is obtained from the smooth single-valued transformation
 \begin{equation}
     \tau=t-\Delta F(l).
 \end{equation}
-Therefore all local curvature invariants are unchanged:
+Consequently, all local curvature tensors and scalar invariants are unchanged:
 \begin{equation}
     R[g_\Delta]=R[g_0],
-\end{equation}
-\begin{equation}
+    \qquad
     R_{\mu\nu}R^{\mu\nu}[g_\Delta]
-    =
-    R_{\mu\nu}R^{\mu\nu}[g_0],
+    =R_{\mu\nu}R^{\mu\nu}[g_0],
 \end{equation}
-and similarly for the Riemann tensor and Einstein tensor.
+and similarly for the Riemann and Einstein tensors. There is no new thin shell or delta-function stress where \(F'\neq0\). In the two-ended Ellis manifold, the construction merely chooses asymptotic clocks whose zero points differ by \(\Delta\). In a completed one-exterior quotient, the same local chart can realize the transition associated with a separately imposed global holonomy.
 
-There is no hidden thin shell, delta-function force, or extra stress localized where \(F'\neq0\). For two disconnected asymptotic regions this transformation is globally a clock-convention change. When the two ends are embedded in the same exterior universe, the invariant information is instead the nontrivial global holonomy of \eqref{eq:holonomy_metric}.
-
-\subsection{Explicit geodesics}
+\subsection{Geodesics}
 
 Restrict to the equatorial plane. The geodesic Lagrangian is
 \begin{equation}
 \begin{split}
 2\mathcal L={}&
--c^2
-\left(
-\dot t-\Delta F'\dot l
-\right)^2
-+\dot l^2+
-(l^2+a^2)\dot\varphi^2.
+-c^2(\dot t-\Delta F'\dot l)^2
++\dot l^2
++(l^2+a^2)\dot\varphi^2.
 \end{split}
 \end{equation}
-The conserved energy and angular momentum are
+The conserved quantities are
 \begin{equation}
     E=c^2(\dot t-\Delta F'\dot l),
-\end{equation}
-\begin{equation}
+    \qquad
     J=(l^2+a^2)\dot\varphi.
 \end{equation}
-For a timelike geodesic,
+For a timelike geodesic parametrized by proper time,
 \begin{equation}
     \boxed{
-    \dot l^2=
-    \frac{E^2}{c^2}
-    -c^2
-    -\frac{J^2}{l^2+a^2}.
+    \dot l^2
+    =\frac{E^2}{c^2}-c^2
+    -\frac{J^2}{l^2+a^2},
     }
+    \label{eq:ellis_radial_first_integral}
 \end{equation}
-The radial equation is
 \begin{equation}
     \boxed{
-    \ddot l=
-    \frac{J^2l}{(l^2+a^2)^2}.
+    \ddot l
+    =\frac{J^2l}{(l^2+a^2)^2}.
     }
+    \label{eq:ellis_radial_acceleration}
 \end{equation}
-Neither equation depends on \(\Delta\). A purely radial geodesic has \(J=0\) and
+Neither equation contains \(\Delta\). A radial geodesic has \(J=0\) and \(\ddot l=0\). The coordinate relation
 \begin{equation}
-    \ddot l=0.
+    t(\lambda)=\tau(\lambda)+\Delta F[l(\lambda)]
 \end{equation}
-The coordinate time is
-\begin{equation}
-    t(\lambda)
-    =
-    \tau(\lambda)+\Delta F[l(\lambda)],
-\end{equation}
-so a complete traversal gains the coordinate-time offset \(\Delta\) without a momentum kick.
+adds the asymptotic coordinate offset without changing the local four-momentum measured by corresponding static tetrads.
 
-\subsection{Generic smooth static throat}
-
-For the more general metric \eqref{eq:generic_throat}, introduce the same transformation:
+For the general static throat \eqref{eq:generic_throat}, the same transformation gives
 \begin{equation}
 \begin{split}
 \mathrm{d}s_\Delta^2={}&
--N^2(l)c^2
-\left[
-\mathrm{d}t-\Delta F'(l)\mathrm{d}l
-\right]^2\\
+-N^2(l)c^2[\mathrm{d}t-\Delta F'(l)\mathrm{d}l]^2\\
 &+\mathrm{d}l^2+r^2(l)\mathrm{d}\Omega^2.
 \end{split}
 \end{equation}
-The radial first integral is
+With \(\kappa=1\) for timelike and \(0\) for null geodesics,
 \begin{equation}
-    \dot l^2=
-    \frac{E^2}{N^2c^2}
+    \dot l^2
+    =\frac{E^2}{N^2c^2}
     -\kappa c^2
     -\frac{J^2}{r^2},
 \end{equation}
-where \(\kappa=1\) for timelike and \(0\) for null geodesics. The radial acceleration is
 \begin{equation}
-    \ddot l=
-    -\frac{E^2N'}{N^3c^2}
-    +
-    \frac{J^2r'}{r^3}.
+    \ddot l
+    =-\frac{E^2N'}{N^3c^2}
+    +\frac{J^2r'}{r^3}.
 \end{equation}
-The ordinary redshift force and angular momentum barrier remain, but they are identical for \(\Delta=0\) and constant \(\Delta\neq0\).
+The ordinary lapse force and angular-momentum barrier remain, but they are identical for \(\Delta=0\) and for constant \(\Delta\neq0\).
 
-\section{When a Time Slip Can Matter Dynamically}
+\section{Physical Effects of a Time Offset}
+\label{sec:time_effects}
 
-\subsection{Changing time slip}
+\subsection{Changing offsets}
 
-During acceleration, the map may be
+During acceleration, the temporal map can be
 \begin{equation}
-    t_B=f(t_A),
+    t_B=f(t_A)
 \end{equation}
-rather than a constant translation. Then
+rather than a translation. Then
 \begin{equation}
     \mathrm{d}t_B=f'(t_A)\mathrm{d}t_A,
 \end{equation}
-and induced-metric matching requires a corresponding lapse ratio. A changing time slip,
-\begin{equation}
-    \dot\Delta\neq0,
-\end{equation}
-can therefore produce redshift, energy exchange, curvature, and stresses. Once the final map is \(f(t)=t+\Delta\), these rate effects disappear while the accumulated offset remains.
+and induced-metric matching requires a corresponding lapse relation. A changing offset can produce redshift, energy exchange, stresses, and radiation. When the final map becomes \(f(t)=t+\Delta\), these rate-dependent effects vanish, although the accumulated offset remains.
 
-\subsection{Time-dependent external fields}
+\subsection{Time-dependent fields and interference}
 
-For a field \(\Psi(t,\mathbf x)\), the boundary condition is
+For a field \(\Psi(t,\mathbf x)\), the boundary condition becomes
 \begin{equation}
-    \Psi_A(t,\Omega)
-    =
-    \Psi_B(t+\Delta,\mathcal O\Omega).
+    \Psi_A(t,\mathbf n)
+    =\Psi_B(t+\Delta,P\mathbf n).
 \end{equation}
-A Fourier component acquires the phase
+A Fourier component acquires phase
 \begin{equation}
     \widetilde\Psi_B(\omega)
-    =
-    e^{i\omega\Delta}
-    \widetilde\Psi_A(\omega).
+    =e^{i\omega\Delta}\widetilde\Psi_A(\omega).
 \end{equation}
-Static fields have \(\omega=0\) and are insensitive to the constant slip. Radiation, oscillating fields, and interference experiments need not be.
+Static fields have \(\omega=0\) and are insensitive to a constant translation. Waves, oscillating fields, and interference measurements need not be.
 
-\subsection{Self-interaction}
+\subsection{Self-interaction and residual excitations}
 
-A structureless test particle neglects its own field and sees no extra local force from constant \(\Delta\). A charged or gravitating body can send a field through the throat and interact with a delayed or advanced copy of that field. Such a force is nonlocal and depends on the global Green function, not on new local curvature.
+A structureless test particle neglects its own field and receives no additional local force from the constant offset in Section~\ref{sec:smooth_realization}. A charged or gravitating body can nevertheless send a field through the throat and interact with a delayed or advanced copy of that field. Such a force is nonlocal and depends on the global retarded Green function.
 
-\subsection{Residual excitations}
+The acceleration history can also leave gravitational radiation, oscillations of the supporting fields, changes in mouth mass or spin, deformation, or stress in the accelerating apparatus. These are genuine local final-state data and are not determined solely by the number \(\Delta\).
 
-The acceleration history can leave:
-\begin{itemize}
-    \item gravitational radiation;
-    \item oscillations of the supporting exotic field;
-    \item changes of mouth mass, spin, or shape;
-    \item stresses in an external accelerating apparatus.
-\end{itemize}
-These produce real local forces. They are additional final-state data and are not fixed solely by the accumulated value of \(\Delta\).
+\subsection{Causal criterion}
 
-\subsection{Causal effects}
-
-If the time shift exceeds the shortest exterior causal travel time between the mouths, a closed causal curve can be formed. This is a global causal effect rather than a local force. The local metric can remain stationary and smooth while the global spacetime fails to admit a global time function \cite{MorrisThorneYurtsever1988,Frolov2023}.
+Let \(\Delta_{\rm adv}>0\) denote the time advance supplied in a chosen traversal direction. Let \(T_{\rm wh}^{\min}\) be the minimum causal transit time through the finite throat in that convention, and \(T_{\rm ext}^{\min}\) the minimum causal time for the exterior return leg. A closed causal curve becomes possible when
+\begin{equation}
+    \Delta_{\rm adv}
+    >T_{\rm wh}^{\min}+T_{\rm ext}^{\min}.
+    \label{eq:ctc_criterion}
+\end{equation}
+For a zero-length throat, \(T_{\rm wh}^{\min}=0\). This is a global causal effect, not a local force. A spacetime may remain locally smooth and stationary while failing to admit a global time function \cite{MorrisThorneYurtsever1988,Frolov2023}.
 
 \section{Conclusions}
+\label{sec:conclusions}
 
-The main conclusions of this note are as follows.
+The zero-length mouth model separates the differential of the boundary identification from its transverse extension. Tangential motion is fixed by the mouth map, but a complete momentum map requires an additional throat prescription. In the ideal elastic model, the transverse component reverses and the full map is Lorentz, so the mass shell is preserved. Momentum exchange with the mouths can be estimated in a common asymptotic frame, but its division among the two mouths, radiation, supports, and stored throat stress is constitutive.
 
-First, an ideal wormhole can be modeled kinematically by identifying two mouth worldtubes. Matter crossing the throat has its four-momentum transformed by the differential of the identification map. The total impulse received by the wormhole system is the difference between incoming and outgoing four-momentum.
+Static scalar fields obey their ordinary local equations away from the throat. A chosen global-potential sector imposes pointwise potential continuity and opposite radial derivatives at corresponding mouths. Source-free throat flux is independent data. For two spherical flat exteriors with equal vanishing asymptotic potentials, the charge-generated same-side field is represented by a uniform line image ending at the Kelvin point. The resulting self-force is attractive in that convention. This construction is distinct from the single Kelvin point image of a grounded conductor.
 
-Second, electrostatic and Newtonian analogies are useful but should not be confused with a passive physical material. A spherical conducting boundary has a single Kelvin point image, whereas a simple spherical wormhole generally has a distributed line image ending at the Kelvin point. A cubical mouth has simple piecewise-linear traversal kinematics but no finite Kelvin image system; its fields are naturally described by Dirichlet--Neumann Green-function combinations and boundary integral densities.
+The Newtonian scalar model has a controlled interpretation in weak exterior regions of general relativity. Under synchronized lapse matching, a monopole truncation fixes the antisymmetric local \(1/r\) coefficient. An equal-and-opposite pair follows only after a fixed-total-monopole convention is imposed. The individual local coefficients near two mouths in one exterior are not separately ADM masses, and the stability and stored energy of the response require a throat action or controller.
 
-Third, unequal external scalar potentials can induce equal-and-opposite apparent mouth monopoles. In the ideal short spherical model,
+A final constant clock offset has identity differential and therefore does not add a local force or change the local junction equations by itself. A smooth Ellis-type coordinate interpolation confirms that the local transition can be realized without new curvature. On a two-ended manifold this is only a choice of clock origins. It becomes invariant temporal holonomy when the ends participate in a common multiply connected exterior and the comparison path closes. The holonomy can then affect time-dependent fields, self-interaction, and global causality even though it remains locally removable.
+
+\appendices
+
+\section{Polyhedral Mouths}
+\label{app:cube}
+
+\subsection{Facewise traversal map}
+
+Let a cubical mouth in its body frame be
 \begin{equation}
-    m_A=-m_B
-    =
-    \frac{U_A-U_B}
-    {2G(a^{-1}-L^{-1})}.
+    C=\{\mathbf y:|y_x|,|y_y|,|y_z|\leq a\}.
 \end{equation}
-Equal external potentials produce no monopole. The coefficient is not universal in full general relativity because it depends on the throat-supporting stress and its equation of state.
+A global face identification can be represented by a signed permutation matrix \(P\). On a face with outward body-frame normal \(\mathbf n_f\), the ideal spatial map is
+\begin{equation}
+    J_f=P(I-2\mathbf n_f\mathbf n_f^T).
+    \label{eq:cube_map}
+\end{equation}
+It maps tangential directions by \(P\) and reverses the face-normal component. In the external frame,
+\begin{equation}
+    \mathbf p_{\rm out}=R_BJ_fR_A^T\mathbf p_{\rm in}.
+\end{equation}
+The map is constant across each open face. At an ideal edge or vertex more than one face normal is available, so the rule is ambiguous; a physical construction should round the edges or specify an edge-scattering law.
 
-Fourth, the Newtonian model has a legitimate weak-field interpretation outside the throat, and equal lapse at synchronized identified points follows from metric continuity. The detailed flux response, stability, recoil, and energy accounting require a throat action and cannot be inferred from topology alone.
+\subsection{Curvature concentration}
 
-Finally, a constant time slip between mouths is most naturally represented as a time translation in the gluing map or as temporal holonomy. A smooth finite-length throat can carry this holonomy without additional local curvature or test-particle force. The acceleration episode, a changing slip, residual throat excitations, time-dependent fields, self-interaction, and closed causal curves can nevertheless produce important physical effects. The distinction is between a constant affine translation, whose differential is the identity, and dynamical or Lorentz holonomies that act nontrivially on tangent vectors and energy.
+A transverse section through an edge of a cube exterior is a wedge of opening angle \(3\pi/2\). Gluing two such exterior wedges produces a cone angle
+\begin{equation}
+    \alpha_{\rm edge}=3\pi,
+\end{equation}
+with angular excess \(-\pi\). The sharp three-dimensional quotient therefore has curvature concentrated along edges, with additional singular structure at vertices.
+
+\subsection{Dirichlet--Neumann decomposition}
+
+Let \(G_D\) and \(G_N\) be the exterior-cube Dirichlet and Neumann Green functions, using the same radial normal convention on the cube boundary and decay at infinity. For a source on side \(A\), define
+\begin{equation}
+    \boxed{
+    G_{AA}=\frac{1}{2}(G_N+G_D),
+    \qquad
+    G_{BA}=\frac{1}{2}(G_N-G_D).
+    }
+    \label{eq:DN_decomposition}
+\end{equation}
+At the boundary, \(G_D=0\) and \(\partial_\nu G_N=0\), so the two functions have equal boundary values and opposite radial derivatives. This is the even/odd decomposition of the doubled exterior problem.
+
+For a local infinite-plane approximation,
+\begin{equation}
+    G_D=G_0-G_{\rm im},
+    \qquad
+    G_N=G_0+G_{\rm im},
+\end{equation}
+so
+\begin{equation}
+    G_{AA}=G_0,
+    \qquad
+    G_{BA}=G_{\rm im}.
+\end{equation}
+The leading same-side planar image cancels. A finite cubical mouth responds through its finite extent, edges, corners, and global topology. No Kelvin inversion preserves a cube; the exact equivalent source is a continuous boundary density.
+
+Near a conducting edge, the local transverse exterior wedge has opening angle \(3\pi/2\). The leading Dirichlet harmonic behaves as \(\rho^{\pi/(3\pi/2)}=\rho^{2/3}\), so its normal derivative and surface-charge density behave as
+\begin{equation}
+    \sigma\sim\rho^{-1/3}.
+\end{equation}
+The singularity is integrable. Standard wedge and conductor analyses are reviewed in \cite{Jackson1999,Smythe1989}.
+
+\section{Illustrative Controlled Orbital Model}
+\label{app:orbital}
+
+This appendix records a conservative toy controller. It is not derived from the preceding boundary conditions and is not claimed to be a passive wormhole response.
+
+Let two remote fixed planets have equal mass \(M\), and let a mouth of inertial mass \(m\) orbit each planet at radii \(r_1,r_2\). For \(L\gg a\) and negligible cross-potentials, the ideal zero-sum monopole formula gives
+\begin{equation}
+    \mu=-\frac{Ma}{2}
+    \left(\frac{1}{r_1}-\frac{1}{r_2}\right).
+\end{equation}
+Choose, as an explicit constitutive assumption, the positive stored energy
+\begin{equation}
+    V_{\rm ctrl}
+    =\frac{GM^2a}{4}
+    \left(\frac{1}{r_1}-\frac{1}{r_2}\right)^2.
+    \label{eq:controller_energy}
+\end{equation}
+The effective Lagrangian is
+\begin{equation}
+\begin{split}
+L={}&\sum_{i=1}^2
+\left[
+\frac{m}{2}|\dot{\mathbf r}_i|^2
++\frac{GMm}{r_i}
+\right]-V_{\rm ctrl}.
+\end{split}
+\end{equation}
+The symmetric family \(r_1(t)=r_2(t)\) has \(\mu=0\) and reduces to two ordinary Kepler problems.
+
+For equal circular radii \(r_0\), let \(r_i=r_0+x_i\), and define \(x_-=x_1-x_2\). Holding the unperturbed angular momenta fixed, the Kepler radial restoring frequency is \(GM/r_0^3\), while
+\begin{equation}
+    V_{\rm ctrl}
+    =\frac{GM^2a}{4r_0^4}x_-^2+O(x^3).
+\end{equation}
+The differential mode obeys
+\begin{equation}
+    \ddot x_-+\omega_-^2x_-=0,
+\end{equation}
+with
+\begin{equation}
+    \boxed{
+    \omega_-^2
+    =\frac{GM}{r_0^3}
+    \left(1+\frac{M}{m}\frac{a}{r_0}\right).
+    }
+\end{equation}
+This frequency is a consequence of the selected controller energy \eqref{eq:controller_energy}, not of wormhole topology. Varying a gravitational response coefficient while keeping the mouth's inertial mass fixed also raises an equivalence-principle consistency question that a complete relativistic support model would have to resolve.
 
 \section*{Acknowledgment}
-The author wishes to acknowledge the use of large language models (GPT 5.5) for assistance in improving the language and clarity of the manuscript, and for assisting with code and algebraic checking. The author remains responsible for the claims, derivations, citations, and any remaining errors.
+The author acknowledges the use of an OpenAI language model for assistance with language, organization, algebraic checks, and consistency review. The author remains responsible for the derivations, citations, interpretations, and any remaining errors.
 
 \begin{thebibliography}{99}
 
@@ -1334,6 +1028,11 @@ erratum, vol. 48, p. 463, 1967.
 E. Poisson,
 \emph{A Relativist's Toolkit: The Mathematics of Black-Hole Mechanics}.
 Cambridge, U.K.: Cambridge University Press, 2004.
+
+\bibitem{Wald1984}
+R. M. Wald,
+\emph{General Relativity}.
+Chicago, IL, USA: University of Chicago Press, 1984.
 
 \bibitem{Krasnikov2008}
 S. Krasnikov,
