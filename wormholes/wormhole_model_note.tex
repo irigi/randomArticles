@@ -16,7 +16,7 @@
 \title{Effective Models of Traversable Wormhole Mouths:\\
 Geometry, Fields, Response, and Temporal Holonomy}
 
-\author{Jan~Ol\v{s}ina\\[1ex]
+\author{Jan~Ol\v{s}ina, AI generated paper\\[1ex]
 Independent Researcher, Prague, Czech Republic\\
 email: \texttt{jan.olsina@gmail.com}, ORCID: \texttt{0009-0003-9816-3958}.}
 
@@ -917,6 +917,105 @@ A transverse section through an edge of a cube exterior is a wedge of opening an
 \end{equation}
 with angular excess \(-\pi\). The sharp three-dimensional quotient therefore has curvature concentrated along edges, with additional singular structure at vertices.
 
+\subsection{Distributional source mass}
+
+The angular excess at a sharp edge can be translated into an idealized line
+mass density.  For a locally flat conical line source, let \(\alpha\) be the
+total angle around the line and define the signed deficit
+\begin{equation}
+    \delta=2\pi-\alpha.
+\end{equation}
+If \(\lambda\) denotes mass per unit proper length, the conical-defect
+relation is
+\begin{equation}
+    \boxed{
+    \delta=\frac{8\pi G}{c^2}\lambda,
+    \qquad
+    \lambda=\frac{c^2}{8\pi G}\delta.
+    }
+    \label{eq:deficit_line_density}
+\end{equation}
+Thus an angular excess, \(\delta<0\), corresponds to a negative line mass
+density in this ideal stringlike description \cite{Vilenkin1981,Visser1995}.
+For the cubical edge, \(\alpha_{\rm edge}=3\pi\), and hence
+\begin{equation}
+    \delta_{\rm edge}=-\pi,
+    \qquad
+    \lambda_{\rm edge}=-\frac{c^2}{8G}.
+    \label{eq:cube_edge_density}
+\end{equation}
+The corresponding energy per unit length is
+\(u_{\rm edge}=c^2\lambda_{\rm edge}=-c^4/(8G)\).
+
+The cube in this appendix has side length \(2a\), twelve edges, and total
+edge length \(24a\).  Neglecting any separately inserted point source at a
+vertex, the integrated edge mass is therefore
+\begin{equation}
+    \boxed{
+    M_{\rm cube}^{\rm(edge)}
+    =24a\lambda_{\rm edge}
+    =-\frac{3ac^2}{G}.
+    }
+    \label{eq:cube_source_mass}
+\end{equation}
+Numerically,
+\begin{equation}
+    M_{\rm cube}^{\rm(edge)}
+    \simeq
+    -4.04\times10^{27}
+    \left(\frac{a}{1\,\mathrm{m}}\right)\mathrm{kg}.
+\end{equation}
+This value can also be obtained by rounding the polyhedron and then taking
+the sharp limit.  For the symmetric gluing of two flat exteriors across a
+smooth static surface, the Israel conditions give the surface mass density
+\begin{equation}
+    \Sigma_m
+    =-\frac{c^2}{4\pi G}(\kappa_1+\kappa_2),
+    \label{eq:flat_gluing_surface_density}
+\end{equation}
+where \(\kappa_1\) and \(\kappa_2\) are the principal curvatures with the
+convex-mouth sign convention \cite{Israel1966,PoissonToolkit,PoissonVisser1995}.
+Flat faces make no contribution.  A rounded cube edge approaches a
+quarter-cylinder, whose integrated curvature reproduces
+Eq.~\eqref{eq:cube_edge_density}; the integrated contribution of a rounded
+vertex vanishes with the rounding radius.  A different vertex
+regularization may add a model-dependent point source and should then be
+included separately.
+
+For comparison, gluing two flat spherical exteriors at radius \(a_s\) gives
+\(\kappa_1=\kappa_2=1/a_s\), so that
+\begin{equation}
+    \Sigma_m^{\rm(sph)}=-\frac{c^2}{2\pi G a_s},
+    \qquad
+    \boxed{
+    M_{\rm sph}
+    =4\pi a_s^2\Sigma_m^{\rm(sph)}
+    =-\frac{2a_sc^2}{G}.
+    }
+    \label{eq:spherical_shell_source_mass}
+\end{equation}
+Numerically,
+\begin{equation}
+    M_{\rm sph}
+    \simeq
+    -2.69\times10^{27}
+    \left(\frac{a_s}{1\,\mathrm{m}}\right)\mathrm{kg}.
+\end{equation}
+Writing \(a_c\) for the cube half-side, the ratio of the magnitudes is
+\begin{equation}
+    \boxed{
+    \frac{|M_{\rm cube}^{\rm(edge)}|}{|M_{\rm sph}|}
+    =\frac{3}{2}\frac{a_c}{a_s}.
+    }
+    \label{eq:cube_sphere_mass_ratio}
+\end{equation}
+For equal parameters, \(a_c=a_s\), the cubical construction carries
+\(3/2\) times the integrated negative source mass of the spherical shell.
+Both estimates scale linearly with mouth size.  They are proper source-mass
+integrals over the singular support, not ADM masses: because the two
+idealized exterior metrics are exactly flat near their asymptotic ends,
+the ADM mass at each end is zero.
+
 \subsection{Dirichlet--Neumann decomposition}
 
 Let \(G_D\) and \(G_N\) be the exterior-cube Dirichlet and Neumann Green functions, using the same radial normal convention on the cube boundary and decay at infinity. For a source on side \(A\), define
@@ -1028,6 +1127,18 @@ erratum, vol. 48, p. 463, 1967.
 E. Poisson,
 \emph{A Relativist's Toolkit: The Mathematics of Black-Hole Mechanics}.
 Cambridge, U.K.: Cambridge University Press, 2004.
+
+
+\bibitem{PoissonVisser1995}
+E. Poisson and M. Visser,
+``Thin-shell wormholes: Linearization stability,''
+\emph{Physical Review D}, vol. 52, no. 12, pp. 7318--7321, 1995,
+arXiv:gr-qc/9506083.
+
+\bibitem{Vilenkin1981}
+A. Vilenkin,
+``Gravitational field of vacuum domain walls and strings,''
+\emph{Physical Review D}, vol. 23, no. 4, pp. 852--857, 1981.
 
 \bibitem{Wald1984}
 R. M. Wald,
