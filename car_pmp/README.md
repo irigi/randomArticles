@@ -1,13 +1,15 @@
-# Restricted driving policy: revised article
+# Restricted driving policy: IEEE two-column article
 
 - `article.tex`: complete editable LaTeX source.
-- `article.pdf`: compiled article.
+- `article.pdf`: compiled IEEE two-column article.
 - `figures/*.pdf`: vector figures used by the article.
 - `figures/*.png`: convenient figure previews.
 - `reproduce.py`: calculations and figure generation.
 - `results.json`: numerical results from the supplied script.
 
-Compile with `pdflatex article.tex` twice. The figures are already included.
+The source uses the IEEEtran conference class. Compile from this directory with
+`latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error article.tex`.
+The figures are already included.
 To recompute, install NumPy, SciPy and Matplotlib, then run `python reproduce.py`.
 
 The owner-measured fuel points are preserved exactly. Manufacturer specifications
