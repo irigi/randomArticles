@@ -1,0 +1,21 @@
+{
+  "preset": "carnot_triangles",
+  "seed": 123,
+  "duration": 10.0,
+  "particles": 32,
+  "temperature": 1.0,
+  "sample_interval": 0.05,
+  "max_horizon": 0.05,
+  "cycles": null,
+  "reversed_cycle": false,
+  "shaft_mode": "controlled",
+  "shaft_speed": 0.15,
+  "transient_cycles": 2,
+  "efficiency_min_cycles": 8,
+  "pair_search": "grid",
+  "numeric_backend": "auto",
+  "wall_search": "bounded",
+  "wall_kernel": "auto",
+  "penetration_kernel": "auto",
+  "config_hash": "1d29047bbbc4a6042315a6bac1e6dd36adf2247c3b4b494eaa9f2a8f12ccdb08"
+}

@@ -1,0 +1,3 @@
+# Tested headless environment: CPython 3.12.3 on Ubuntu-compatible Linux.
+numpy==2.4.6
+

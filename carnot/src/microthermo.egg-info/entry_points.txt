@@ -1,0 +1,2 @@
+[console_scripts]
+microthermo = microthermo.cli:main

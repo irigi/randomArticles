@@ -1,0 +1,3 @@
+shaft_speed,seed,particles,completed_cycles,post_transient_cycles,efficiency_status,post_transient_hot_heat,hot_branch_contacts,gas_energy_drift_status,gas_energy_mean_shift,gas_energy_two_se_margin,gas_energy_tolerance,hot_heat_drift_status,hot_heat_mean_shift,hot_heat_two_se_margin,hot_heat_tolerance,first_law_residual
+0.15,123,16,18,16,insufficient_hot_heat,33.57285303897351,982,inconclusive,-0.48329061453356914,6.9903712553026365,2.8166777763384494,inconclusive,0.07489588749384612,6.983267045309868,0.48098549639982996,6.998845947236987e-13
+0.15,124,16,18,16,insufficient_hot_heat,-15.762345715649731,974,inconclusive,-2.417841386305586,9.899086113274647,2.9996522353454935,inconclusive,-1.1211620003352338,12.27659731137765,0.6295406084075713,4.192202140984591e-13

@@ -1,0 +1,50 @@
+{
+  "preset": "carnot_triangles",
+  "seed": 123,
+  "physical_time": 10.0,
+  "events": 1933,
+  "energy": 71.85081560137255,
+  "energy_residual": -1.4566126083082054e-13,
+  "temperature_trans": 1.4765691630094149,
+  "temperature_rot": 1.597530357617897,
+  "heat_hot": 43.94932923021981,
+  "heat_cold": 0.0,
+  "work_on": -15.3715315650449,
+  "load_output": 0.03,
+  "completed_cycles": 0,
+  "last_cycle": null,
+  "efficiency": null,
+  "efficiency_report": {
+    "status": "awaiting_matched_cycles",
+    "completed_cycles": 0,
+    "matched_cycles": 0,
+    "required_cycles": 8,
+    "transient_cycles": 2,
+    "estimate": null
+  },
+  "occupancy": [
+    32,
+    0,
+    0,
+    0
+  ],
+  "ccd_refinements": 37,
+  "ccd_failures": 0,
+  "rng": "PCG64",
+  "metadata": {
+    "name": "carnot_triangles",
+    "T_hot": 1.5,
+    "T_cold": 0.75,
+    "shaft_mode": "controlled",
+    "piston_mass": 0.5,
+    "particle_radius": 0.030618621784789725,
+    "particle_area_fraction_min": 0.031176914536239792,
+    "ideal_efficiency": 0.5,
+    "cam_areas": [
+      1.25,
+      1.6875,
+      4.772970773009196,
+      3.5355339059327378
+    ]
+  }
+}
