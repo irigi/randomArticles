@@ -1,0 +1,58 @@
+{
+  "preset": "carnot_discs",
+  "seed": 124,
+  "physical_time": 120.0,
+  "events": 8291,
+  "energy": 32.44416547533679,
+  "energy_residual": 1.1513012765362873e-13,
+  "temperature_trans": 0.9482892496560373,
+  "temperature_rot": null,
+  "heat_hot": 12.876837967759606,
+  "heat_cold": -10.47128671799558,
+  "work_on": -0.1666463463232507,
+  "load_output": 0.1666463463232507,
+  "completed_cycles": 0,
+  "last_cycle": null,
+  "efficiency": null,
+  "efficiency_report": {
+    "status": "awaiting_matched_cycles",
+    "completed_cycles": 0,
+    "matched_cycles": 0,
+    "required_cycles": 8,
+    "transient_cycles": 2,
+    "estimate": null
+  },
+  "occupancy": [
+    32,
+    0,
+    0,
+    0
+  ],
+  "ccd_refinements": 0,
+  "ccd_failures": 0,
+  "rng": "PCG64",
+  "metadata": {
+    "name": "carnot_discs",
+    "T_hot": 1.5,
+    "T_cold": 0.75,
+    "shaft_mode": "free",
+    "piston_mass": 0.5,
+    "cold_jacket": true,
+    "hot_jacket": false,
+    "cam_fractions": [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+    ],
+    "particle_radius": 0.030618621784789725,
+    "particle_area_fraction_min": 0.07539822368615504,
+    "ideal_efficiency": 0.5,
+    "cam_areas": [
+      1.25,
+      1.6875,
+      3.375,
+      2.5
+    ]
+  }
+}

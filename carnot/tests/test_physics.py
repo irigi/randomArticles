@@ -12,6 +12,7 @@ from microthermo.core.geometry import (closest_point_segment, convex_separation,
 from microthermo.core.contacts import resolve_elastic
 from microthermo.core.events import Contact, TOIResult, TOIStatus
 from microthermo.core.mechanisms import CarnotCam, Shaft
+from microthermo.core.numeric import numba_available
 from microthermo.experiments.carnot import CarnotMechanism, CamPistonWall
 from microthermo.core.state import BodyArrays, BodySpec
 from microthermo.runner.simulation import NumericalFailure, Portal, Simulation, World
@@ -19,6 +20,34 @@ from microthermo.validation import run_validation
 
 
 class PhysicsTests(unittest.TestCase):
+    def test_controlled_shaft_speed_change_is_recorded_motor_intervention(self):
+        config=RunConfig(preset="carnot_discs",particles=4,seed=123,
+                         shaft_speed=.15)
+        direct=load_preset(config)
+        sampled=load_preset(config)
+        for sim in (direct,sampled):
+            sim.advance_to(.137)
+            residual=sim.snapshot().energy_residual
+            result=sim.apply_command({"name":"set_shaft_speed","speed":.3})
+            self.assertTrue(result["intervention"])
+            self.assertEqual(sim.events[-1].kind,"shaft_speed_change")
+            self.assertAlmostEqual(sim.snapshot().energy_residual,residual,
+                                   delta=1e-12)
+        sampled.advance_to(.271)
+        checkpoint=direct.checkpoint()
+        a=direct.advance_to(.5)
+        b=sampled.advance_to(.5)
+        np.testing.assert_array_equal(a.position,b.position)
+        self.assertEqual(direct.events,sampled.events)
+        self.assertAlmostEqual(a.shaft_phase,.137*.15+(.5-.137)*.3,
+                               delta=1e-12)
+        direct.restore(checkpoint)
+        replayed=direct.advance_to(.5)
+        np.testing.assert_array_equal(replayed.position,a.position)
+        self.assertEqual(replayed.shaft_phase,a.shaft_phase)
+        with self.assertRaises(ValueError):
+            direct.apply_command({"name":"set_shaft_speed","speed":0})
+
     def test_moving_thermal_wall_mode_energy_matches_heat_after_work(self):
         state=BodyArrays.from_specs([BodySpec((.9,.5),(1.,0.),radius=.1)])
         wall=Wall(np.array([1.,.5]),np.array([-1.,0.]),1.,
@@ -366,6 +395,34 @@ class PhysicsTests(unittest.TestCase):
         self.assertGreaterEqual(q.contact.feature_a,0)
         self.assertGreaterEqual(q.contact.feature_b,0)
 
+    def test_near_grazing_fixed_triangle_pair_rejects_clear_miss(self):
+        # The triangles have almost parallel edges. A near miss previously
+        # stalled advancement and caused thousands of horizon refinements.
+        for speed in (1.,1e3):
+            for offset,expected in ((.299999,TOIStatus.COLLISION),
+                                    (.300001,TOIStatus.NO_COLLISION)):
+                state=BodyArrays.from_specs([
+                    BodySpec((-1.,0.),(speed,0.),radius=.2,shape=1),
+                    BodySpec((0.,offset),(0.,0.),radius=.2,shape=1,
+                             angle=1e-7)])
+                for backend in (("python","numba") if numba_available()
+                                else ("python",)):
+                    with self.subTest(speed=speed,offset=offset,backend=backend):
+                        query=body_pair_toi(state,0,1,2./speed,
+                                            numeric_backend=backend)
+                        self.assertEqual(query.status,expected)
+                        if expected == TOIStatus.COLLISION:
+                            self.assertAlmostEqual(query.time*speed,
+                                                   .826794341778,places=8)
+                        else:
+                            simulation=Simulation(World(state.copy(),[]),
+                                                  max_horizon=.1/speed,
+                                                  numeric_backend=backend)
+                            simulation.advance_to(2./speed)
+                            self.assertEqual(simulation.event_count,0)
+                            self.assertEqual(simulation.ccd_refinements,0)
+                            self.assertEqual(simulation.ccd_failures,0)
+
     def test_polygon_witnesses_are_on_the_actual_features(self):
         a=np.array([[0.,0.],[1.,0.],[.5,1.]])
         b=np.array([[1.2,.3],[2.2,.3],[1.7,1.3]])
@@ -459,6 +516,78 @@ class PhysicsTests(unittest.TestCase):
         np.testing.assert_allclose(sim.world.bodies.momentum(),momentum,atol=1e-12)
         self.assertAlmostEqual(sim.energy(),energy,places=12)
         self.assertEqual(sim.events[0].time,sim.events[1].time)
+
+    def test_near_simultaneous_cluster_is_sampling_and_checkpoint_independent(self):
+        # The right-hand impact is half a time tolerance later than the left.
+        # Both contacts must be resolved as one elastic cluster.
+        def make_simulation():
+            state=BodyArrays.from_specs([
+                BodySpec((-2.,0.),(1.,0.),radius=.5),
+                BodySpec((0.,0.),(0.,0.),radius=.5),
+                BodySpec((2.+5e-13,0.),(-1.,0.),radius=.5)])
+            return Simulation(World(state,[]),max_horizon=.2)
+
+        direct=make_simulation()
+        direct.advance_to(1.1)
+        sampled=make_simulation()
+        sampled.advance_to(.937)
+        checkpoint=sampled.checkpoint()
+        for time in (.973, .9999999999998, 1.003, 1.1):
+            sampled.advance_to(time)
+        first_events=[event.as_dict() for event in sampled.events]
+        sampled.restore(checkpoint)
+        sampled.advance_to(1.1)
+
+        self.assertEqual(direct.cluster_count,1)
+        self.assertEqual(direct.event_count,2)
+        self.assertEqual(first_events,[event.as_dict() for event in sampled.events])
+        self.assertEqual([event.as_dict() for event in direct.events],first_events)
+        np.testing.assert_array_equal(direct.world.bodies.pos,sampled.world.bodies.pos)
+        np.testing.assert_array_equal(direct.world.bodies.vel,sampled.world.bodies.vel)
+        self.assertLessEqual(direct.max_penetration,direct.tol.geometry)
+        self.assertAlmostEqual(direct.snapshot().energy_residual,0.,places=12)
+
+    def test_near_simultaneous_triangle_cluster_backend_and_replay(self):
+        def make_simulation(backend):
+            state=BodyArrays.from_specs([
+                BodySpec((-1.,0.),(1.,0.),radius=.2,shape=1,angle=.5),
+                BodySpec((0.,0.),(0.,0.),radius=.2,shape=1,angle=.5),
+                BodySpec((1.+5e-13,0.),(-1.,0.),radius=.2,shape=1,angle=.5)])
+            return Simulation(World(state,[]),max_horizon=.1,
+                              numeric_backend=backend)
+
+        reference=make_simulation("python")
+        reference.advance_to(1.)
+        sampled=make_simulation("python")
+        sampled.advance_to(.647)
+        checkpoint=sampled.checkpoint()
+        for time in (.699, .704, .831, 1.):
+            sampled.advance_to(time)
+        sampled_events=[event.as_dict() for event in sampled.events]
+        sampled.restore(checkpoint)
+        sampled.advance_to(1.)
+
+        self.assertEqual(reference.cluster_count,1)
+        self.assertEqual(reference.event_count,2)
+        self.assertEqual(sampled_events,[event.as_dict() for event in sampled.events])
+        self.assertEqual([event.as_dict() for event in reference.events],sampled_events)
+        np.testing.assert_array_equal(reference.world.bodies.pos,sampled.world.bodies.pos)
+        np.testing.assert_array_equal(reference.world.bodies.vel,sampled.world.bodies.vel)
+        self.assertLessEqual(reference.max_penetration,reference.tol.geometry)
+        self.assertAlmostEqual(reference.snapshot().energy_residual,0.,places=12)
+
+        if numba_available():
+            compiled=make_simulation("numba")
+            compiled.advance_to(1.)
+            self.assertEqual(compiled.cluster_count,reference.cluster_count)
+            self.assertEqual([(e.kind,e.participants,e.time) for e in compiled.events],
+                             [(e.kind,e.participants,e.time) for e in reference.events])
+            np.testing.assert_allclose(compiled.world.bodies.pos,
+                                       reference.world.bodies.pos,atol=1e-12)
+            np.testing.assert_allclose(compiled.world.bodies.vel,
+                                       reference.world.bodies.vel,atol=1e-12)
+            self.assertLessEqual(compiled.max_penetration,compiled.tol.geometry)
+            self.assertAlmostEqual(compiled.snapshot().energy_residual,0.,places=12)
 
     def test_simultaneous_corner_wall_cluster_conserves(self):
         state=BodyArrays.from_specs([BodySpec((.5,.5),(-1.,-1.),radius=.1)])
@@ -557,6 +686,48 @@ class PhysicsTests(unittest.TestCase):
         self.assertGreater(q.time,0.)
         self.assertLess(q.time,.5)
 
+    def test_triangle_segment_changing_closest_feature_replays(self):
+        wall=SegmentWall((0.,-.2),(0.,.2),thickness=.01)
+        def make_simulation():
+            state=BodyArrays.from_specs([BodySpec(
+                (-.559,.159),(1.128,-.255),radius=.12,shape=1,
+                angle=1.725,omega=-3.035)])
+            return Simulation(World(state,[wall]),max_horizon=.05)
+
+        direct=make_simulation()
+        state=direct.world.bodies
+        hit=direct._wall_toi(0,0,.5)
+        self.assertEqual(hit.status,TOIStatus.COLLISION)
+        self.assertAlmostEqual(hit.time,.380435527208,places=9)
+
+        def closest_feature(t):
+            vertices=world_polygon(state.polygons[0],
+                                   state.pos[0]+state.vel[0]*t,
+                                   state.angle[0]+state.omega[0]*t)
+            return polygon_segment_witnesses(vertices,wall.start,wall.end)[-2:]
+
+        self.assertEqual(closest_feature(0.),(2,1))
+        self.assertEqual(closest_feature(.8*hit.time),(4,1))
+        self.assertEqual((hit.contact.feature_a,hit.contact.feature_b),(4,1))
+        direct.advance_to(.5)
+
+        sampled=make_simulation()
+        sampled.advance_to(.173)
+        checkpoint=sampled.checkpoint()
+        for time in (.297,.369,.385,.5):
+            sampled.advance_to(time)
+        sampled_events=[event.as_dict() for event in sampled.events]
+        sampled.restore(checkpoint)
+        sampled.advance_to(.5)
+
+        self.assertEqual(direct.event_count,1)
+        self.assertEqual([event.as_dict() for event in direct.events],sampled_events)
+        self.assertEqual([event.as_dict() for event in sampled.events],sampled_events)
+        np.testing.assert_array_equal(direct.world.bodies.pos,sampled.world.bodies.pos)
+        np.testing.assert_array_equal(direct.world.bodies.vel,sampled.world.bodies.vel)
+        self.assertLessEqual(direct.max_penetration,direct.tol.geometry)
+        self.assertAlmostEqual(direct.snapshot().energy_residual,0.,places=12)
+
     def test_high_speed_triangle_segment_contact(self):
         state=BodyArrays.from_specs([BodySpec((0.,0.),(1e5,0.),radius=.2,shape=1)])
         sim=Simulation(World(state,[SegmentWall((1.,-.5),(1.,.5),thickness=.05)]),
@@ -580,6 +751,60 @@ class PhysicsTests(unittest.TestCase):
         np.testing.assert_allclose(sim.world.bodies.angle,initial.angle,atol=1e-9)
         np.testing.assert_allclose(sim.world.bodies.vel,-initial.vel,atol=1e-9)
         np.testing.assert_allclose(sim.world.bodies.omega,-initial.omega,atol=1e-9)
+
+    def test_symmetric_two_feature_triangle_impact_replays_and_reverses(self):
+        def make_simulation(backend):
+            state=BodyArrays.from_specs([
+                BodySpec((-.5,0.),(1.,0.),radius=.2,shape=1,angle=math.pi),
+                BodySpec((.5,0.),(-1.,0.),radius=.2,shape=1,angle=0.)])
+            return Simulation(World(state,[]),max_horizon=.05,
+                              numeric_backend=backend)
+
+        direct=make_simulation("python")
+        initial=direct.world.bodies.copy()
+        direct.advance_to(.8)
+        self.assertEqual(direct.event_count,4)
+        self.assertEqual(direct.cluster_count,2)
+        self.assertEqual(len({event.time for event in direct.events}),2)
+        self.assertLessEqual(direct.max_penetration,direct.tol.geometry)
+        self.assertAlmostEqual(direct.energy(),initial.kinetic_energy(),places=12)
+
+        sampled=make_simulation("python")
+        sampled.advance_to(.2)
+        checkpoint=sampled.checkpoint()
+        for time in (.4,.6,.8):
+            sampled.advance_to(time)
+        sampled.restore(checkpoint)
+        sampled.advance_to(.8)
+        self.assertEqual([event.as_dict() for event in direct.events],
+                         [event.as_dict() for event in sampled.events])
+        np.testing.assert_array_equal(direct.world.bodies.pos,sampled.world.bodies.pos)
+        np.testing.assert_array_equal(direct.world.bodies.vel,sampled.world.bodies.vel)
+
+        direct.apply_command({"name":"reverse_particle_velocities"})
+        direct.advance_to(1.6)
+        self.assertEqual(direct.event_count,8)
+        np.testing.assert_allclose(direct.world.bodies.pos,initial.pos,atol=1e-10)
+        np.testing.assert_allclose(np.sin(direct.world.bodies.angle),
+                                   np.sin(initial.angle),atol=1e-10)
+        np.testing.assert_allclose(np.cos(direct.world.bodies.angle),
+                                   np.cos(initial.angle),atol=1e-10)
+        np.testing.assert_allclose(direct.world.bodies.vel,-initial.vel,atol=1e-10)
+        np.testing.assert_allclose(direct.world.bodies.omega,-initial.omega,atol=1e-10)
+
+        if numba_available():
+            compiled=make_simulation("numba")
+            compiled.advance_to(.8)
+            self.assertEqual([(event.kind,event.participants) for event in compiled.events],
+                             [(event.kind,event.participants) for event in sampled.events])
+            np.testing.assert_allclose([event.time for event in compiled.events],
+                                       [event.time for event in sampled.events],atol=1e-12)
+            np.testing.assert_allclose(compiled.world.bodies.pos,
+                                       sampled.world.bodies.pos,atol=1e-12)
+            np.testing.assert_allclose(compiled.world.bodies.vel,
+                                       sampled.world.bodies.vel,atol=1e-12)
+            np.testing.assert_allclose(compiled.world.bodies.omega,
+                                       sampled.world.bodies.omega,atol=1e-12)
 
 
 if __name__ == "__main__":

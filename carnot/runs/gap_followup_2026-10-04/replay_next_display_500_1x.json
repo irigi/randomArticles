@@ -1,0 +1,33 @@
+{
+  "particles": 500,
+  "qt_platform": "xcb",
+  "playback_speed": 1.0,
+  "load_seconds": 1.0988557739983662,
+  "elapsed_seconds": 11.305193011998199,
+  "final_physical_time": 10.0,
+  "painted_frames": 625,
+  "paint_fps": 62.3898314557067,
+  "p95_paint_interval_ms": 16.748681999160908,
+  "max_paint_interval_ms": 41.250918999139685,
+  "gaps_over_25_ms": [
+    {
+      "milliseconds": 25.721,
+      "physical_time": 0.0247,
+      "max_render_ms_during_gap": 2.0740289983223192
+    },
+    {
+      "milliseconds": 41.251,
+      "physical_time": 3.377,
+      "max_render_ms_during_gap": 26.27402700454695
+    }
+  ],
+  "p95_render_ms": 1.7382449950673617,
+  "max_render_ms": 26.27402700454695,
+  "gc_pauses_over_5_ms": [
+    {
+      "milliseconds": 24.498,
+      "physical_time": 3.377
+    }
+  ],
+  "peak_rss_kib": 313568
+}

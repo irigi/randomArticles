@@ -1,0 +1,14 @@
+{
+  "particles": 32,
+  "duration": 2.0,
+  "midpoints_compared": 120,
+  "event_intervals": 111,
+  "event_aware_reconstruction": true,
+  "max_saved_position_disagreement": 0.0,
+  "max_midpoint_position_error": 4.577566798522237e-16,
+  "p95_midpoint_position_error": 2.220446049250313e-16,
+  "max_midpoint_position_error_in_radii": 1.4950270559846737e-14,
+  "max_midpoint_angle_error_radians": 1.5987211554602254e-14,
+  "max_midpoint_velocity_error": 0.0,
+  "max_midpoint_omega_error": 3.133493464702042e-12
+}

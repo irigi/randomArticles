@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "python": "3.12.3",
+  "numpy": "2.4.6",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz",
+  "settings": {
+    "particles": 500,
+    "seeds": [
+      123,
+      124,
+      125
+    ],
+    "cycles": null,
+    "branches": 1,
+    "shaft_speed": 0.15,
+    "verify_seed": null,
+    "sample_cadence": 0.83,
+    "numeric_backend": "numba",
+    "pair_search": "sweep"
+  },
+  "runs": [
+    {
+      "seed": 123,
+      "config_digest": "b7f60a715cc62f234a261d0a0b13bf2b3162e5c62363decafdd4080d7a88a0f6",
+      "setup_seconds": 0.34982645900163334,
+      "solver_seconds": 334.7834174029995,
+      "physical_per_wall_second": 0.031279851293710324,
+      "duration": 10.471975511965978,
+      "events": 77834,
+      "event_kinds": {
+        "specular": 9501,
+        "elastic": 66232,
+        "hot": 2100,
+        "branch_transition": 1
+      },
+      "completed_cycles": 0,
+      "ccd_refinements": 17085,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": 3.183231456205249e-12,
+      "ledger": {
+        "heat_hot": 347.35840768923845,
+        "heat_cold": 0.0,
+        "heat_other": 0.0,
+        "work_on": -185.6632999666732,
+        "load_output": 0.031415926535897934,
+        "piston_work_on_gas": -185.66329996667537
+      },
+      "particle_area_fraction_min": 0.031176914536239796,
+      "radius": 0.007745966692414834,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 77834,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 3.183231456205249e-12
+        }
+      ]
+    },
+    {
+      "seed": 124,
+      "config_digest": "e559bd565d9c28588d296aecade06a271cdfb2399fa7c8fe61bc0d3af25b0a3c",
+      "setup_seconds": 0.25708892999682575,
+      "solver_seconds": 359.8728983510082,
+      "physical_per_wall_second": 0.02909909459687058,
+      "duration": 10.471975511965978,
+      "events": 79270,
+      "event_kinds": {
+        "elastic": 67430,
+        "specular": 9586,
+        "hot": 2253,
+        "branch_transition": 1
+      },
+      "completed_cycles": 0,
+      "ccd_refinements": 19629,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": 2.6716406864579767e-12,
+      "ledger": {
+        "heat_hot": 466.789254860185,
+        "heat_cold": 0.0,
+        "heat_other": 0.0,
+        "work_on": -195.13747662677798,
+        "load_output": 0.031415926535897934,
+        "piston_work_on_gas": -195.1374766267744
+      },
+      "particle_area_fraction_min": 0.031176914536239796,
+      "radius": 0.007745966692414834,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 79270,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 2.6716406864579767e-12
+        }
+      ]
+    },
+    {
+      "seed": 125,
+      "config_digest": "34185bb24558638df98de5eb364d0cf27b9b336546976438c9a4c1a45da8d4f2",
+      "setup_seconds": 0.24933087499812245,
+      "solver_seconds": 341.0706634919916,
+      "physical_per_wall_second": 0.030703243148356738,
+      "duration": 10.471975511965978,
+      "events": 77791,
+      "event_kinds": {
+        "elastic": 66132,
+        "hot": 2101,
+        "specular": 9557,
+        "branch_transition": 1
+      },
+      "completed_cycles": 0,
+      "ccd_refinements": 17700,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": -5.343281372915953e-12,
+      "ledger": {
+        "heat_hot": 380.1267557358251,
+        "heat_cold": 0.0,
+        "heat_other": 0.0,
+        "work_on": -185.19035838770833,
+        "load_output": 0.031415926535897934,
+        "piston_work_on_gas": -185.19035838770674
+      },
+      "particle_area_fraction_min": 0.031176914536239796,
+      "radius": 0.007745966692414834,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 77791,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -5.343281372915953e-12
+        }
+      ]
+    }
+  ]
+}

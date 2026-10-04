@@ -26,6 +26,15 @@ class CarnotCam:
     fractions: tuple[float, float, float, float] = (0.25, 0.25, 0.25, 0.25)
     height: float = 1.0
 
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "areas", tuple(float(x) for x in self.areas))
+        object.__setattr__(self, "fractions", tuple(float(x) for x in self.fractions))
+
+    def __deepcopy__(self, memo):
+        # The design is frozen, and its cached boundary array is read-only.
+        memo[id(self)] = self
+        return self
+
     @classmethod
     def design(cls, a1: float, ratio: float, t_hot: float, t_cold: float,
                degrees_of_freedom: int, height: float = 1.0) -> "CarnotCam":

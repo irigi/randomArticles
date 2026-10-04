@@ -7,9 +7,11 @@ from collections import deque
 import tempfile
 import time
 import traceback
+import math
 import numpy as np
 from PySide6 import QtCore
 
+from ..api import load_preset
 from ..runner.simulation import NumericalFailure, Snapshot
 from ..measurements.live import InstrumentFrame, LiveInstruments
 
@@ -19,6 +21,7 @@ class RenderFrame:
     snapshot: Snapshot
     instruments: InstrumentFrame
     rates: PlaybackRates | None = None
+    generation: int = 0
 
 
 @dataclass(frozen=True)
@@ -42,12 +45,17 @@ class SimulationWorker(QtCore.QObject):
     failed = QtCore.Signal(str, str)
     finished = QtCore.Signal()
 
-    def __init__(self, simulation, autoplay=True, physical_step=.01,
-                 transient_cycles=2, efficiency_min_cycles=8):
+    def __init__(self, simulation, autoplay=True, physical_step=.016,
+                 transient_cycles=2, efficiency_min_cycles=8, config=None):
         super().__init__()
         self._simulation=simulation
         self._autoplay=autoplay
         self._physical_step=physical_step
+        self._base_step=physical_step
+        self._config=config
+        self._generation=0
+        self._transient_cycles=transient_cycles
+        self._efficiency_min_cycles=efficiency_min_cycles
         self._timer=None
         self._instruments=LiveInstruments(
             transient_cycles=transient_cycles,
@@ -97,7 +105,7 @@ class SimulationWorker(QtCore.QObject):
         snapshot=self._simulation.snapshot()
         instruments=self._instruments.observe(self._simulation,snapshot)
         self.snapshot_ready.emit(RenderFrame(immutable_snapshot(snapshot),instruments,
-                                             self._rates))
+                                             self._rates,self._generation))
 
     @QtCore.Slot()
     def frame_received(self):
@@ -155,6 +163,80 @@ class SimulationWorker(QtCore.QObject):
             self._rates=None
             self._run(lambda: self._simulation.advance_to(
                 self._simulation.time+duration))
+
+    @QtCore.Slot(float)
+    def set_playback_rate(self, rate):
+        if not math.isfinite(rate) or rate <= 0:
+            raise ValueError("playback rate must be positive and finite")
+        self._physical_step=self._base_step*rate
+        if self._timer is not None and self._timer.isActive():
+            self._reset_rates()
+
+    @QtCore.Slot()
+    def step_branch(self):
+        mechanism=self._simulation.world.mechanism
+        shaft=getattr(mechanism,"shaft",None)
+        cam=getattr(mechanism,"cam",None)
+        if shaft is None or cam is None or shaft.prescribed_omega is None:
+            return
+        if self._timer is not None:
+            self._timer.stop()
+        self._rates=None
+        sign=-1. if mechanism.reversed_cycle else 1.
+        phase=sign*shaft.phi
+        rate=sign*shaft.prescribed_omega
+        if rate <= 0:
+            return
+        period=2*math.pi
+        cycle=math.floor(phase/period)
+        candidates=[cycle*period+float(boundary) for boundary in
+                    cam.boundaries[1:]]
+        candidates.append((cycle+1)*period+float(cam.boundaries[1]))
+        target_phase=next(value for value in candidates if value>phase+1e-10)
+        target_time=self._simulation.time+(target_phase-phase)/rate
+        self._run(lambda: self._simulation.advance_to(target_time))
+
+    @QtCore.Slot(float)
+    def set_shaft_speed(self, speed):
+        if self._timer is not None:
+            self._timer.stop()
+        self._rates=None
+        def change():
+            self._simulation.apply_command({"name":"set_shaft_speed",
+                                            "speed":speed})
+            if self._config is not None:
+                self._config=replace(self._config,shaft_speed=speed)
+        self._run(change)
+
+    @QtCore.Slot(int)
+    def reset_seed(self, seed):
+        if self._config is None:
+            return
+        self._reset_configuration(replace(self._config,seed=seed))
+
+    @QtCore.Slot(object)
+    def reset_configuration(self, config):
+        self._reset_configuration(config)
+
+    def _reset_configuration(self, config):
+        if self._stopping:
+            return
+        if self._timer is not None:
+            self._timer.stop()
+        self._rates=None
+        try:
+            simulation=load_preset(config)
+            self._config=config
+            self._simulation=simulation
+            self._instruments=LiveInstruments(
+                transient_cycles=self._transient_cycles,
+                efficiency_min_cycles=self._efficiency_min_cycles)
+            self._generation += 1
+            self._awaiting_frame=False
+            self._dirty_frame=False
+            self._publish()
+        except Exception as exc:
+            self.failed.emit(f"{type(exc).__name__}: {exc}","")
 
     @QtCore.Slot()
     def stop(self):

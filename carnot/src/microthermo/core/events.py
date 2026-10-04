@@ -45,6 +45,10 @@ class InteractionRecord:
     heat_into_system: float = 0.0
     work_on_system: float = 0.0
     metadata: dict[str, Any] | None = None
+    contact_point: tuple[float, float] | None = None
 
     def as_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        record = asdict(self)
+        if self.contact_point is None:
+            record.pop("contact_point")
+        return record

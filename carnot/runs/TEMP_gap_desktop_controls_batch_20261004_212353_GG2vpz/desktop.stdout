@@ -1,0 +1,17 @@
+{
+  "qt_platform": "xcb",
+  "branch_step_wall_seconds": 1.1358568750001723,
+  "gui_pings_during_branch_step": 43,
+  "matched_branch_time": 5.260987755982989,
+  "matched_event_count": 1320,
+  "matched_energy_residual": 8.171241461241152e-14,
+  "panned": true,
+  "selected_particle": 0,
+  "preset_switched": true,
+  "reset_seed": 124,
+  "minimum_window": [
+    850,
+    520
+  ],
+  "screenshot": "/home/blue-whale/randomArticles/carnot/runs/TEMP_gap_desktop_controls_batch_20261004_212353_GG2vpz/desktop_controls.png"
+}

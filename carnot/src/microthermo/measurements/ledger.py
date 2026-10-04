@@ -27,6 +27,14 @@ class EnergyLedger:
     support_impulse_x: CompensatedCounter = field(default_factory=CompensatedCounter)
     support_impulse_y: CompensatedCounter = field(default_factory=CompensatedCounter)
 
+    def copy(self) -> "EnergyLedger":
+        counters = (self.heat_hot, self.heat_cold, self.heat_other,
+                    self.work_on, self.load_output, self.piston_work_on_gas,
+                    self.support_impulse_x, self.support_impulse_y)
+        return EnergyLedger(self.initial_energy,
+                            *(CompensatedCounter(c.value, c.correction)
+                              for c in counters))
+
     @property
     def heat_into_system(self) -> float:
         return self.heat_hot.value+self.heat_cold.value+self.heat_other.value

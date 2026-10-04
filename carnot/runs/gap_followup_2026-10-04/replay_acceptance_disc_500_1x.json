@@ -1,0 +1,19 @@
+{
+  "particles": 500,
+  "preset": "carnot_discs",
+  "qt_platform": "xcb",
+  "playback_speed": 1.0,
+  "load_seconds": 1.1979460809961893,
+  "elapsed_seconds": 11.175403372995788,
+  "final_physical_time": 10.0,
+  "painted_frames": 626,
+  "paint_fps": 62.495545761210565,
+  "p95_paint_interval_ms": 16.816946008475497,
+  "max_paint_interval_ms": 23.13730400055647,
+  "gaps_over_25_ms": [],
+  "p95_render_ms": 2.0815739990212023,
+  "max_render_ms": 2.8737910033669323,
+  "gc_pauses_over_5_ms": [],
+  "gc_enabled_after_playback": true,
+  "peak_rss_kib": 313856
+}

@@ -78,7 +78,7 @@ class InstrumentPanel(QtWidgets.QWidget):
         layout.addLayout(grid)
         rows=("Branch","Area","Pressure / window","T translation","T rotation",
               "Reservoir hot / cold","Gas energy","Piston energy",
-              "Flywheel energy","Spring energy","Hot heat QH","Cold heat QC",
+              "Shaft inertia energy","Spring energy","Hot heat QH","Cold heat QC",
               "Motor work","Load output","First-law residual","Events",
               "Completed cycles","Last cycle QH / QC","Last cycle gas work",
               "Cycle ∮P dA / smoothing bound","P dA − event work",
@@ -214,7 +214,7 @@ class InstrumentPanel(QtWidgets.QWidget):
             "Reservoir hot / cold":f"{fmt(current.reservoir_hot)} / {fmt(current.reservoir_cold)}",
             "Gas energy":fmt(current.gas_energy),
             "Piston energy":fmt(current.piston_energy),
-            "Flywheel energy":fmt(current.flywheel_energy),
+            "Shaft inertia energy":fmt(current.flywheel_energy),
             "Spring energy":fmt(current.spring_energy),
             "Hot heat QH":fmt(current.heat_hot),
             "Cold heat QC":fmt(current.heat_cold),

@@ -41,15 +41,42 @@ class UiRenderTests(unittest.TestCase):
         self.assertEqual((image.width(),image.height()),(500,340))
         camera = Camera(scene_bounds(sim),500,340)
         parts = {part.name:part for part in sim.snapshot().apparatus}
+        self.assertTrue(view.controlled_shaft)
+        self.assertFalse(view.component_visible(parts["shaft_spring"]))
         for name,index in (("piston",0),("thermal_wall",0),
                            ("piston_cam",20),("selector_cam",20),
-                           ("flywheel",20),("shaft_spring",10),
+                           ("flywheel",20),
                            ("load",1)):
             x,y = camera.map(*parts[name].points[index])
             pixels = [image.pixelColor(int(x)+dx,int(y)+dy)
                       for dx in (-2,-1,0,1,2) for dy in (-2,-1,0,1,2)]
             self.assertTrue(any(color.red()+color.green()+color.blue() > 300
                                 for color in pixels),name)
+        view.close()
+
+    def test_camera_zoom_pan_and_inverse_mapping(self):
+        from microthermo.ui.scene import Bounds
+
+        camera=Camera(Bounds(-1.,-2.,3.,2.),800,600,zoom=2.,
+                      pan_x=.25,pan_y=-.5)
+        for point in ((0.,0.),(2.,1.),(-.5,-1.5)):
+            np.testing.assert_allclose(camera.unmap(*camera.map(*point)),
+                                       point,atol=1e-12)
+        self.assertGreater(camera.scale,
+                           Camera(camera.bounds,800,600).scale)
+
+    def test_free_shaft_and_active_spring_are_labeled_by_state(self):
+        from microthermo.ui.main_window import ApparatusView
+
+        app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        sim = load_preset(RunConfig(preset="carnot_discs", particles=8,
+                                    shaft_mode="free"))
+        sim.world.mechanism.shaft.spring_k = 1.0
+        view = ApparatusView(sim)
+        parts = {part.name: part for part in sim.snapshot().apparatus}
+        self.assertFalse(view.controlled_shaft)
+        self.assertEqual(parts["shaft_spring"].state, "torsion")
+        self.assertFalse(view.component_visible(parts["shaft_spring"]))
         view.close()
 
     def test_worker_command_matches_headless_and_snapshot_is_immutable(self):
@@ -64,7 +91,7 @@ class UiRenderTests(unittest.TestCase):
             self.wait_until(app,lambda: window.view.snapshot.time>=.05)
             snap=window.view.snapshot
             reference=load_preset(RunConfig(preset="carnot_triangles",
-                                                particles=48,max_horizon=.02))
+                                                particles=96,max_horizon=.02))
             expected=reference.advance_to(.05)
             np.testing.assert_array_equal(snap.position,expected.position)
             np.testing.assert_array_equal(snap.velocity,expected.velocity)
@@ -109,6 +136,64 @@ class UiRenderTests(unittest.TestCase):
             self.assertAlmostEqual(window.view.snapshot.time,paused+.01,places=12)
         finally:
             window.close()
+
+    def test_desktop_duration_rate_reset_and_physical_speed_are_distinct(self):
+        from microthermo.ui.main_window import MainWindow
+
+        app=QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        window=MainWindow("carnot_discs",autoplay=False)
+        try:
+            window.show()
+            self.wait_until(app,lambda: window.view.snapshot.time==0 and
+                            window.instruments.values["Area"].text() != "—")
+            window.playback_rate.setCurrentIndex(window.playback_rate.findData(4.))
+            self.wait_until(app,lambda: abs(window.worker._physical_step-.064)<1e-12)
+            self.assertAlmostEqual(window.view.snapshot.shaft_phase,0.)
+            window.duration_step.setValue(.05)
+            window.step_duration()
+            self.wait_until(app,lambda: window.view.snapshot.time>=.05)
+            self.assertAlmostEqual(window.view.snapshot.time,.05,places=12)
+            window.shaft_speed.setValue(.3)
+            window.change_shaft_speed()
+            self.wait_until(app,lambda: window.view.snapshot.event_count>=1)
+            self.assertEqual(window.worker._simulation.events[-1].kind,
+                             "shaft_speed_change")
+            self.assertLess(abs(window.view.snapshot.energy_residual),1e-10)
+            window.seed.setValue(124)
+            window.reset_to_seed()
+            self.wait_until(app,lambda: window._generation==1 and
+                            window.view.snapshot.time==0 and
+                            window.worker._generation==1)
+            expected=load_preset(RunConfig(preset="carnot_discs",particles=48,
+                                                seed=124,max_horizon=.02,
+                                                shaft_speed=.3)).snapshot()
+            np.testing.assert_array_equal(window.view.snapshot.position,
+                                          expected.position)
+            self.assertEqual(window.status.currentMessage().split()[0],"PAUSED")
+            window.preset_choice.setCurrentText("gas_box")
+            self.wait_until(app,lambda: window._generation==2 and
+                            window.worker._generation==2 and
+                            window.view.snapshot.time==0)
+            gas=load_preset(RunConfig(preset="gas_box",particles=48,
+                                           seed=124,max_horizon=.02)).snapshot()
+            np.testing.assert_array_equal(window.view.snapshot.position,
+                                          gas.position)
+            self.assertFalse(window.shaft_speed.isEnabled())
+            self.assertFalse(window.branch_action.isEnabled())
+        finally:
+            window.close()
+
+    def test_branch_step_stops_at_next_controlled_boundary(self):
+        from microthermo.ui.worker import SimulationWorker
+
+        QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        config=RunConfig(preset="carnot_discs",particles=2,seed=123,
+                         shaft_speed=.15,max_horizon=.05)
+        sim=load_preset(config)
+        worker=SimulationWorker(sim,autoplay=False,config=config)
+        worker.step_branch()
+        self.assertAlmostEqual(sim.time,math.pi/(2*.15),delta=1e-9)
+        self.assertEqual(sim.snapshot().branch,"adiabatic_expansion")
 
     def test_splitter_and_live_plots_fit_minimum_window(self):
         from microthermo.ui.main_window import MainWindow

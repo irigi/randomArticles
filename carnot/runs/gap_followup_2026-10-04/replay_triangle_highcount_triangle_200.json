@@ -1,0 +1,23 @@
+{
+  "particles": 200,
+  "duration": 10.6,
+  "seed": 123,
+  "frame_count": 637,
+  "chunks": 20,
+  "event_count": 22709,
+  "archive_bytes": 19084285,
+  "source_midpoints": 60,
+  "maximum_source_errors": {
+    "position": 1.1157603309187458e-15,
+    "velocity": 0.0,
+    "angle": 1.758593271006248e-13,
+    "omega": 6.275513442233205e-11,
+    "saved_position": 0.0,
+    "saved_scalar": 0.0,
+    "ledger": 0.0
+  },
+  "apparatus_probe_count": 209,
+  "maximum_apparatus_point_error": 7.917520619127316e-07,
+  "branch_mismatches": 0,
+  "event_aware_reconstruction": true
+}

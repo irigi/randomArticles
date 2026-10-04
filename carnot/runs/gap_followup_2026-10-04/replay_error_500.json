@@ -1,0 +1,15 @@
+{
+  "particles": 500,
+  "duration": 1.0,
+  "sample_fps": 60,
+  "midpoints_compared": 60,
+  "particle_observations": 30000,
+  "intervals_with_events": 60,
+  "max_saved_position_disagreement": 0.0,
+  "max_saved_angle_disagreement": 0.0,
+  "max_midpoint_position_error": 0.026229397578632494,
+  "p95_midpoint_position_error": 0.008027137638549597,
+  "max_midpoint_error_in_particle_radii": 3.386200666769893,
+  "max_midpoint_position_error_in_event_intervals": 0.026229397578632494,
+  "max_midpoint_apparatus_point_error": 5.77588522343575e-07
+}

@@ -1,0 +1,11 @@
+{
+  "particles": 500,
+  "midpoints_compared": 60,
+  "particle_observations": 30000,
+  "intervals_with_events": 60,
+  "max_saved_position_disagreement": 0.0,
+  "max_midpoint_position_error": 2.0175840826237853e-15,
+  "p95_midpoint_position_error": 6.753223014464259e-16,
+  "max_midpoint_position_error_in_particle_radii": 2.60468985052503e-13,
+  "max_midpoint_velocity_error": 0.0
+}

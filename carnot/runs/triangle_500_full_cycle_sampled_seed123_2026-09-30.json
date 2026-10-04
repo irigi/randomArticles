@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "python": "3.12.3",
+  "numpy": "2.4.6",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz",
+  "settings": {
+    "particles": 500,
+    "seeds": [
+      123
+    ],
+    "cycles": 1,
+    "branches": 4,
+    "shaft_speed": 0.15,
+    "verify_seed": 123,
+    "sample_cadence": 0.83,
+    "same_state_queries": false,
+    "numeric_backend": "numba",
+    "pair_search": "sweep"
+  },
+  "runs": [
+    {
+      "seed": 123,
+      "config_digest": "a2524c4e1bcdfd450043c12bbfca9c907d00e8c75106c898768dcff3e6a6457e",
+      "setup_seconds": 0.3622049319965299,
+      "solver_seconds": 859.9357522119826,
+      "physical_per_wall_second": 0.04871050184867547,
+      "duration": 41.88790204786391,
+      "events": 198943,
+      "event_kinds": {
+        "specular": 33679,
+        "elastic": 162553,
+        "hot": 2100,
+        "branch_transition": 4,
+        "cold": 607
+      },
+      "completed_cycles": 1,
+      "ccd_refinements": 37336,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": 1.354294454358751e-11,
+      "ledger": {
+        "heat_hot": 347.35840768923845,
+        "heat_cold": 16.880543466566337,
+        "heat_other": 0.0,
+        "work_on": 109.7657850240373,
+        "load_output": 0.12566370614359174,
+        "piston_work_on_gas": 109.76578502404033
+      },
+      "particle_area_fraction_min": 0.031176914536239796,
+      "radius": 0.007745966692414834,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 77834,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 3.183231456205249e-12
+        },
+        {
+          "branch": 2,
+          "time": 20.943951023931955,
+          "events": 116425,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 5.4569682106375694e-12
+        },
+        {
+          "branch": 3,
+          "time": 31.41592653589793,
+          "events": 140446,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 8.526512829121202e-12
+        },
+        {
+          "branch": 4,
+          "time": 41.88790204786391,
+          "events": 198943,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 1.354294454358751e-11
+        }
+      ],
+      "sampling": {
+        "cadence": 0.83,
+        "sampled_seconds": 799.554294711008,
+        "matches_direct": true,
+        "replay_seconds": 346.62963115000457,
+        "replay_matches_direct": true
+      }
+    }
+  ]
+}

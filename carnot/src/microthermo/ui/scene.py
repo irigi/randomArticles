@@ -19,19 +19,28 @@ class Camera:
     width: int
     height: int
     padding: int = 20
+    zoom: float = 1.0
+    pan_x: float = 0.0
+    pan_y: float = 0.0
 
     @property
     def scale(self) -> float:
         span_x = max(self.bounds.right-self.bounds.left, 1e-9)
         span_y = max(self.bounds.top-self.bounds.bottom, 1e-9)
         return max(1e-9, min((self.width-2*self.padding)/span_x,
-                             (self.height-2*self.padding)/span_y))
+                             (self.height-2*self.padding)/span_y)*self.zoom)
 
     def map(self, x: float, y: float) -> tuple[float, float]:
         center_x = (self.bounds.left+self.bounds.right)/2
         center_y = (self.bounds.bottom+self.bounds.top)/2
-        return (self.width/2+(x-center_x)*self.scale,
-                self.height/2-(y-center_y)*self.scale)
+        return (self.width/2+(x-center_x-self.pan_x)*self.scale,
+                self.height/2-(y-center_y-self.pan_y)*self.scale)
+
+    def unmap(self, screen_x: float, screen_y: float) -> tuple[float, float]:
+        center_x=(self.bounds.left+self.bounds.right)/2
+        center_y=(self.bounds.bottom+self.bounds.top)/2
+        return (center_x+self.pan_x+(screen_x-self.width/2)/self.scale,
+                center_y+self.pan_y-(screen_y-self.height/2)/self.scale)
 
 
 def scene_bounds(simulation) -> Bounds:

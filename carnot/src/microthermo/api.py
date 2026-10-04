@@ -14,7 +14,9 @@ def load_preset(config: RunConfig) -> Simulation:
                       numeric_backend=config.numeric_backend,
                       wall_search=config.wall_search,
                       wall_kernel=config.wall_kernel,
-                      penetration_kernel=config.penetration_kernel)
+                      penetration_kernel=config.penetration_kernel,
+                      pair_kernel=config.pair_kernel,
+                      cam_kernel=config.cam_kernel)
 
 
 __all__ = ["Simulation", "Snapshot", "RunConfig", "load_preset"]

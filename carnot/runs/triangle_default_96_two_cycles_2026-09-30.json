@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "python": "3.12.3",
+  "numpy": "2.4.6",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz",
+  "settings": {
+    "particles": 96,
+    "seeds": [
+      123,
+      124,
+      125
+    ],
+    "cycles": 2,
+    "shaft_speed": 0.15,
+    "verify_seed": 123,
+    "sample_cadence": 0.83,
+    "numeric_backend": "numba",
+    "pair_search": "sweep"
+  },
+  "runs": [
+    {
+      "seed": 123,
+      "config_digest": "0e1b3ba33caa57bc89c6163298142b7623f6707b55c0f2451c4e9c9759ac91f9",
+      "setup_seconds": 0.10191653900255915,
+      "solver_seconds": 36.82647264600382,
+      "physical_per_wall_second": 2.2748799457669113,
+      "duration": 83.77580409572782,
+      "events": 44607,
+      "event_kinds": {
+        "specular": 13900,
+        "elastic": 29424,
+        "hot": 1023,
+        "branch_transition": 8,
+        "cold": 252
+      },
+      "completed_cycles": 2,
+      "ccd_refinements": 2533,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": -6.075140390748857e-13,
+      "ledger": {
+        "heat_hot": 92.07150940481242,
+        "heat_cold": -23.198604228538443,
+        "heat_other": 0.0,
+        "work_on": 24.053839829939232,
+        "load_output": 0.25132741228718347,
+        "piston_work_on_gas": 24.053839829939704
+      },
+      "particle_area_fraction_min": 0.03117691453623981,
+      "radius": 0.01767766952966369,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 8755,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 7.105427357601002e-14
+        },
+        {
+          "branch": 2,
+          "time": 20.943951023931955,
+          "events": 13373,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 8.526512829121202e-14
+        },
+        {
+          "branch": 3,
+          "time": 31.41592653589793,
+          "events": 16310,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 0.0
+        },
+        {
+          "branch": 4,
+          "time": 41.88790204786391,
+          "events": 22533,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -3.552713678800501e-14
+        },
+        {
+          "branch": 5,
+          "time": 52.35987755982989,
+          "events": 31283,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -8.526512829121202e-13
+        },
+        {
+          "branch": 6,
+          "time": 62.83185307179586,
+          "events": 35558,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -9.947598300641403e-13
+        },
+        {
+          "branch": 7,
+          "time": 73.30382858376184,
+          "events": 38514,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -3.694822225952521e-13
+        },
+        {
+          "branch": 8,
+          "time": 83.77580409572782,
+          "events": 44607,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -6.075140390748857e-13
+        }
+      ],
+      "sampling": {
+        "cadence": 0.83,
+        "sampled_seconds": 37.018269084001076,
+        "matches_direct": true,
+        "replay_seconds": 18.24147011101013,
+        "replay_matches_direct": true
+      }
+    },
+    {
+      "seed": 124,
+      "config_digest": "0a3b920c82ac46fd5abb505d21364114e708139bcc896008386d7ab4af59fbda",
+      "setup_seconds": 0.010872143000597134,
+      "solver_seconds": 37.157526830997085,
+      "physical_per_wall_second": 2.2546119518869974,
+      "duration": 83.77580409572782,
+      "events": 45160,
+      "event_kinds": {
+        "elastic": 29627,
+        "hot": 998,
+        "specular": 14238,
+        "branch_transition": 8,
+        "cold": 289
+      },
+      "completed_cycles": 2,
+      "ccd_refinements": 2217,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": 2.3945290195115376e-12,
+      "ledger": {
+        "heat_hot": 72.95342086193571,
+        "heat_cold": -13.949335328351324,
+        "heat_other": 0.0,
+        "work_on": 37.53921436402195,
+        "load_output": 0.25132741228718347,
+        "piston_work_on_gas": 37.539214364022754
+      },
+      "particle_area_fraction_min": 0.03117691453623981,
+      "radius": 0.01767766952966369,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 8401,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 4.618527782440651e-13
+        },
+        {
+          "branch": 2,
+          "time": 20.943951023931955,
+          "events": 13084,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 8.242295734817162e-13
+        },
+        {
+          "branch": 3,
+          "time": 31.41592653589793,
+          "events": 16079,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 2.2453150450019166e-12
+        },
+        {
+          "branch": 4,
+          "time": 41.88790204786391,
+          "events": 22555,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 2.5721647034515627e-12
+        },
+        {
+          "branch": 5,
+          "time": 52.35987755982989,
+          "events": 31697,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 1.694644424787839e-12
+        },
+        {
+          "branch": 6,
+          "time": 62.83185307179586,
+          "events": 36000,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 2.1884716261411086e-12
+        },
+        {
+          "branch": 7,
+          "time": 73.30382858376184,
+          "events": 38927,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 2.3874235921539366e-12
+        },
+        {
+          "branch": 8,
+          "time": 83.77580409572782,
+          "events": 45160,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 2.3945290195115376e-12
+        }
+      ]
+    },
+    {
+      "seed": 125,
+      "config_digest": "0b4dcf358468697e228228ed5752616a4c51e751cd2ec44de75082f1ed30bea8",
+      "setup_seconds": 0.00984438500017859,
+      "solver_seconds": 36.371466401004,
+      "physical_per_wall_second": 2.3033386438720895,
+      "duration": 83.77580409572782,
+      "events": 44215,
+      "event_kinds": {
+        "elastic": 29250,
+        "hot": 956,
+        "specular": 13749,
+        "branch_transition": 8,
+        "cold": 252
+      },
+      "completed_cycles": 2,
+      "ccd_refinements": 1863,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": -2.7000623958883807e-13,
+      "ledger": {
+        "heat_hot": 55.99445022300796,
+        "heat_cold": 12.68376320690335,
+        "heat_other": 0.0,
+        "work_on": 72.99340776836712,
+        "load_output": 0.25132741228718347,
+        "piston_work_on_gas": 72.99340776836681
+      },
+      "particle_area_fraction_min": 0.03117691453623981,
+      "radius": 0.01767766952966369,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 8178,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -7.105427357601002e-14
+        },
+        {
+          "branch": 2,
+          "time": 20.943951023931955,
+          "events": 12476,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -3.410605131648481e-13
+        },
+        {
+          "branch": 3,
+          "time": 31.41592653589793,
+          "events": 15205,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -1.8474111129762605e-13
+        },
+        {
+          "branch": 4,
+          "time": 41.88790204786391,
+          "events": 21578,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 8.526512829121202e-14
+        },
+        {
+          "branch": 5,
+          "time": 52.35987755982989,
+          "events": 30453,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 1.5631940186722204e-13
+        },
+        {
+          "branch": 6,
+          "time": 62.83185307179586,
+          "events": 34674,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 8.526512829121202e-14
+        },
+        {
+          "branch": 7,
+          "time": 73.30382858376184,
+          "events": 37695,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -1.4210854715202004e-14
+        },
+        {
+          "branch": 8,
+          "time": 83.77580409572782,
+          "events": 44215,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -2.7000623958883807e-13
+        }
+      ]
+    }
+  ]
+}

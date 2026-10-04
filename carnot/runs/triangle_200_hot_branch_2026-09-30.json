@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "python": "3.12.3",
+  "numpy": "2.4.6",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz",
+  "settings": {
+    "particles": 200,
+    "seeds": [
+      123,
+      124,
+      125
+    ],
+    "cycles": null,
+    "branches": 1,
+    "shaft_speed": 0.15,
+    "verify_seed": 123,
+    "sample_cadence": 0.83,
+    "numeric_backend": "numba",
+    "pair_search": "sweep"
+  },
+  "runs": [
+    {
+      "seed": 123,
+      "config_digest": "8bc4d57d6d699c1176d9bb367c25795c904d312866211a3d6601c818bad538ed",
+      "setup_seconds": 0.14274492500408087,
+      "solver_seconds": 36.61863614700269,
+      "physical_per_wall_second": 0.2859739360561393,
+      "duration": 10.471975511965978,
+      "events": 22484,
+      "event_kinds": {
+        "elastic": 17694,
+        "specular": 3886,
+        "hot": 903,
+        "branch_transition": 1
+      },
+      "completed_cycles": 0,
+      "ccd_refinements": 2088,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": -1.4779288903810084e-12,
+      "ledger": {
+        "heat_hot": 158.09271126581257,
+        "heat_cold": 0.0,
+        "heat_other": 0.0,
+        "work_on": -77.62188694301824,
+        "load_output": 0.031415926535897934,
+        "piston_work_on_gas": -77.62188694301949
+      },
+      "particle_area_fraction_min": 0.031176914536239796,
+      "radius": 0.012247448713915891,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 22484,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": -1.4779288903810084e-12
+        }
+      ],
+      "sampling": {
+        "cadence": 0.83,
+        "sampled_seconds": 36.616555166998296,
+        "matches_direct": true,
+        "replay_seconds": 14.063324818998808,
+        "replay_matches_direct": true
+      }
+    },
+    {
+      "seed": 124,
+      "config_digest": "c62f83f1a01edfa0ae16146a973b3c50f2c444744d91d868834f5d2ea2b55f69",
+      "setup_seconds": 0.04588581599819008,
+      "solver_seconds": 35.02252877299907,
+      "physical_per_wall_second": 0.29900683585245397,
+      "duration": 10.471975511965978,
+      "events": 22738,
+      "event_kinds": {
+        "elastic": 17760,
+        "specular": 4012,
+        "hot": 965,
+        "branch_transition": 1
+      },
+      "completed_cycles": 0,
+      "ccd_refinements": 1606,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": 2.2737367544323206e-13,
+      "ledger": {
+        "heat_hot": 239.5830420040176,
+        "heat_cold": 0.0,
+        "heat_other": 0.0,
+        "work_on": -80.83252063208255,
+        "load_output": 0.031415926535897934,
+        "piston_work_on_gas": -80.83252063208067
+      },
+      "particle_area_fraction_min": 0.031176914536239796,
+      "radius": 0.012247448713915891,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 22738,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 2.2737367544323206e-13
+        }
+      ]
+    },
+    {
+      "seed": 125,
+      "config_digest": "cbb8709c2cf946e0a5d32ebf3f2b4ec3f49ea4ddf1d68eb6c69619076d3fe7a3",
+      "setup_seconds": 0.0396920310013229,
+      "solver_seconds": 35.51391001199954,
+      "physical_per_wall_second": 0.2948696865095304,
+      "duration": 10.471975511965978,
+      "events": 22879,
+      "event_kinds": {
+        "hot": 941,
+        "elastic": 17870,
+        "specular": 4067,
+        "branch_transition": 1
+      },
+      "completed_cycles": 0,
+      "ccd_refinements": 1360,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": 2.2737367544323206e-13,
+      "ledger": {
+        "heat_hot": 210.85251601077863,
+        "heat_cold": 0.0,
+        "heat_other": 0.0,
+        "work_on": -83.81610046593028,
+        "load_output": 0.031415926535897934,
+        "piston_work_on_gas": -83.81610046593175
+      },
+      "particle_area_fraction_min": 0.031176914536239796,
+      "radius": 0.012247448713915891,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 22879,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 2.2737367544323206e-13
+        }
+      ]
+    }
+  ]
+}

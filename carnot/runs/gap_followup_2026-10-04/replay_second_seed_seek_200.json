@@ -1,0 +1,7 @@
+{
+  "particles": 200,
+  "tested_indices": 60,
+  "chunks": 3,
+  "max_seek_ms": 0.42339100036770105,
+  "p95_seek_ms": 0.3916286441381089
+}

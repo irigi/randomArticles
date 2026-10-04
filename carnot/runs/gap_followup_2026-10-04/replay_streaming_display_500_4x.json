@@ -1,0 +1,15 @@
+{
+  "particles": 500,
+  "speed": 4.0,
+  "qt_platform": "xcb",
+  "load_seconds": 0.5224626249982975,
+  "final_physical_time": 10.0,
+  "painted_frames": 157,
+  "paint_fps": 62.507459173022546,
+  "p95_interval_ms": 16.85552050548722,
+  "max_interval_ms": 17.68014499975834,
+  "gaps_over_25_ms": 0,
+  "max_ui_seek_ms": 26.689755992265418,
+  "gc_enabled_after_playback": true,
+  "peak_rss_kib": 266592
+}

@@ -15,6 +15,7 @@ from .api import load_preset
 from .config import RunConfig
 from .experiments import preset_names
 from .io.exports import export_run
+from .io.replay import precalculate_replay
 from .measurements.speed_study import run_speed_study
 from .validation import results_as_dict, run_validation
 
@@ -33,17 +34,26 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--temperature", type=float)
     run.add_argument("--sample-interval", type=float)
     run.add_argument("--max-horizon", type=float)
-    run.add_argument("--pair-search", choices=("grid", "all"))
+    run.add_argument("--pair-search", choices=("grid", "sweep", "all"))
     run.add_argument("--numeric-backend", choices=("auto", "python", "numba"))
     run.add_argument("--wall-search", choices=("bounded", "all"))
     run.add_argument("--wall-kernel", choices=("auto", "python"))
     run.add_argument("--penetration-kernel", choices=("auto", "python"))
+    run.add_argument("--pair-kernel", choices=("auto", "scalar"))
+    run.add_argument("--cam-kernel", choices=("auto", "python"))
     run.add_argument("--output", default="run")
     run.add_argument("--headless", action="store_true", help="accepted for command compatibility")
     run.add_argument("--reversed", action="store_true")
     run.add_argument("--shaft-mode", choices=("controlled", "free"))
     run.add_argument("--shaft-speed", type=float,
                      help="Carnot shaft angular speed in rad/s (default: 0.15)")
+    run.add_argument("--cold-jacket", action="store_true", default=None,
+                     help="add cold-sector thermal top and bottom walls")
+    run.add_argument("--hot-jacket", action="store_true", default=None,
+                     help="add hot-sector thermal top and bottom walls")
+    run.add_argument("--cam-fractions", type=float, nargs=4,
+                     metavar=("HOT", "EXPANSION", "COLD", "COMPRESSION"),
+                     help="fractions of a revolution assigned to the four cam sectors")
     run.add_argument("--transient-cycles", type=int)
     run.add_argument("--efficiency-min-cycles", type=int)
     study = sub.add_parser("speed-study", help="compare controlled Carnot shaft speeds across seeds")
@@ -56,7 +66,31 @@ def parser() -> argparse.ArgumentParser:
     study.add_argument("--max-horizon", type=float, default=.05)
     study.add_argument("--transient-cycles", type=int, default=2)
     study.add_argument("--efficiency-min-cycles", type=int, default=8)
+    study.add_argument("--cold-jacket", action="store_true",
+                       help="add cold-sector thermal top and bottom walls")
+    study.add_argument("--hot-jacket", action="store_true",
+                       help="add hot-sector thermal top and bottom walls")
+    study.add_argument("--cam-fractions", type=float, nargs=4,
+                       metavar=("HOT", "EXPANSION", "COLD", "COMPRESSION"),
+                       default=(.25,.25,.25,.25),
+                       help="fractions of a revolution assigned to the four cam sectors")
     study.add_argument("--output", default="runs/carnot_speed_study.json")
+    replay = sub.add_parser("precalculate", help="write chunked replay frames offline")
+    replay.add_argument("--preset", choices=preset_names(), default="carnot_discs")
+    replay.add_argument("--seed", type=int, default=123)
+    replay.add_argument("--particles", type=int, default=32)
+    replay.add_argument("--duration", type=float, required=True)
+    replay.add_argument("--shaft-speed", type=float, default=.15)
+    replay.add_argument("--cold-jacket", action="store_true")
+    replay.add_argument("--hot-jacket", action="store_true")
+    replay.add_argument("--cam-fractions", type=float, nargs=4,
+                        metavar=("HOT", "EXPANSION", "COLD", "COMPRESSION"),
+                        default=(.25,.25,.25,.25))
+    replay.add_argument("--fps", type=float, default=60.)
+    replay.add_argument("--chunk-frames", type=int, default=256)
+    replay.add_argument("--output", required=True)
+    replay_view = sub.add_parser("replay", help="play a precalculated archive")
+    replay_view.add_argument("path")
     val = sub.add_parser("validate", help="run physics validation gates")
     val.add_argument("--suite", default="scientific", choices=("scientific", "quick"))
     bench = sub.add_parser("benchmark", help="measure reference engine throughput")
@@ -66,18 +100,20 @@ def parser() -> argparse.ArgumentParser:
     gui.add_argument("--transient-cycles", type=int, default=2)
     gui.add_argument("--efficiency-min-cycles", type=int, default=8)
     gui.add_argument("--shaft-speed", type=float, default=.15)
+    gui.add_argument("--shaft-mode", choices=("controlled", "free"), default="controlled")
     return p
 
 
 def _run(args) -> int:
-    values={"preset":"gas_box","seed":123,"duration":10.,"particles":32,
+    values={"preset":"gas_box","seed":123,"duration":10.,"particles":None,
             "temperature":1.,"sample_interval":.05,"max_horizon":.05,
             "cycles":None,"reversed_cycle":False,"shaft_mode":"controlled",
             "shaft_speed":.15,
             "transient_cycles":2,"efficiency_min_cycles":8,
             "pair_search":"grid","numeric_backend":"auto",
             "wall_search":"bounded","wall_kernel":"auto",
-            "penetration_kernel":"auto"}
+            "penetration_kernel":"auto","pair_kernel":"auto",
+            "cam_kernel":"auto"}
     if args.config:
         with open(args.config,"rb") as f:
             loaded=tomllib.load(f)
@@ -88,9 +124,10 @@ def _run(args) -> int:
     for key in ("preset","seed","duration","particles","temperature","sample_interval",
                 "max_horizon","cycles","shaft_mode","shaft_speed","transient_cycles",
                 "efficiency_min_cycles","pair_search","numeric_backend",
-                "wall_search","wall_kernel","penetration_kernel"):
+                "wall_search","wall_kernel","penetration_kernel","pair_kernel",
+                "cam_kernel","cold_jacket","hot_jacket","cam_fractions"):
         value=getattr(args,key)
-        if value is not None: values[key]=value
+        if value is not None: values[key]=tuple(value) if key=="cam_fractions" else value
     if args.reversed: values["reversed_cycle"]=True
     duration = values["duration"]
     if values["cycles"] is not None:
@@ -142,7 +179,9 @@ def _speed_study(args) -> int:
             cycles=args.cycles,particles=args.particles,
             max_horizon=args.max_horizon,
             transient_cycles=args.transient_cycles,
-            efficiency_min_cycles=args.efficiency_min_cycles)
+            efficiency_min_cycles=args.efficiency_min_cycles,
+            cold_jacket=args.cold_jacket,hot_jacket=args.hot_jacket,
+            cam_fractions=tuple(args.cam_fractions))
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
     output=Path(args.output)
@@ -162,6 +201,22 @@ def main(argv=None) -> int:
     if args.command == "validate": return _validate(args)
     if args.command == "benchmark": return _benchmark(args)
     if args.command == "speed-study": return _speed_study(args)
+    if args.command == "precalculate":
+        cfg=RunConfig(preset=args.preset,seed=args.seed,particles=args.particles,
+                      duration=args.duration,shaft_speed=args.shaft_speed,
+                      cold_jacket=args.cold_jacket,hot_jacket=args.hot_jacket,
+                      cam_fractions=tuple(args.cam_fractions))
+        output=precalculate_replay(cfg,args.output,fps=args.fps,
+                                   chunk_frames=args.chunk_frames)
+        print(json.dumps({"output":str(output)},indent=2))
+        return 0
+    if args.command == "replay":
+        try:
+            from .ui.replay_window import launch_replay
+        except ImportError as exc:
+            print("GUI dependencies are missing; install with: pip install -e '.[gui]'", file=sys.stderr)
+            return 3
+        return launch_replay(args.path)
     if args.command == "gui":
         if args.transient_cycles < 0 or args.efficiency_min_cycles < 4:
             raise SystemExit("require nonnegative transients and at least four efficiency cycles")
@@ -173,5 +228,5 @@ def main(argv=None) -> int:
             print("GUI dependencies are missing; install with: pip install -e '.[gui]'", file=sys.stderr)
             return 3
         return launch(args.preset,args.transient_cycles,args.efficiency_min_cycles,
-                      args.shaft_speed)
+                      args.shaft_speed,args.shaft_mode)
     return 1

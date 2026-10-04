@@ -1,0 +1,25 @@
+{
+  "archive": "/home/blue-whale/randomArticles/carnot/runs/gap_followup_2026-10-04/replay_500",
+  "qt_platform": "xcb",
+  "particle_count": 500,
+  "load_seconds": 0.5223208829993382,
+  "seek_ms": [
+    0.9023759994306602,
+    8.897397005057428,
+    25.137593002000358,
+    6.612522003706545,
+    7.33286499598762,
+    6.471822001913097
+  ],
+  "seek_median_ms": 6.972693499847082,
+  "seek_max_ms": 25.137593002000358,
+  "playback_elapsed_seconds": 10.852000068996858,
+  "playback_physical_seconds": 10.0,
+  "painted_frames": 625,
+  "paint_fps": 62.50260497638756,
+  "median_paint_interval_ms": 15.98733599530533,
+  "p95_paint_interval_ms": 16.665158000250813,
+  "max_paint_interval_ms": 17.34565000515431,
+  "gaps_over_25_ms": [],
+  "peak_rss_kib": 311680
+}

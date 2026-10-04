@@ -10,6 +10,7 @@ from ..config import RunConfig
 from ..core.boundaries import BoundaryKind, Wall
 from ..core.apparatus import ApparatusComponent
 from ..core.mechanisms import CarnotCam, Shaft
+from ..core.numeric import controlled_cam_disc_toi, controlled_cam_triangle_toi
 from ..core.state import BodyArrays, Shape
 from ..runner.simulation import World
 
@@ -206,6 +207,18 @@ class CamPistonWall(Wall):
         return (1.875*max(slopes)*self.mechanism.shaft.speed_bound(duration)
                 /self.mechanism.cam.height)
 
+    def batch_disc_toi(self, state, possible, wall_speed, horizon, tol):
+        if self.mechanism.shaft.prescribed_omega is None:
+            return None
+        return controlled_cam_disc_toi(state, possible, self.mechanism,
+                                       wall_speed, horizon, tol)
+
+    def batch_triangle_toi(self, state, possible, wall_speed, horizon, tol):
+        if self.mechanism.shaft.prescribed_omega is None:
+            return None
+        return controlled_cam_triangle_toi(state, possible, self.mechanism,
+                                           wall_speed, horizon, tol)
+
 
 class SelectorWall(Wall):
     def __init__(self, mechanism: CarnotMechanism, height: float, now_getter):
@@ -226,6 +239,43 @@ class SelectorWall(Wall):
         return None
 
 
+class ThermalJacketWall(Wall):
+    """Stationary exchanger, thermal in enabled sectors and specular otherwise."""
+
+    def __init__(self, point, normal, length, name, mechanism, now_getter,
+                 hot: bool, cold: bool):
+        super().__init__(np.asarray(point), np.asarray(normal), length, name=name)
+        self.mechanism = mechanism
+        self.now_getter = now_getter
+        self.hot = hot
+        self.cold = cold
+
+    def kind_at(self, time):
+        phi = self.mechanism.phi_at(time, self.now_getter())
+        branch = self.mechanism.cam.branch(phi, self.mechanism.reversed_cycle)
+        if branch == "hot" and self.hot:
+            return BoundaryKind.HOT
+        if branch == "cold" and self.cold:
+            return BoundaryKind.COLD
+        return BoundaryKind.SPECULAR
+
+    def temperature_at(self, time):
+        kind = self.kind_at(time)
+        if kind == BoundaryKind.HOT:
+            return self.mechanism.hot_temperature
+        if kind == BoundaryKind.COLD:
+            return self.mechanism.cold_temperature
+        return None
+
+
+class ColdJacketWall(ThermalJacketWall):
+    """Compatibility wrapper for the original cold-only jacket."""
+
+    def __init__(self, point, normal, length, name, mechanism, now_getter):
+        super().__init__(point, normal, length, name, mechanism, now_getter,
+                         hot=False, cold=True)
+
+
 class CarnotExperiment(Experiment):
     def __init__(self, triangles: bool = False):
         self.triangles = triangles
@@ -234,7 +284,8 @@ class CarnotExperiment(Experiment):
         height, a1, ratio = 1.0, 1.25, 1.35
         th, tc = 1.5*config.temperature, 0.75*config.temperature
         dof = 3 if self.triangles else 2
-        cam = CarnotCam.design(a1, ratio, th, tc, dof, height)
+        base_cam = CarnotCam.design(a1, ratio, th, tc, dof, height)
+        cam = CarnotCam(base_cam.areas, tuple(config.cam_fractions), height)
         omega = (-1 if config.reversed_cycle else 1)*config.shaft_speed
         prescribed = omega if config.shaft_mode == "controlled" else None
         shaft = Shaft(0.0, 20.0*omega, 20.0, prescribed_omega=prescribed,
@@ -249,15 +300,33 @@ class CarnotExperiment(Experiment):
         state = BodyArrays.from_specs(specs)
         # The simulation updates this clock at every committed or sampled time.
         clock = [0.0]
+        bottom_point, bottom_normal = np.array([1., 0.]), np.array([0., 1.])
+        top_point, top_normal = np.array([1., height]), np.array([0., -1.])
+        if config.cold_jacket and not config.hot_jacket:
+            bottom = ColdJacketWall(bottom_point, bottom_normal, 3., "bottom",
+                                    mech, lambda: clock[0])
+            top = ColdJacketWall(top_point, top_normal, 3., "top",
+                                 mech, lambda: clock[0])
+        elif config.cold_jacket or config.hot_jacket:
+            bottom = ThermalJacketWall(bottom_point, bottom_normal, 3., "bottom",
+                                       mech, lambda: clock[0], config.hot_jacket,
+                                       config.cold_jacket)
+            top = ThermalJacketWall(top_point, top_normal, 3., "top",
+                                    mech, lambda: clock[0], config.hot_jacket,
+                                    config.cold_jacket)
+        else:
+            bottom = Wall(bottom_point, bottom_normal, 3., name="bottom")
+            top = Wall(top_point, top_normal, 3., name="top")
         walls: list[Wall] = [SelectorWall(mech, height, lambda: clock[0]),
-            Wall(np.array([1., 0.]), np.array([0., 1.]), 3., name="bottom"),
-            Wall(np.array([1., height]), np.array([0., -1.]), 3., name="top"),
-            CamPistonWall(mech, lambda: clock[0], height)]
+                             bottom, top, CamPistonWall(mech, lambda: clock[0], height)]
         return World(state, walls, mechanism=mech,
                      metadata={"name": "carnot_triangles" if self.triangles else "carnot_discs",
                                "clock": clock, "T_hot": th, "T_cold": tc,
                                "shaft_mode": config.shaft_mode,
                                "piston_mass": shaft.piston_mass,
+                               "cold_jacket": config.cold_jacket,
+                               "hot_jacket": config.hot_jacket,
+                               "cam_fractions": cam.fractions,
                                "particle_radius": radius,
                                "particle_area_fraction_min": (config.particles * radius**2 *
                                    (3*math.sqrt(3)/4 if self.triangles else math.pi) / a1),

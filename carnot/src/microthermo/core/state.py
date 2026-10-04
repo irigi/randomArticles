@@ -43,6 +43,7 @@ class BodyArrays:
     version: np.ndarray
     ids: np.ndarray
     polygons: dict[int, np.ndarray] = field(default_factory=dict)
+    packed_triangles: np.ndarray | None = None
 
     @classmethod
     def from_specs(cls, specs: list[BodySpec]) -> "BodyArrays":
@@ -79,16 +80,27 @@ class BodyArrays:
                 polygons[i] = s.radius * np.column_stack((np.cos(a), np.sin(a)))
         if np.any((inertia <= 0) & np.isfinite(inertia)):
             raise ValueError("finite inertia must be positive")
+        packed_triangles = None
+        if len(polygons) == n and all(len(polygons[i]) == 3 for i in range(n)):
+            packed_triangles = np.stack([polygons[i] for i in range(n)])
+            polygons = {i: packed_triangles[i] for i in range(n)}
         return cls(pos, vel, np.asarray([s.angle for s in specs], float),
                    np.asarray([s.omega for s in specs], float), mass, inertia,
                    radius, shape, np.asarray([s.species for s in specs], np.int16),
-                   dynamic, np.zeros(n, np.int64), np.arange(n, dtype=np.int64), polygons)
+                   dynamic, np.zeros(n, np.int64), np.arange(n, dtype=np.int64),
+                   polygons, packed_triangles)
 
     def copy(self) -> "BodyArrays":
+        if self.packed_triangles is not None:
+            packed = self.packed_triangles.copy()
+            polygons = {i: packed[i] for i in range(self.n)}
+        else:
+            packed = None
+            polygons = {k: v.copy() for k, v in self.polygons.items()}
         return BodyArrays(*(getattr(self, name).copy() for name in
             ("pos", "vel", "angle", "omega", "mass", "inertia", "radius",
              "shape", "species", "dynamic", "version", "ids")),
-            {k: v.copy() for k, v in self.polygons.items()})
+            polygons, packed)
 
     @property
     def n(self) -> int:
@@ -119,4 +131,3 @@ class Tolerances:
     time: float = 1e-12
     velocity: float = 1e-12
     energy: float = 1e-10
-

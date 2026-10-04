@@ -10,15 +10,22 @@ import numpy as np
 
 from ..core.boundaries import BoundaryKind, SegmentWall, Wall, resolve_wall
 from ..core.apparatus import ApparatusComponent
-from ..core.ccd import body_pair_toi
-from ..core.broadphase import all_pairs, swept_pairs
-from ..core.numeric import (fixed_wall_toi, numba_available, polygon_wall_gap,
-                            reach_mask, wall_lower_bounds)
+from ..core.ccd import body_pair_toi, disc_pair_result, polygon_pair_result
+from ..core.broadphase import all_pairs, swept_pairs, swept_pairs_sweep_array
+from ..core.numeric import (disc_pairs_toi, disc_penetration, fixed_disc_walls_toi,
+                            fixed_triangle_walls_toi, fixed_wall_toi, numba_available,
+                            polygon_pairs_toi,
+                            polygon_wall_gap,
+                            swept_circle_mask,
+                            triangle_pair_gaps, triangle_penetration,
+                            reach_mask, wall_lower_bounds, wall_reach_mask)
 from ..core.geometry import (closest_point_segment, convex_separation,
                              disc_polygon_separation, polygon_segment_witnesses,
+                             polygon_signed_area,
                              world_polygon)
 from ..core.contacts import (apply_impulse, contact_velocity, inverse_effective_mass,
-                             elastic_cluster_impulses, resolve_elastic, resolve_energy_step)
+                             elastic_cluster_impulses, relative_normal_velocity,
+                             resolve_elastic, resolve_energy_step)
 from ..core.events import Contact, InteractionRecord, TOIResult, TOIStatus
 from ..core.state import BodyArrays, Shape, Tolerances
 from ..measurements.ledger import EnergyLedger
@@ -85,6 +92,7 @@ class Checkpoint:
     max_cluster_residual: float = 0.0
     history: tuple[InteractionRecord, ...] | None = None
     cycle_markers: tuple[CycleMarker, ...] = ()
+    controlled_phase_origin: float | None = None
 
 
 class NumericalFailure(RuntimeError):
@@ -97,9 +105,10 @@ class Simulation:
     def __init__(self, world: World, seed: int = 123, max_horizon: float = 0.05,
                  tolerances: Tolerances = Tolerances(), pair_search: str = "grid",
                  numeric_backend: str = "auto", wall_search: str = "bounded",
-                 wall_kernel: str = "auto", penetration_kernel: str = "auto"):
-        if pair_search not in ("grid", "all"):
-            raise ValueError("pair_search must be grid or all")
+                 wall_kernel: str = "auto", penetration_kernel: str = "auto",
+                 pair_kernel: str = "auto", cam_kernel: str = "auto"):
+        if pair_search not in ("grid", "sweep", "all"):
+            raise ValueError("pair_search must be grid, sweep, or all")
         if numeric_backend not in ("auto", "python", "numba"):
             raise ValueError("numeric_backend must be auto, python, or numba")
         if numeric_backend == "numba" and not numba_available():
@@ -110,11 +119,17 @@ class Simulation:
             raise ValueError("wall_kernel must be auto or python")
         if penetration_kernel not in ("auto", "python"):
             raise ValueError("penetration_kernel must be auto or python")
+        if pair_kernel not in ("auto", "scalar"):
+            raise ValueError("pair_kernel must be auto or scalar")
+        if cam_kernel not in ("auto", "python"):
+            raise ValueError("cam_kernel must be auto or python")
         self.pair_search = pair_search
         self.numeric_backend = numeric_backend
         self.wall_search = wall_search
         self.wall_kernel = wall_kernel
         self.penetration_kernel = penetration_kernel
+        self.pair_kernel = pair_kernel
+        self.cam_kernel = cam_kernel
         self.world = world
         self.time = 0.0
         self.rng = np.random.default_rng(seed)
@@ -122,6 +137,7 @@ class Simulation:
         self.max_horizon = max_horizon
         self.tol = tolerances
         self.events: list[InteractionRecord] = []
+        self._event_history_start = 0
         self.samples: list[Snapshot] = []
         self.memberships = np.zeros(world.bodies.n, dtype=np.int16)
         self.ledger = EnergyLedger(self.energy())
@@ -151,6 +167,8 @@ class Simulation:
 
     def energy(self) -> float:
         value=self.world.energy()
+        if not self.world.portals:
+            return value
         levels={p.inside_label:p.inside_energy for p in self.world.portals}
         value += sum(levels.get(int(region),0.) for region in self.memberships)
         return value
@@ -171,23 +189,37 @@ class Simulation:
 
     def checkpoint(self, include_history: bool = True) -> Checkpoint:
         return Checkpoint(self.time, self.world.bodies.copy(), copy.deepcopy(self.world.mechanism),
-                          copy.deepcopy(self.rng.bit_generator.state), copy.deepcopy(self.ledger),
+                          copy.deepcopy(self.rng.bit_generator.state), self.ledger.copy(),
                           self.memberships.copy(), self.event_count,
                           copy.deepcopy(self._pending),self.cluster_count,
                           self.max_cluster_residual,
                           tuple(copy.deepcopy(self.events)) if include_history else None,
-                          tuple(self.cycle_markers))
+                          tuple(self.cycle_markers),self._controlled_phase_origin)
+
+    def drain_events(self) -> list[InteractionRecord]:
+        """Release committed event records after an external writer saves them."""
+        drained = self.events
+        self.events = []
+        self._event_history_start = self.event_count
+        return drained
 
     def restore(self, cp: Checkpoint) -> None:
         self.time, self.world.bodies, self.world.mechanism = cp.time, cp.bodies.copy(), copy.deepcopy(cp.mechanism)
         self.rng.bit_generator.state = copy.deepcopy(cp.rng_state)
-        self.ledger, self.memberships, self.event_count = copy.deepcopy(cp.ledger), cp.memberships.copy(), cp.event_count
-        self.events = (list(copy.deepcopy(cp.history)) if cp.history is not None
-                       else self.events[:cp.event_count])
+        self.ledger, self.memberships, self.event_count = cp.ledger.copy(), cp.memberships.copy(), cp.event_count
+        if cp.history is not None:
+            self.events = list(copy.deepcopy(cp.history))
+            self._event_history_start = cp.event_count-len(self.events)
+        else:
+            retained = cp.event_count-self._event_history_start
+            if retained < 0:
+                raise ValueError("cannot restore discarded event history")
+            self.events = self.events[:retained]
         self._pending = copy.deepcopy(cp.pending)
         self.cluster_count = cp.cluster_count
         self.max_cluster_residual = cp.max_cluster_residual
         self.cycle_markers = list(cp.cycle_markers)
+        self._controlled_phase_origin = cp.controlled_phase_origin
         if self.world.mechanism is not None:
             for wall in self.world.walls:
                 if hasattr(wall, "mechanism"):
@@ -456,34 +488,198 @@ class Simulation:
         return TOIResult(TOIStatus.COLLISION,max(0.,t),self.tol.time,
                          Contact(body,None,tuple(point),tuple(cn),boundary=-(pi+1)))
 
+    def _candidate_pairs(self, horizon: float) -> list[tuple[int, int]] | np.ndarray:
+        s = self.world.bodies
+        if s.n < 32 or self.pair_search == "all":
+            return all_pairs(s.n)
+        if self.pair_search == "sweep":
+            return swept_pairs_sweep_array(s.pos, s.vel, s.radius, horizon,
+                                           self.numeric_backend)
+        return swept_pairs(s.pos, s.vel, s.radius, horizon)
+
     def _earliest(self, horizon: float) -> TOIResult:
         candidates: list[TOIResult] = []
         s = self.world.bodies
-        pairs = (swept_pairs(s.pos, s.vel, s.radius, horizon)
-                 if self.pair_search == "grid" and s.n >= 32 else all_pairs(s.n))
-        if pairs:
-            indexed = np.asarray(pairs, dtype=np.int64)
-            mask = reach_mask(s.pos, s.vel, s.radius, s.omega, indexed, horizon,
-                              self.numeric_backend)
-            for (a, b), possible in zip(pairs, mask):
-                if not possible:
-                    continue
-                q = body_pair_toi(s, a, b, horizon, self.tol, self.numeric_backend)
-                if q.status == TOIStatus.INDETERMINATE:
-                    return TOIResult(q.status, q.time, q.error, q.contact,
-                                     f"pair ({a}, {b}): {q.reason}")
-                if q.status == TOIStatus.COLLISION:
-                    candidates.append(q)
+        pairs = self._candidate_pairs(horizon)
+        pair_raw = None
+        pair_reached = None
+        pair_decoder = None
+        if len(pairs):
+            indexed = np.asarray(pairs, dtype=np.int64).reshape(-1, 2)
+            compiled_pair_search = (self.pair_kernel == "auto" and
+                                    (self.numeric_backend == "numba" or
+                                     (self.numeric_backend == "auto" and numba_available())))
+            mask = (swept_circle_mask(s.pos, s.vel, s.radius, indexed, horizon,
+                                      self.tol.geometry, self.numeric_backend)
+                    if compiled_pair_search else
+                    reach_mask(s.pos, s.vel, s.radius, s.omega, indexed, horizon,
+                               self.numeric_backend))
+            reached = indexed[mask]
+            compiled_pairs = compiled_pair_search and len(reached) > 0
+            batch_discs = compiled_pairs and np.all(s.shape == Shape.DISC)
+            batch_polygons = (compiled_pairs and np.all(s.shape == Shape.TRIANGLE) and
+                              len(s.polygons) == s.n and
+                              all(len(s.polygons[i]) == 3 for i in range(s.n)))
+            if batch_discs:
+                raw = disc_pairs_toi(s, reached, horizon, self.tol)
+                failures = np.flatnonzero(raw[:, 0] == 2)
+                if len(failures):
+                    first = int(failures[0])
+                    a, b = int(reached[first, 0]), int(reached[first, 1])
+                    return TOIResult(TOIStatus.INDETERMINATE,
+                                     reason=f"pair ({a}, {b}): coincident disc centers")
+                pair_raw, pair_reached, pair_decoder = raw, reached, disc_pair_result
+            elif batch_polygons:
+                raw = polygon_pairs_toi(s, reached, horizon, self.tol, 1024)
+                failures = np.flatnonzero(raw[:, 0] == 2)
+                if len(failures):
+                    first = int(failures[0])
+                    a, b = int(reached[first, 0]), int(reached[first, 1])
+                    failure = polygon_pair_result(a, b, raw[first])
+                    return TOIResult(TOIStatus.INDETERMINATE,
+                                     reason=f"pair ({a}, {b}): {failure.reason}")
+                pair_raw, pair_reached, pair_decoder = raw, reached, polygon_pair_result
+            else:
+                results = ((int(a), int(b), body_pair_toi(
+                    s, int(a), int(b), horizon, self.tol, self.numeric_backend))
+                    for a, b in reached)
+            if not (batch_discs or batch_polygons):
+                for a, b, q in results:
+                    if q.status == TOIStatus.INDETERMINATE:
+                        return TOIResult(q.status, q.time, q.error, q.contact,
+                                         f"pair ({a}, {b}): {q.reason}")
+                    if q.status == TOIStatus.COLLISION:
+                        candidates.append(q)
         wall_bounds = ([wall.speed_bound(self.time, self.time+horizon)
                         for wall in self.world.walls]
                        if self.wall_search == "bounded" else None)
         wall_starts = ([wall.point_at(self.time) for wall in self.world.walls]
                        if self.wall_search == "bounded" else None)
+        batch_walls = (wall_bounds is not None and bool(self.world.walls) and
+                       (self.numeric_backend == "numba" or
+                        (self.numeric_backend == "auto" and numba_available())))
+        wall_mask = (wall_reach_mask(
+            s.pos, s.vel, s.radius, np.asarray(wall_starts),
+            np.asarray([wall.inward_normal for wall in self.world.walls]),
+            np.asarray(wall_bounds),
+            np.asarray([isinstance(wall, SegmentWall) for wall in self.world.walls]),
+            horizon, self.tol.geometry, "numba") if batch_walls else None)
+        cam_batches = {}
+        batch_cam_discs = np.all(s.shape == Shape.DISC)
+        batch_cam_triangles = (np.all(s.shape == Shape.TRIANGLE) and
+                               len(s.polygons) == s.n and
+                               all(len(s.polygons[i]) == 3 for i in range(s.n)))
+        if (self.cam_kernel == "auto" and wall_mask is not None and
+                (batch_cam_discs or batch_cam_triangles)):
+            for wi, wall in enumerate(self.world.walls):
+                batch_toi = getattr(
+                    wall, "batch_disc_toi" if batch_cam_discs else
+                    "batch_triangle_toi", None)
+                if batch_toi is not None:
+                    raw = batch_toi(s, wall_mask[:, wi], wall_bounds[wi],
+                                    horizon, self.tol)
+                    if raw is not None:
+                        cam_batches[wi] = (raw, batch_cam_triangles)
+        fixed_disc_batch = None
+        fixed_disc_indices = []
+        if (self.wall_kernel == "auto" and wall_mask is not None and
+                np.all(s.shape == Shape.DISC)):
+            fixed_disc_indices = [wi for wi, wall in enumerate(self.world.walls)
+                                  if not isinstance(wall, SegmentWall) and
+                                  type(wall).point_at is Wall.point_at and
+                                  type(wall).velocity_at is Wall.velocity_at]
+            if fixed_disc_indices:
+                fixed_disc_batch = fixed_disc_walls_toi(
+                    s, wall_mask[:, fixed_disc_indices],
+                    np.asarray([wall_starts[wi] for wi in fixed_disc_indices]),
+                    np.asarray([self.world.walls[wi].inward_normal for wi in fixed_disc_indices]),
+                    np.asarray([self.world.walls[wi].velocity for wi in fixed_disc_indices]),
+                    np.asarray([wall_bounds[wi] for wi in fixed_disc_indices]),
+                    horizon, self.tol)
+        fixed_disc_columns = {wi: j for j, wi in enumerate(fixed_disc_indices)}
+        fixed_triangle_batch = None
+        fixed_triangle_indices = []
+        if (self.wall_kernel == "auto" and wall_mask is not None and
+                batch_cam_triangles):
+            fixed_triangle_indices = [
+                wi for wi, wall in enumerate(self.world.walls)
+                if not isinstance(wall, SegmentWall) and
+                type(wall).point_at is Wall.point_at and
+                type(wall).velocity_at is Wall.velocity_at]
+            if fixed_triangle_indices:
+                fixed_triangle_batch = fixed_triangle_walls_toi(
+                    s, wall_mask[:, fixed_triangle_indices],
+                    np.asarray([wall_starts[wi] for wi in fixed_triangle_indices]),
+                    np.asarray([self.world.walls[wi].inward_normal
+                                for wi in fixed_triangle_indices]),
+                    np.asarray([self.world.walls[wi].velocity
+                                for wi in fixed_triangle_indices]),
+                    np.asarray([wall_bounds[wi] for wi in fixed_triangle_indices]),
+                    horizon, self.tol)
+        fixed_triangle_columns = {wi: j for j, wi in enumerate(fixed_triangle_indices)}
         for body in range(s.n):
             for wi in range(len(self.world.walls)):
-                q = self._wall_toi(body, wi, horizon,
-                                   None if wall_bounds is None else wall_bounds[wi],
-                                   None if wall_starts is None else wall_starts[wi])
+                if wall_mask is not None and not wall_mask[body, wi]:
+                    continue
+                if wi in fixed_triangle_columns:
+                    raw = fixed_triangle_batch[body, fixed_triangle_columns[wi]]
+                    if raw[0] == 0:
+                        continue
+                    if raw[0] == 1:
+                        q = TOIResult(TOIStatus.COLLISION, float(raw[1]), float(raw[2]),
+                                      Contact(body, None, (float(raw[3]), float(raw[4])),
+                                              tuple(-self.world.walls[wi].inward_normal),
+                                              feature_a=2*int(raw[5]), boundary=wi))
+                    else:
+                        reasons = ("", "initial polygon-wall overlap",
+                                   "touching polygon-wall contact cannot be isolated",
+                                   "new polygon-wall contact during separation",
+                                   "polygon-wall contact did not separate",
+                                   "polygon-wall advancement stalled",
+                                   "polygon-wall iteration limit")
+                        q = TOIResult(TOIStatus.INDETERMINATE,
+                                      reason=reasons[int(raw[6])])
+                elif wi in fixed_disc_columns:
+                    raw = fixed_disc_batch[body, fixed_disc_columns[wi]]
+                    if raw[0] == 0:
+                        continue
+                    if raw[0] == 1:
+                        q = TOIResult(TOIStatus.COLLISION, float(raw[1]), float(raw[2]),
+                                      Contact(body, None, (float(raw[3]), float(raw[4])),
+                                              tuple(-self.world.walls[wi].inward_normal),
+                                              boundary=wi))
+                    else:
+                        reason = ("wall advancement stalled" if raw[5] == 1 else
+                                  "wall iteration limit")
+                        q = TOIResult(TOIStatus.INDETERMINATE, reason=reason)
+                elif wi in cam_batches:
+                    batch, is_triangle = cam_batches[wi]
+                    raw = batch[body]
+                    if raw[0] == 0:
+                        continue
+                    if raw[0] == 1:
+                        q = TOIResult(TOIStatus.COLLISION, float(raw[1]), float(raw[2]),
+                                      Contact(body, None, (float(raw[3]), float(raw[4])),
+                                              tuple(-self.world.walls[wi].inward_normal),
+                                              feature_a=2*int(raw[5]) if is_triangle else -1,
+                                              boundary=wi))
+                    else:
+                        if is_triangle:
+                            reasons = ("", "initial polygon-wall overlap",
+                                       "touching polygon-wall contact cannot be isolated",
+                                       "new polygon-wall contact during separation",
+                                       "polygon-wall contact did not separate",
+                                       "polygon-wall advancement stalled",
+                                       "polygon-wall iteration limit")
+                            reason = reasons[int(raw[6])]
+                        else:
+                            reason = ("wall advancement stalled" if raw[5] == 1 else
+                                      "wall iteration limit")
+                        q = TOIResult(TOIStatus.INDETERMINATE, reason=reason)
+                else:
+                    q = self._wall_toi(body, wi, horizon,
+                                       None if wall_bounds is None else wall_bounds[wi],
+                                       None if wall_starts is None else wall_starts[wi])
                 if q.status == TOIStatus.INDETERMINATE:
                     return TOIResult(q.status, q.time, q.error, q.contact,
                                      f"wall ({body}, {wi}): {q.reason}")
@@ -493,6 +689,18 @@ class Simulation:
                 q=self._portal_toi(body,pi,horizon)
                 if q.status == TOIStatus.COLLISION:
                     candidates.append(q)
+        if pair_raw is not None:
+            hits = np.flatnonzero(pair_raw[:, 0] == 1)
+            if len(hits):
+                earliest_pair = float(np.min(pair_raw[hits, 1]))
+                earliest_other = min((q.time for q in candidates), default=math.inf)
+                earliest = min(earliest_pair, earliest_other)
+                pair_candidates = []
+                for i in hits:
+                    if pair_raw[i, 1] - earliest <= self.tol.time:
+                        a, b = int(pair_reached[i, 0]), int(pair_reached[i, 1])
+                        pair_candidates.append(pair_decoder(a, b, pair_raw[i]))
+                candidates = pair_candidates + candidates
         if not candidates:
             return TOIResult(TOIStatus.NO_COLLISION)
         candidates.sort(key=lambda q: q.time)
@@ -507,8 +715,53 @@ class Simulation:
         """Return deepest overlap of dynamic bodies and infinite-line walls."""
         s = self.world.bodies
         deepest, participants = 0.0, None
-        pairs = (swept_pairs(s.pos, s.vel, s.radius, 0.0)
-                 if self.pair_search == "grid" and s.n >= 32 else all_pairs(s.n))
+        pairs = self._candidate_pairs(0.0)
+        compiled_discs = (self.penetration_kernel == "auto" and
+                          self.wall_search == "bounded" and
+                          (self.numeric_backend == "numba" or
+                           (self.numeric_backend == "auto" and numba_available())) and
+                          np.all(s.shape == Shape.DISC) and
+                          all(not isinstance(wall, SegmentWall)
+                              for wall in self.world.walls))
+        if compiled_discs:
+            raw = disc_penetration(
+                s.pos, s.radius,
+                np.asarray(pairs, dtype=np.int64).reshape(-1, 2),
+                np.asarray([wall.point_at(self.time) for wall in self.world.walls],
+                           dtype=np.float64).reshape(-1, 2),
+                np.asarray([wall.inward_normal for wall in self.world.walls],
+                           dtype=np.float64).reshape(-1, 2))
+            deepest, kind, a, other = raw
+            if kind == 1:
+                participants = ("pair", a, other)
+            elif kind == 2:
+                participants = ("wall", a, other)
+            self.max_penetration = max(self.max_penetration, -deepest)
+            return deepest, participants
+        compiled_triangles = (self.penetration_kernel == "auto" and
+                              (self.numeric_backend == "numba" or
+                               (self.numeric_backend == "auto" and numba_available())) and
+                              np.all(s.shape == Shape.TRIANGLE) and
+                              len(s.polygons) == s.n and
+                              all(len(s.polygons[i]) == 3 for i in range(s.n)))
+        if (compiled_triangles and self.wall_search == "bounded" and
+                all(not isinstance(wall, SegmentWall) for wall in self.world.walls)):
+            raw = triangle_penetration(
+                s, np.asarray(pairs, dtype=np.int64).reshape(-1, 2),
+                np.asarray([wall.point_at(self.time) for wall in self.world.walls],
+                           dtype=np.float64).reshape(-1, 2),
+                np.asarray([wall.inward_normal for wall in self.world.walls],
+                           dtype=np.float64).reshape(-1, 2))
+            deepest, kind, a, other = raw
+            if kind == 1:
+                participants = ("pair", a, other)
+            elif kind == 2:
+                participants = ("wall", a, other)
+            self.max_penetration = max(self.max_penetration, -deepest)
+            return deepest, participants
+        triangle_gaps = (triangle_pair_gaps(
+            s, np.asarray(pairs, dtype=np.int64).reshape(-1, 2))
+            if compiled_triangles and len(pairs) else None)
         by_a: list[list[int]] = [[] for _ in range(s.n)]
         for a, b in pairs:
             by_a[a].append(b)
@@ -521,8 +774,15 @@ class Simulation:
             s.pos, s.radius, np.asarray(wall_points),
             np.asarray([wall.inward_normal for wall in self.world.walls]))
             if compiled_walls and self.world.walls else None)
+        pair_index = 0
         for a in range(s.n):
             for b in by_a[a]:
+                if triangle_gaps is not None:
+                    gap = float(triangle_gaps[pair_index])
+                    pair_index += 1
+                    if gap < deepest:
+                        deepest, participants = gap, ("pair", a, b)
+                    continue
                 if np.linalg.norm(s.pos[b]-s.pos[a]) > s.radius[a]+s.radius[b]:
                     continue
                 if s.shape[a] == Shape.DISC and s.shape[b] == Shape.DISC:
@@ -650,8 +910,16 @@ class Simulation:
                         "portal_crossing", (i,), metadata={"host": portal.host_id,
                         "region": int(self.memberships[i])}))
 
+    def _replay_contact_point(self, contact: Contact) -> tuple[float, float] | None:
+        state = self.world.bodies
+        if any(math.isfinite(state.inertia[body]) for body in
+               (contact.a, contact.b) if body is not None):
+            return tuple(float(value) for value in contact.point)
+        return None
+
     def _resolve(self, result: TOIResult) -> None:
         c = result.contact
+        replay_point = self._replay_contact_point(c)
         before = self.energy()
         gas_before = self.world.bodies.kinetic_energy()
         thermal_diagnostics=None
@@ -673,7 +941,7 @@ class Simulation:
                 self.memberships[c.a]=portal.outside_label if direction > 0 else portal.inside_label
             self.events.append(InteractionRecord(self.time,kind,participants,vector,before,
                 self.energy(),0.,0.,{"host":portal.host_id,"region":int(self.memberships[c.a]),
-                "delta_u":delta_u}))
+                "delta_u":delta_u},contact_point=replay_point))
             self.event_count += 1
             return
         else:
@@ -717,11 +985,27 @@ class Simulation:
                            before, after, heat, work,
                            {"boundary": c.boundary,
                             **(thermal_diagnostics or {})}
-                           if c.boundary is not None else None))
+                           if c.boundary is not None else None,
+                           contact_point=replay_point))
         self.event_count += 1
 
     def _resolve_contacts(self, result: TOIResult, checkpoint: Checkpoint) -> None:
-        contacts = result.contacts or (result.contact,)
+        contacts = list(result.contacts or (result.contact,))
+        # A polygon pair can touch at two vertex-edge features at the same
+        # instant. CCD supplies one witness; resolving just that witness can
+        # make the other feature immediately penetrate. Collect its manifold
+        # before the first impulse changes the velocities.
+        for contact in tuple(contacts):
+            if (contact.b is None or contact.boundary is not None or
+                    self.world.bodies.shape[contact.a] == Shape.DISC or
+                    self.world.bodies.shape[contact.b] == Shape.DISC):
+                continue
+            for extra in self._polygon_pair_manifold(contact.a, contact.b):
+                if not any(old.a == extra.a and old.b == extra.b and
+                           np.linalg.norm(np.asarray(old.point)-extra.point) <= self.tol.geometry
+                           for old in contacts):
+                    contacts.append(extra)
+        contacts = tuple(contacts)
         if len(contacts) == 1:
             self._resolve(result)
             return
@@ -764,7 +1048,7 @@ class Simulation:
             except ValueError as exc:
                 self.restore(checkpoint)
                 self._fail("ambiguous elastic cluster",checkpoint,
-                           reason=str(exc),contacts=[x.__dict__ for x in group])
+                           cause=str(exc),contacts=[x.__dict__ for x in group])
             before=self.energy()
             for c,impulse in zip(group,impulses):
                 apply_impulse(self.world.bodies,c,float(impulse))
@@ -786,8 +1070,35 @@ class Simulation:
                 self.events.append(InteractionRecord(self.time,kind,participants,
                                    vector,before,after,0.0,0.0,
                                    {"boundary":c.boundary,"cluster_size":len(group),
-                                    "cluster_rank":rank,"cluster_residual":residual}))
+                                    "cluster_rank":rank,"cluster_residual":residual},
+                                   contact_point=self._replay_contact_point(c)))
                 self.event_count += 1
+
+    def _polygon_pair_manifold(self, a: int, b: int) -> tuple[Contact, ...]:
+        state = self.world.bodies
+        pa = world_polygon(state.polygons[a], state.pos[a], state.angle[a])
+        pb = world_polygon(state.polygons[b], state.pos[b], state.angle[b])
+        found = []
+        for vertices, edges, reversed_pair in ((pa, pb, False), (pb, pa, True)):
+            for i, vertex in enumerate(vertices):
+                for j, start in enumerate(edges):
+                    end = edges[(j+1) % len(edges)]
+                    nearest, fraction = closest_point_segment(vertex, start, end)
+                    if (fraction <= 1e-8 or fraction >= 1.-1e-8 or
+                            np.linalg.norm(vertex-nearest) > 2*self.tol.geometry):
+                        continue
+                    edge = end-start
+                    orientation = 1. if polygon_signed_area(edges) > 0. else -1.
+                    inward = orientation*np.array([-edge[1], edge[0]])/np.linalg.norm(edge)
+                    if reversed_pair:
+                        inward = -inward
+                    point = tuple((vertex+nearest)*.5)
+                    candidate = Contact(a, b, point, tuple(inward),
+                                        2*j+1 if reversed_pair else 2*i,
+                                        2*i if reversed_pair else 2*j+1)
+                    if relative_normal_velocity(state, candidate) < -self.tol.velocity:
+                        found.append(candidate)
+        return tuple(found)
 
     def _prepare_interval(self) -> None:
         if self._pending is not None:
@@ -913,6 +1224,32 @@ class Simulation:
             self.world.bodies.omega[moving] *= -1
             self.world.bodies.version[moving] += 1
             return {"ok": True, "time": self.time, "intervention": True}
+        if name == "set_shaft_speed":
+            speed = float(command["speed"])
+            shaft = getattr(self.world.mechanism, "shaft", None)
+            if not math.isfinite(speed) or speed <= 0:
+                raise ValueError("shaft speed must be positive and finite")
+            if shaft is None or shaft.prescribed_omega is None:
+                raise ValueError("shaft speed control requires a prescribed shaft")
+            previous = shaft.prescribed_omega
+            updated = math.copysign(speed, previous)
+            if updated == previous:
+                return {"ok": True, "time": self.time, "intervention": False}
+            before = self.energy()
+            self._pending = None
+            shaft.prescribed_omega = updated
+            self._controlled_phase_origin = shaft.phi-updated*self.time
+            after = self.energy()
+            work = after-before
+            self.world.mechanism.motor_work += work
+            self.ledger.work_on.add(work)
+            self.events.append(InteractionRecord(
+                self.time, "shaft_speed_change", (), energy_before=before,
+                energy_after=after, work_on_system=work,
+                metadata={"old_speed": previous, "new_speed": updated}))
+            self.event_count += 1
+            return {"ok": True, "time": self.time, "intervention": True,
+                    "motor_work": work}
         if name == "checkpoint":
             return {"ok": True, "checkpoint": self.checkpoint()}
         raise ValueError(f"unknown command {name!r}")

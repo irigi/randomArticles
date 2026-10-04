@@ -4,7 +4,8 @@ import math
 import numpy as np
 
 from .events import Contact, TOIResult, TOIStatus
-from .geometry import convex_witnesses, disc_polygon_separation, world_polygon
+from .geometry import (convex_witnesses, disc_polygon_separation,
+                       fixed_polygon_swept_separated, world_polygon)
 from .numeric import numba_available, polygon_pair_toi, polygon_witness_at
 from .state import BodyArrays, Shape, Tolerances
 
@@ -100,26 +101,51 @@ def _separation(state: BodyArrays, a: int, b: int, t: float,
     raise AssertionError
 
 
+def polygon_pair_result(a: int, b: int, raw) -> TOIResult:
+    """Decode the shared scalar and batched polygon CCD result."""
+    status, t, error, nx, ny, px, py, fa, fb, reason = raw
+    if status == 1:
+        return TOIResult(TOIStatus.COLLISION, float(t), float(error),
+                         Contact(a, b, (float(px), float(py)),
+                                 (float(nx), float(ny)), int(fa), int(fb)))
+    if status == 0:
+        return TOIResult(TOIStatus.NO_COLLISION)
+    reasons = ("", "stationary overlap", "initial polygon overlap",
+               "touching contact cannot be isolated",
+               "new contact during touching separation",
+               "touching contact did not separate",
+               "conservative advancement stalled", "iteration limit")
+    return TOIResult(TOIStatus.INDETERMINATE, reason=reasons[int(reason)])
+
+
+def disc_pair_result(a: int, b: int, raw) -> TOIResult:
+    """Decode the batched disc CCD result."""
+    status, t, error, px, py, nx, ny, _ = raw
+    if status == 1:
+        return TOIResult(TOIStatus.COLLISION, float(t), float(error),
+                         Contact(a, b, (float(px), float(py)),
+                                 (float(nx), float(ny))))
+    if status == 0:
+        return TOIResult(TOIStatus.NO_COLLISION)
+    return TOIResult(TOIStatus.INDETERMINATE, reason="coincident disc centers")
+
+
 def conservative_toi(state: BodyArrays, a: int, b: int, horizon: float,
                      tol: Tolerances = Tolerances(), max_iter: int = 1024,
                      numeric_backend: str = "python") -> TOIResult:
     """Conservative advancement for pairs containing a rotating convex body."""
+    if (state.shape[a] != Shape.DISC and state.shape[b] != Shape.DISC and
+            state.omega[a] == 0. and state.omega[b] == 0. and
+            fixed_polygon_swept_separated(
+                world_polygon(state.polygons[a],state.pos[a],state.angle[a]),
+                world_polygon(state.polygons[b],state.pos[b],state.angle[b]),
+                state.vel[b]-state.vel[a],horizon,tol.geometry)):
+        return TOIResult(TOIStatus.NO_COLLISION)
     if state.shape[a] != Shape.DISC and state.shape[b] != Shape.DISC and (
             numeric_backend == "numba" or
             (numeric_backend == "auto" and numba_available())):
-        status, t, error, nx, ny, px, py, fa, fb, reason = polygon_pair_toi(
-            state, a, b, horizon, tol, max_iter)
-        if status == 1:
-            return TOIResult(TOIStatus.COLLISION, t, error,
-                             Contact(a, b, (px, py), (nx, ny), fa, fb))
-        if status == 0:
-            return TOIResult(TOIStatus.NO_COLLISION)
-        reasons = ("", "stationary overlap", "initial polygon overlap",
-                   "touching contact cannot be isolated",
-                   "new contact during touching separation",
-                   "touching contact did not separate",
-                   "conservative advancement stalled", "iteration limit")
-        return TOIResult(TOIStatus.INDETERMINATE, reason=reasons[reason])
+        return polygon_pair_result(a, b, polygon_pair_toi(
+            state, a, b, horizon, tol, max_iter))
     speed_bound = (np.linalg.norm(state.vel[b] - state.vel[a]) +
                    abs(state.omega[a])*state.radius[a] + abs(state.omega[b])*state.radius[b])
     if speed_bound <= tol.velocity:

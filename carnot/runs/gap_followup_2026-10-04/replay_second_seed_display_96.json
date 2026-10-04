@@ -1,0 +1,14 @@
+{
+  "particles": 96,
+  "seed": 124,
+  "qt_platform": "xcb",
+  "load_seconds": 0.17900204900070094,
+  "final_physical_time": 5.0,
+  "painted_frames": 313,
+  "paint_fps": 62.50137797244603,
+  "p95_paint_interval_ms": 16.748339010518976,
+  "max_paint_interval_ms": 17.221522008185275,
+  "gaps_over_25_ms": 0,
+  "max_ui_seek_ms": 30.541661006282084,
+  "gc_enabled_after_playback": true
+}

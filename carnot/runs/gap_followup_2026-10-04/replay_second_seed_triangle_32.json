@@ -1,0 +1,17 @@
+{
+  "particles": 32,
+  "seed": 124,
+  "duration": 5.0,
+  "midpoints": 300,
+  "event_intervals": 284,
+  "event_aware_reconstruction": true,
+  "maximum_errors": {
+    "position": 4.965068306494546e-16,
+    "angle": 1.1102230246251565e-14,
+    "velocity": 0.0,
+    "omega": 2.0463630789890885e-12,
+    "saved_position": 0.0,
+    "saved_scalar": 0.0,
+    "ledger": 0.0
+  }
+}

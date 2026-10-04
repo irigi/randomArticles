@@ -653,3 +653,603 @@ needed; the reference solver's cost now also makes performance work relevant.
   wall dispatch, and grid construction; there is no single dominant numeric
   kernel left in that sample. Longer parity and scientific acceptance remain
   open.
+
+## A+B acceleration: packed triangle geometry — 2026-09-30
+
+- Profiled warm 200/500 triangle runs over 0.05 physical seconds. At 500,
+  polygon pair CCD cost 1.52 of 3.55 profiled wall seconds, penetration 0.93,
+  and repeated triangle array stacking 0.28. A trial that skipped Python
+  processing of nonoverlapping triangle pairs did not improve the profile and
+  was reverted.
+- Packed triangle vertices once and copied the packed array as a unit for
+  independent checkpoint states. The three compiled batch callers now use
+  that array directly. The comparable 500-triangle profile fell to 3.22
+  seconds overall; polygon pair CCD cost 1.42 and penetration 0.87.
+- Three-seed 0.1-second probes raised median achieved physical/wall throughput
+  from 0.191 to 0.212 at 200 triangles and from 0.0160 to 0.0180 at 500.
+  Event counts, energy residuals, penetration, and CCD failures matched the
+  saved pre-change probes. All 123 tests pass. Long-run and scientific gates
+  remain open.
+
+## A+B acceleration: reused polygon CCD vertices — 2026-09-30
+
+- Changed triangle overlap diagnostics to compute only the SAT gap, without
+  finding contact features. Polygon pair CCD now allocates its two transformed
+  vertex arrays once per pair query and reuses them through advancement and
+  bisection. The Python reference and `fastmath=False` remain available.
+- On the same three-seed 0.1-second probes, median physical/wall throughput
+  rose from 0.212 to 0.242 at 200 triangles and from 0.0180 to 0.0226 at
+  500. All six event counts, energy residuals, maximum penetrations, and CCD
+  failure counts match the saved baseline. The full suite passes 123 tests.
+- The 500-triangle case is still about 44 times slower than real time on the
+  measured machine. Longer backend parity and wall/penetration dispatch
+  profiling are next.
+
+## A+B acceleration: fused triangle penetration — 2026-09-30
+
+- A warmed 500-triangle profile over 0.03 physical seconds found penetration
+  taking 0.44 of 1.59 profiled wall seconds. The triangle-only path now scans
+  sorted pair candidates and infinite walls in a single compiled body-major
+  loop, preserving the Python diagnostic path for comparison. The benchmark
+  explicitly warms the new kernel before solver timing.
+- On the same three-seed 0.1-second probes, median physical/wall throughput
+  rose from 0.242 to 0.294 at 200 triangles and from 0.0226 to 0.0270 at
+  500. Event counts, energy residuals, maximum penetration, and CCD failure
+  counts matched all six preceding runs. A comparable 500-triangle profile
+  put penetration at 0.11 and total time at 1.24 seconds. All 123 tests pass.
+- Remaining performance work includes Python wall dispatch, longer backend
+  parity, and full-branch/cycle throughput; the 500-triangle short window is
+  still about 37 times slower than real time.
+
+## A+B acceleration: batched triangle walls — 2026-09-30
+
+- Batched triangle TOI against constant-velocity infinite walls in Numba.
+  The batch keeps the scalar conservative wall bound, contact feature IDs,
+  and failure reasons. Added direct high-speed, rotation, and moving-wall
+  parity coverage through the event scheduler.
+- Three-seed 0.1-second probes increased median physical/wall throughput
+  from 0.294 to 0.349 at 200 triangles and from 0.0270 to 0.0300 at 500.
+  Event counts, energy residuals, penetration, and CCD failures match all
+  six preceding runs. A comparable 500-triangle profile dropped from 1.24
+  to 1.14 seconds over 0.03 physical seconds; polygon pair CCD is now the
+  largest measured cost.
+- Full-branch backend parity and interactive 200/500-triangle throughput
+  remain open.
+
+## A+B validation: complete hot-branch backend parity — 2026-09-30
+
+- Added a regression test for the complete hot branch with 12 triangles,
+  seeds 123/124, shaft speed 1.5, and two sampling cadences. It checks
+  event chronology and numeric contact records, all ledger counters, final
+  body state, penetration, energy residual, failure diagnostics, and
+  checkpoint/restart. Both seeds pass with no CCD failures or penetration.
+- A full-cycle pilot at the same settings showed later event chronology
+  divergence (first differing event 65 for seed 123, 78 for seed 124), even
+  though both backends finished without CCD failures. The next validation
+  task is to localize the first changed contact and distinguish sensitivity
+  to small numerical differences from a backend defect. Default-speed and
+  larger-particle parity remain open. All 125 tests pass.
+
+## A+B validation: localizing full-cycle drift — 2026-09-30
+
+- Traced seed 123 past the first branch. Event 42 is the first event with
+  material timing drift (4.6e-8 seconds near physical time 1.253). By 1.24
+  seconds, independently evolved states differ by about 4.0e-6 in
+  position/velocity; the difference grows to 8.6e-3 at 1.75 seconds and
+  0.657 at 1.96 seconds.
+- Restarted the Python collision query from exact compiled checkpoints at
+  1.24, 1.75, and 1.96 seconds. All three next contacts, times, features,
+  points, and normals match the compiled queries. At 1.96 seconds the
+  independent Python trajectory sees a different pair contact, while its
+  query from the compiled state agrees on the compiled wall contact. Added
+  these same-state comparisons as a regression test.
+- The evidence points to amplified trajectory sensitivity, not an observed
+  same-state collision defect at these points. Broader local collision parity
+  and long-run statistical/health comparisons remain necessary. All 126 tests
+  pass.
+
+## A+B validation: full-cycle local and sampling parity — 2026-09-30
+
+- Added two 32-triangle, one-cycle cases at shaft speed 1.5. Same-state
+  Python/Numba next-contact queries match at the midpoint of every Carnot
+  branch for both seeds, including pair and fixed/moving-wall contacts.
+- The compiled cycles contain 664 and 690 events, with no CCD failures or
+  reported penetration and absolute energy residual below `3.5e-13`.
+  Different sampling cadences and a mid-cycle checkpoint reproduce the exact
+  event history, final body state, ledger, and cycle markers. Default-speed,
+  larger-seed, and 200/500-particle acceptance runs remain open. All 127 tests
+  pass.
+
+## A+B validation: default-speed triangle cycles — 2026-09-30
+
+- Added three 32-triangle, one-cycle regression cases at shaft speed 0.15,
+  seeds 123–125. They recorded 5,121, 5,584, and 4,925 events with zero CCD
+  failures, zero reported penetration, and absolute energy residual below
+  `1.5e-13`.
+- At the midpoint of each branch, same-state Python/Numba next-contact
+  queries agree on status, time, participants, features, point, and normal.
+  One checkpoint correctly returns no collision in both backends. Different
+  sampling cadences and a mid-cycle checkpoint reproduce exact compiled
+  events, final state, ledger, and cycle markers.
+- The 96-triangle GUI default, longer multiple-cycle runs, and 200/500
+  particle acceptance remain open. All 128 tests pass.
+
+## A+B validation: 96-triangle two-cycle study — 2026-09-30
+
+- Added a reproducible, per-seed-saving `triangle_cycle_health` command and
+  documented its invocation. It records branch health, event kinds, radius,
+  occupied area fraction, solver time, and optional sampled/checkpoint parity.
+- At the GUI default of 96 triangles and shaft speed 0.15, seeds 123–125 each
+  completed two cycles with 44,607, 45,160, and 44,215 events. All had zero
+  CCD failures and reported penetration, with absolute energy residual below
+  `2.4e-12`. Solver time was 36.4–37.2 seconds per 83.8 physical seconds.
+- Seed 123's sampled run and mid-run checkpoint replay matched its direct
+  event history, body state, ledger, and cycle markers exactly. The JSON
+  artifact is `runs/triangle_default_96_two_cycles_2026-09-30.json`.
+  Longer many-cycle, 96-particle Python-reference, and 200/500-particle gates
+  remain open. All 128 tests pass.
+
+## A+B validation: 200-triangle complete hot branch — 2026-09-30
+
+- Extended `triangle_cycle_health` with `--branches` to measure a complete
+  branch without requiring a full cycle; documented the command in README.
+- Seeds 123–125 at default shaft speed 0.15 completed the 10.47-second hot
+  branch with 22,484–22,879 events, zero CCD failures, zero reported
+  penetration, and absolute energy residual below `1.5e-12`.
+- The radius was 0.01225, occupied area fraction 3.12%, and achieved
+  throughput 0.286–0.299 physical seconds per wall second on an i7-11850H.
+  Seed 123's sampled run and checkpoint replay exactly matched its direct
+  events, body arrays, ledger, and cycle markers. Results are in
+  `runs/triangle_200_hot_branch_2026-09-30.json`.
+- The next high-count checkpoint is a three-seed 500-triangle full hot branch;
+  interactive speed and full-cycle acceptance remain open.
+
+## A+B validation: 500-triangle complete hot branch — 2026-09-30
+
+- Added `--no-verify` to the health runner so the high-count throughput study
+  can run three direct branches without a duplicate sampled/replay trajectory.
+  The README records the command.
+- Seeds 123–125 completed the full default-speed hot branch with 77,834,
+  79,270, and 77,791 events. All had zero CCD failures, zero reported
+  penetration, and absolute energy residual below `5.4e-12`.
+- Radius was 0.007746, occupied area fraction 3.12%, and warm solver time
+  334.8–359.9 wall seconds per 10.47 physical seconds on an i7-11850H.
+  The artifact is `runs/triangle_500_hot_branch_2026-09-30.json`.
+- This closes the three-seed full-branch checkpoint at 500 triangles. It does
+  not establish full-cycle collision health, backend parity, or interactive
+  speed. A full 500-triangle cycle is estimated at roughly 23 minutes if
+  subsequent branches cost the same; that is an estimate, not a measurement.
+
+## A+B validation: 200-triangle complete cycles — 2026-09-30
+
+- Added optional Python/Numba next-collision comparisons at each branch
+  midpoint to `triangle_cycle_health`. Both queries run on restored copies
+  of the exact same checkpoint, leaving the measured trajectory untouched.
+- Seeds 123–125 completed one default-speed cycle each with 56,513, 59,324,
+  and 58,209 events. All reported zero CCD failures and penetration; the
+  largest absolute branch-end energy residual was `2.33e-12`.
+- All 12 same-state next-collision queries matched status, timing, contacts,
+  features, point, and normal within the specified tolerances. Seed 123's
+  sampled run and checkpoint replay exactly matched direct events, body
+  arrays, ledger, and cycle markers.
+- Direct solver time was 80.5–85.9 wall seconds per 41.89 physical seconds,
+  excluding query time. The artifact is
+  `runs/triangle_200_full_cycle_2026-09-30.json`. The next checkpoint is
+  extending 500-triangle validation beyond the hot branch.
+
+## A+B validation: 500-triangle complete cycle — 2026-09-30
+
+- Seed 123 completed one default-speed, 500-triangle cycle with 198,943
+  events, zero CCD failures, and zero reported penetration. Maximum absolute
+  branch-end energy residual was `1.36e-11`.
+- All four Python/Numba next-collision queries from identical branch-midpoint
+  checkpoints matched status, timing, contact identity/features, point, and
+  normal within the declared tolerances. The first branch reproduced the
+  earlier seed-123 hot-branch count and energy residual.
+- Direct solver time was 823.6 wall seconds per 41.89 physical seconds on
+  an i7-11850H, or 13.7 minutes for this cycle. The artifact is
+  `runs/triangle_500_full_cycle_seed123_2026-09-30.json`.
+- This closes the beyond-hot-branch checkpoint at 500 triangles. Additional
+  full-cycle seeds, sampling/replay at 500, interactive speed, and
+  thermodynamic acceptance remain open.
+
+## A+B performance: reused polygon pair scratch — 2026-09-30
+
+- A warmed 500-triangle, 0.1-physical-second profile assigned 2.26 of 4.30
+  wall seconds to polygon pair CCD. The compiled pair batch now reuses two
+  triangle-vertex scratch arrays across candidate pairs; the scalar CCD path
+  remains available.
+- Three-seed isolated-process before/after matrices at 200 and 500 triangles
+  are saved as `runs/performance_matrix_pair_scratch_before_2026-09-30.json`
+  and `runs/performance_matrix_pair_scratch_after_2026-09-30.json`. Median
+  physical/wall throughput rose from 0.0285 to 0.0300 at 500 (+5.4%); at
+  200 it changed from 0.335 to 0.331 (-1.2%, within timing variation).
+- All six cases retained exact event and event-kind counts, ledgers, CCD
+  failure/refinement counts, penetration, and energy residuals. The full
+  129-test suite passes. Median cached JIT warmup was about 0.13 seconds.
+- Live solver speed remains below real time: 200-triangle full cycles achieved
+  0.488–0.520 physical seconds per wall second, and the 500-triangle cycle
+  achieved 0.0509. Smooth high-count display remains a replay task.
+
+## Thermodynamic evidence: 18-cycle ensembles — 2026-09-30
+
+- Ran 24 independent controlled-shaft trajectories: five seeds at three
+  speeds with 16 discs, three seeds at speed 0.075 with 32 discs, and three
+  seeds at two speeds with 32 triangles. Every trajectory completed 18 cycles;
+  two transient cycles were excluded before the predeclared 16-cycle drift
+  and four-block hot-heat screens.
+- At 16 discs, mean eligible hot heat rose from −50.48 ± 8.65 at speed 0.3
+  to +0.98 ± 17.36 at 0.15 and +37.92 ± 16.31 at 0.075 (descriptive seed
+  standard errors). Every paired seed increased as speed fell, but none of
+  the 15 runs passed the hot-heat block gate.
+- At 32 discs and speed 0.075, two of three seeds passed that gate. Their
+  descriptive net efficiencies were 0.183 ± 0.162 and −0.026 ± 0.158;
+  group mean was 0.078 ± 0.105, versus ideal 0.5. All drift screens remained
+  inconclusive, so this is not a stationary efficiency or convergence claim.
+- At 32 triangles, mean hot heat changed from −97.79 ± 49.49 at speed 0.15
+  to −3.06 ± 53.54 at 0.075. None of six runs passed the hot-heat block gate.
+- All 24 runs had zero CCD failures, maximum penetration below `9.9e-13`, and
+  absolute first-law residual below `3.2e-12`. A measured clue is that mean
+  gas translational temperature before hot branches exceeded the hot
+  reservoir's 1.5 in every run. The evidence and limits are detailed in
+  `docs/CARNOT_THERMODYNAMIC_EVIDENCE_2026-09-30.md`; all raw study artifacts
+  are linked there. Thermodynamic acceptance remains open.
+
+## Thermodynamic protocol: optional cold jacket — 2026-09-30
+
+- Added a cold-sector heat exchanger on the stationary top and bottom walls.
+  It is selected with `--cold-jacket`; the original apparatus remains the
+  default. The walls are cold only in the cold cam sector and specular at
+  other times. The heat and drift screening rules are unchanged.
+- Matched 18-cycle disc ensembles show mean eligible hot heat changing from
+  +0.98 to +31.94 at 16 discs and speed 0.15, +37.92 to +56.75 at 16 discs
+  and speed 0.075, and +89.45 to +123.28 at 32 discs and speed 0.075.
+  Heat-gate readiness changed from 0/5 to 0/5, 0/5 to 3/5, and 2/3 to 3/3,
+  respectively. All drift screens remain inconclusive.
+- At 32 discs and speed 0.075, all three matched seeds cooled closer to the
+  0.75 cold bath by the end of the cold branch. The jacket's descriptive
+  efficiency mean is 0.337 ± 0.012 seed SE, versus the analytical 0.5, but
+  gas energy storage changed during the eligible cycles and stationarity is
+  unestablished.
+- At 32 triangles and speed 0.075, mean eligible hot heat changed from
+  −3.06 to +136.37, and heat-gate readiness from 0/3 to 2/3. Each matched
+  seed gained hot heat and ended the cold branch closer to the 0.75 bath.
+  The two ready seeds' descriptive efficiencies differed widely (−0.019 and
+  +0.309). All drift screens remained inconclusive. The detailed caveats are
+  in the thermodynamic evidence document.
+- All 16 jacket runs completed 18 cycles with zero CCD failures, maximum
+  penetration below `8.1e-13`, and maximum absolute first-law residual below
+  `5.2e-12`.
+- A one-cycle direct versus branch-segmented regression verifies jacket
+  contacts, event/ledger equality, zero CCD failures, small penetration, and
+  first-law closure. The full 130-test suite and the two affected CLI tests
+  pass.
+
+## High-count numerical acceptance: 200-triangle two-cycle extension — 2026-09-30
+
+- Seeds 123–125 completed two default-speed cycles at 200 triangles in
+  `runs/triangle_200_two_cycles_3seed_2026-09-30.json`, with 117,550,
+  120,041, and 117,783 events. All had zero CCD failures and zero reported
+  penetration; the largest absolute branch-end first-law residual was
+  `3.9e-12`.
+- All 24 Python/Numba next-collision queries from identical branch-midpoint
+  states matched within the runner's declared tolerances. Seed 124's
+  1.37-second sampled trajectory and mid-run checkpoint replay exactly
+  reproduced direct events, body arrays, ledger, and cycle markers. The
+  earlier one-cycle 0.83-second check covered seed 123.
+- Direct solver throughput was 0.424–0.440 physical seconds per wall second
+  on the i7-11850H. This extends high-count numerical evidence but remains
+  below real-time playback and does not establish independent-trajectory
+  event parity across Python and Numba or the full numerical acceptance gate.
+
+## High-count numerical acceptance: second 500-triangle full cycle — 2026-09-30
+
+- Seed 124 completed one default-speed, 500-triangle cycle with 205,758
+  events, zero CCD failures, zero reported penetration, and maximum absolute
+  branch-end first-law residual `1.30e-11`. All four branch-midpoint
+  Python/Numba next-collision queries from identical states matched.
+- Direct solver time was 924.7 wall seconds for 41.89 physical seconds, or
+  0.0453 physical seconds per wall second, on the i7-11850H. Seed 123's
+  earlier full cycle achieved 0.0509. Both used radius 0.007746 and 3.12%
+  occupied area fraction.
+- The artifact is `runs/triangle_500_full_cycle_seed124_2026-09-30.json`.
+  Sampled/checkpoint validation at 500 triangles, longer cycles, and
+  interactive live playback remain open.
+
+## High-count numerical acceptance: 500-triangle sampled cycle — 2026-09-30
+
+- Seed 123 completed a direct, regularly sampled, and checkpoint-restored
+  full cycle at 500 triangles in
+  `runs/triangle_500_full_cycle_sampled_seed123_2026-09-30.json`. Sampling
+  every 0.83 physical seconds and replaying from a midpoint checkpoint both
+  reproduced the direct event history, body arrays, ledger, and cycle markers
+  exactly.
+- The new direct run also matched the earlier seed-123 full-cycle artifact's
+  198,943 events, event-kind counts, branch records, ledgers, and first-law
+  residual. There were zero CCD failures, zero reported penetration, and a
+  maximum absolute branch-end residual of `1.35e-11`.
+- Direct, sampled, and restored solver times were 859.9, 799.6, and 346.6
+  wall seconds on the i7-11850H. Direct throughput was 0.0487 physical
+  seconds per wall second. This closes one 500-triangle sampled/checkpoint
+  numerical check; multiple cycles, more seeds/cadences, and smooth visual
+  replay remain open.
+
+## High-count numerical acceptance: first post-cycle 500-triangle branch — 2026-10-01
+
+- Seed 123 completed five default-speed branches in
+  `runs/triangle_500_five_branches_seed123_2026-10-01.json`: 52.36 physical
+  seconds and 288,093 events. The first four branch records exactly match
+  `runs/triangle_500_full_cycle_seed123_2026-09-30.json` (198,943 events).
+- All five branch-midpoint Python/Numba next-collision queries matched within
+  declared tolerances. There were zero CCD failures, zero reported penetration,
+  and a maximum absolute branch-end first-law residual of `1.35e-11`.
+- The direct solver took 1,381.1 wall seconds on the i7-11850H, achieving
+  0.0379 physical seconds per wall second. Triangle radius was 0.007746 and
+  occupied area fraction was 3.12%. A full second cycle, additional seeds and
+  sample cadences, and interactive live throughput remain open.
+
+## High-count numerical acceptance: two 500-triangle cycles — 2026-10-01
+
+- Seed 123 completed eight default-speed branches in
+  `runs/triangle_500_two_cycles_seed123_2026-10-01.json`: 83.78 physical
+  seconds and 416,504 events. The first four branch records exactly match the
+  earlier one-cycle artifact; the first five exactly match the earlier
+  five-branch artifact.
+- All eight branch-midpoint Python/Numba next-collision queries matched.
+  There were zero CCD failures, zero reported penetration, and a maximum
+  absolute branch-end first-law residual of `1.35e-11`.
+- The direct solver took 2,122.2 wall seconds on the i7-11850H, achieving
+  0.0395 physical seconds per wall second. Triangle radius was 0.007746 and
+  occupied area fraction 3.12%; interactive live playback remains open.
+- The measurement command now saves a compressed branch-end checkpoint and
+  resumes it only with a matching config digest and branch/query settings.
+  A focused simulated interruption/resume test matched an uninterrupted
+  run's event counts and kinds, ledger, diagnostics, branch records, and
+  same-state queries. The final high-count checkpoint was 17.6 MB.
+  Additional seeds and sample cadences remain open.
+
+## High-count numerical acceptance: second two-cycle 500-triangle seed — 2026-10-01
+
+- Seed 124 completed eight default-speed branches in
+  `runs/triangle_500_two_cycles_seed124_2026-10-01.json`: 83.78 physical
+  seconds and 421,832 events. Its first four branch records exactly reproduce
+  `runs/triangle_500_full_cycle_seed124_2026-09-30.json`.
+- All eight branch-midpoint Python/Numba next-collision queries matched.
+  There were zero CCD failures, zero reported penetration, and the maximum
+  absolute branch-end first-law residual was `1.30e-11`.
+- The direct solver took 2,169.5 wall seconds on the i7-11850H, or 0.0386
+  physical seconds per wall second. Radius remained 0.007746 and occupied
+  area fraction 3.12%. Two seeds now have complete two-cycle direct health
+  evidence; two-cycle sampling at another cadence and interactive throughput
+  remain open.
+
+## High-count numerical acceptance: two-cycle 500-triangle sampling — 2026-10-01
+
+- Reused seed 124's completed two-cycle branch checkpoint and ran a separate
+  sampled trajectory at a 1.37-physical-second cadence, then replayed from a
+  checkpoint just after the midpoint. The result is
+  `runs/triangle_500_two_cycles_sampled_seed124_cadence1p37_2026-10-01.json`.
+- Both the sampled run and restored replay exactly matched the direct
+  421,832-event history, particle arrays, ledger, and cycle markers. The
+  restored direct result exactly matched the earlier two-cycle seed-124
+  artifact, including all eight branch records and backend queries.
+- Sampled solver time was 2,268.4 wall seconds; replay from the midpoint
+  took 1,336.5 seconds, versus 2,169.5 seconds for the direct solve on the
+  i7-11850H. This is numerical sampling/restart evidence, not smooth visual
+  playback. Live 200/500-triangle throughput remains below the section 1 gate.
+
+## Thermodynamic evidence: 36-cycle slow triangle jacket — 2026-10-01
+
+- At the user's request, further live 200/500-triangle optimization was
+  deferred. The measured live target remains unmet; smooth high-count display
+  is assigned to the precalculated replay path.
+- Extended the 32-triangle cold-jacket study at shaft speed 0.075 to 36
+  cycles for seeds 123–125. The first 18 cycle and branch records exactly
+  reproduce the prior matched artifact. The new artifact is
+  `runs/carnot_cold_jacket_32triangle_3seed_speed0p075_36cycles_2026-10-01.json`.
+- All three seeds passed the unchanged four-block positive-hot-heat gate,
+  versus 2/3 at 18 cycles. Eligible hot heat was +255.41, +314.25, and
+  +325.32. All hot-heat drift screens remained inconclusive; gas-energy
+  shift was bounded for only seed 124. Pre-hot translational temperature
+  remained above the 1.5 hot bath in all three.
+- Descriptive net efficiencies were 0.034, 0.170, and 0.229, with storage
+  changes +9.29, −18.24, and −8.39. No stationary-efficiency claim follows.
+  All runs had zero CCD failures, zero reported penetration, and maximum
+  absolute first-law residual `4.49e-12`. Runtime was 2,293 wall seconds on
+  the i7-11850H. Matched protocol changes to thermal coupling or cam timing
+  are the next thermodynamic test.
+
+## Thermodynamic evidence: matched hot-contact-area test — 2026-10-03
+
+- Added an optional hot-sector top/bottom thermal jacket while retaining the
+  cold jacket, cam timing, and original screening gates. The 16-disc,
+  speed-0.075, 18-cycle runs for seeds 123–125 are in
+  `runs/carnot_hot_cold_jacket_16disc_3seed_speed0p075_18cycles_2026-10-03.json`.
+- Hot contacts increased from roughly 2,100–2,200 to 8,700–8,800 per seed.
+  Paired eligible hot-heat changes were +58.52, +6.87, and −46.71. Heat-gate
+  readiness remained 2/3, and every gas-energy and hot-heat drift screen
+  stayed inconclusive. The extra contact area did not establish stationary
+  positive input.
+- All runs had zero CCD failures, maximum reported penetration `7.11e-13`,
+  and maximum absolute first-law residual `1.34e-12`. Compression timing is
+  the next distinct physical variable to test.
+
+## Thermodynamic evidence: unequal cam-sector timing — 2026-10-03
+
+- Added configurable four-sector cam fractions. The matched protocol keeps
+  hot and cold at 25% each, shortens adiabatic expansion to 15%, and lengthens
+  adiabatic compression to 35% of a revolution. The three-seed, 18-cycle,
+  16-disc result is in
+  `runs/carnot_long_compression_16disc_3seed_speed0p075_18cycles_2026-10-03.json`.
+- Relative to the original cold-jacket control, eligible hot-heat changes
+  were +62.47, −27.68, and −56.76. Heat-gate readiness fell from 2/3 to
+  1/3. All gas-energy and hot-heat drift screens remained inconclusive.
+  This does not support stationary positive hot input.
+- All three runs had zero CCD failures, maximum reported penetration
+  `6.86e-13`, and maximum absolute first-law residual `4.55e-13`. Direct
+  compiled/scalar cam collision queries agreed at altered-sector phases.
+  Long full-cycle trajectories diverge between those backends under both
+  default and altered timing, so backend comparisons remain local or
+  same-state checks rather than exact independent-trajectory parity.
+
+## Thermodynamic evidence: longer cold sector — 2026-10-03
+
+- Lengthened the cold sector from 25% to 35% of the cycle and shortened
+  adiabatic expansion from 25% to 15%, retaining hot and compression timing,
+  the cold jacket, speed, seeds, particle count, and existing screens. The
+  three-seed, 18-cycle artifact is
+  `runs/carnot_long_cold_16disc_3seed_speed0p075_18cycles_2026-10-03.json`.
+- Eligible hot heat fell in every matched seed, by 16.76, 20.05, and 36.56.
+  Heat-gate readiness fell from 2/3 to 1/3; all gas-energy and hot-heat drift
+  screens stayed inconclusive. Pre-hot temperatures rose in each seed.
+  Longer cold exposure with shorter expansion did not establish stationary
+  positive hot input.
+- All runs had zero CCD failures, maximum reported penetration `7.21e-13`,
+  and maximum absolute first-law residual `4.22e-13`. A separate one-cycle
+  direct and branch-sampled seed-123 check matched all 3,816 events and the
+  ledger.
+
+## Thermodynamic evidence: existing particle-count comparison — 2026-10-03
+
+- Compared matched seeds 123–125 from the existing 16- and 32-disc slow
+  cold-jacket artifacts at 18 cycles. Heat-gate readiness improved from 2/3
+  to 3/3, while per-particle hot-heat changes had mixed signs.
+- Every gas-energy and hot-heat drift screen remained inconclusive. No new
+  simulation was needed, and the stationary-efficiency gate stays open.
+
+## Replay foundation: versioned chunk archive — 2026-10-03
+
+- Added `microthermo precalculate` and `ReplayReader`. Precalculation writes
+  compressed, chunked float64 snapshots without retaining all frames in RAM,
+  plus exact event JSONL and a versioned manifest with geometry, config,
+  backend, and final ledger. Reader access and seek load one chunk at a time.
+- A source-run round trip checked every saved array and apparatus component,
+  exact event records, timestamped ledger values, and seeking across chunks.
+  Short 200/500-disc probes measured 171,576/202,508 bytes and 2.17/2.22 ms
+  cold seeks for 0.10/0.05 physical seconds. These are not sustained display
+  measurements. The format and limits are in `docs/REPLAY_FORMAT.md`.
+- The solver still retains event history in RAM. Event-aware interpolation,
+  the desktop replay view, long-run size, and sustained frame-rate validation
+  remain open.
+
+## Replay foundation: desktop playback — 2026-10-03
+
+- Added a desktop replay window with play, pause, seek, and 0.25–4× speed
+  controls. It reads the archive without collision solving and displays
+  recorded heat, work, temperature, event count, and energy residual with
+  the statistics' saved timestamp.
+- The reader interpolates particle/apparatus coordinates and switches branch
+  and final particle velocities using recorded event times. Intervals with
+  multiple collisions per particle remain approximate. An offscreen GUI
+  smoke test passed.
+- Short updated archive probes used 175,466 bytes for 200 discs over 0.1
+  physical seconds and 208,433 bytes for 500 discs over 0.05; cold sampled
+  seeks took 2.93 and 3.01 ms. An earlier offscreen 0.5-second probe drew
+  31 forced frames at 131/82 frames/s for 200/500 discs. This is not a
+  sustained real-display acceptance result.
+
+## Thermodynamic evidence: longer slow disc jacket — 2026-10-03
+
+- Extended the matched 32-disc cold-jacket cohort at shaft speed 0.075 to
+  36 cycles for seeds 123–125. Each run's first 18 cycle summaries and branch
+  records exactly matched the earlier artifact. The new artifact is
+  `runs/carnot_cold_jacket_32disc_3seed_speed0p075_36cycles_2026-10-03.json`.
+- All three seeds retained positive hot heat in every gate block, with eligible
+  totals +352.66, +316.28, and +242.80. All hot-heat and gas-energy drift
+  screens remained inconclusive. The descriptive efficiency mean was
+  0.326 ± 0.028 seed standard error, with negative storage changes in all
+  three seeds; no stationary-efficiency comparison follows.
+- The runs had zero CCD failures, maximum reported penetration `1.50e-12`,
+  and maximum absolute first-law residual `9.64e-12`. Runtime was about
+  30 minutes. The existing stationarity checkpoint remains open; no new
+  pipeline item was added.
+- Existing branch records show roughly 6,800 hot-heat units added and 6,500
+  removed per seed over eligible cycles, leaving a much smaller positive net.
+  Cycle hot heat still ranges from −21.96 to +42.01 across the cohort. This
+  contact-level cancellation helps explain the wide drift-screen margins;
+  it does not by itself establish stationary behavior.
+
+## Thermodynamic evidence: matched faster 32-disc jacket — 2026-10-03
+
+- Measured the 32-disc cold-jacket protocol at shaft speed 0.15 for 18 cycles,
+  seeds 123–125, in
+  `runs/carnot_cold_jacket_32disc_3seed_speed0p15_18cycles_2026-10-03.json`.
+  The speed-0.075, 18-cycle cohort is the matched control.
+- Slowing increased eligible hot heat in all three seeds by +84.40, +83.74,
+  and +144.20. None of the faster seeds passed the positive-hot-heat block
+  gate; all faster hot-heat and gas-energy drift screens were inconclusive.
+  A stationary-efficiency comparison remains unavailable.
+- All faster runs completed with zero CCD failures, maximum reported
+  penetration `3.62e-13`, and maximum absolute first-law residual `2.73e-12`.
+  The run took about 3 minutes 35 seconds. No pipeline item was added.
+
+## Thermodynamic contact diagnosis and near-simultaneous acceptance — 2026-10-03
+
+- Analyzed the saved 36-cycle slow 32-disc jacket branches. Each seed had
+  about 9,000 eligible hot contacts, with roughly 6,800 units of heat added
+  and 6,500 removed. The smaller positive net and wide per-cycle swings
+  explain the broad drift-screen margins, without establishing stationarity.
+- Added a three-disc case with two impacts half a time tolerance apart. It
+  resolves one elastic cluster with zero material penetration and
+  floating-point-scale energy residual; direct, sampled, and restored runs
+  have exactly matching event records and final state. A matching
+  three-triangle case also checks Python/Numba event chronology and final
+  states to `1e-12`. All 46 physics tests pass under `unittest`. Broader
+  numerical acceptance remains open.
+- A near-parallel, fixed-orientation triangle miss previously gave an
+  indeterminate pair query and needed 3,109 scheduler horizon refinements.
+  A conservative swept-axis separation proof now rejects it directly in
+  Python and Numba; a nearby grazing impact retains its time at speeds 1
+  and 1,000. The new case has zero refinements or failures. All 47 backend
+  broadphase tests and the full 140-test suite pass. Rotating and
+  multi-feature cases remain open.
+
+## Numerical acceptance: boundary crossing and changing features — 2026-10-03
+
+- Added a four-boundary controlled-cam triangle query check. Each collision
+  occurs after the shaft crosses a sector boundary; compiled cam batch,
+  bounded scalar, and unpruned scalar wall queries agree on status, time,
+  contact point, and triangle feature. All 48 backend broadphase tests pass.
+- Added a rotating triangle against a finite segment where the closest
+  triangle vertex changes before the impact. The impact uses the later
+  feature, and direct, sampled, and checkpoint-restored runs produce identical
+  event records and final particle state, with zero reported penetration and
+  floating-point-scale first-law residual. All 47 physics tests pass.
+- These are targeted cases within the existing numerical-acceptance gate;
+  longer moving-boundary trajectories and hard multi-feature clusters remain
+  open. No pipeline item was added.
+- Extended bounded-wall checking to two complete controlled-speed cycles at
+  32 triangles for seeds 123 and 124. Same-state bounded and unpruned
+  next-contact queries match at all eight branch midpoints per seed. Both
+  trajectories have zero CCD failures, no material penetration, and small
+  first-law residuals. For seed 123, one-call, branch-midpoint sampled, and
+  second-cycle checkpoint-replayed trajectories exactly match their event
+  records, final particle states, and ledgers. Exact independent
+  bounded/unpruned event histories
+  separate after roundoff-scale early timing differences, so that stronger
+  claim is withheld. All 49 backend broadphase tests pass.
+- Rechecked the prior three-seed 200/500-triangle, 0.1-physical-second
+  isolated-process matrix after the swept-axis CCD change. All six cases
+  exactly matched the saved baseline in event count, CCD failures,
+  penetration, and first-law residual. Median warm throughput changed
+  0.331 → 0.320 at 200 and 0.0300 → 0.0297 at 500, within short-run timing
+  variation. The artifact is
+  `runs/performance_matrix_swept_axis_2026-10-03.json`; live-rate acceptance
+  remains open.
+
+## Numerical acceptance: two-feature triangle impacts — 2026-10-03
+
+- Reproduced a symmetric two-triangle failure after one elastic event. At the
+  same instant, a second vertex-edge feature was still approaching; single
+  witness resolution made it penetrate. This was a physical simultaneous
+  contact, not a CCD false alarm.
+- The resolver now collects near-touching, approaching vertex-edge contacts
+  for each colliding polygon pair and uses the existing stationary elastic
+  cluster solver. The isolated scene completes two two-contact impacts with
+  no material penetration and energy conserved to floating-point precision.
+  Direct, sampled, and checkpoint-restored Python event histories agree;
+  Python and Numba states agree to numerical tolerance. Reversing particle
+  velocities returns the scene to its initial state within `1e-10`. The full
+  144-test suite passes.
+- This advances the existing numerical-acceptance gate. Other multi-feature
+  configurations and rollback with geometry-accuracy refinement remain open.

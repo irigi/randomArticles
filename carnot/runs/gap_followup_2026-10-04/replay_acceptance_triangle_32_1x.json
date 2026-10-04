@@ -1,0 +1,19 @@
+{
+  "particles": 32,
+  "preset": "carnot_triangles",
+  "qt_platform": "xcb",
+  "playback_speed": 1.0,
+  "load_seconds": 0.1775869029952446,
+  "elapsed_seconds": 3.217728285002522,
+  "final_physical_time": 2.0,
+  "painted_frames": 125,
+  "paint_fps": 62.50304611003191,
+  "p95_paint_interval_ms": 16.559980998863466,
+  "max_paint_interval_ms": 17.20965599815827,
+  "gaps_over_25_ms": [],
+  "p95_render_ms": 1.2545190111268312,
+  "max_render_ms": 1.5945769991958514,
+  "gc_pauses_over_5_ms": [],
+  "gc_enabled_after_playback": true,
+  "peak_rss_kib": 249912
+}

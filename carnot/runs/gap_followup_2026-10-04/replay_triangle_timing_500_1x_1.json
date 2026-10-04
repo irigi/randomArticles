@@ -1,0 +1,21 @@
+{
+  "particles": 500,
+  "speed": 1.0,
+  "trial": 1,
+  "qt_platform": "xcb",
+  "initial_physical_time": 0.0,
+  "expected_wall_to_end_seconds": 10.6,
+  "play_checked_delay_ms": 0.03556600131560117,
+  "event_loop_start_delay_ms": 0.20464799308683723,
+  "first_tick_delay_ms": 18.36214298964478,
+  "first_tick_physical_time": 0.016434117991593666,
+  "first_paint_delay_ms": 18.80228599475231,
+  "first_paint_physical_time": 0.016434117991593666,
+  "ticks": 663,
+  "max_tick_gap_ms": 17.33698698808439,
+  "paints": 663,
+  "max_paint_gap_ms": 17.426235004677437,
+  "end_wall_seconds": 10.609588898994843,
+  "final_physical_time": 10.6,
+  "gc_enabled_after_playback": true
+}

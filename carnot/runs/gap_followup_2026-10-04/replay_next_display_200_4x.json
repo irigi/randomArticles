@@ -1,0 +1,17 @@
+{
+  "particles": 200,
+  "qt_platform": "xcb",
+  "playback_speed": 4.0,
+  "load_seconds": 0.4190217780051171,
+  "elapsed_seconds": 3.5661917329998687,
+  "final_physical_time": 10.0,
+  "painted_frames": 158,
+  "paint_fps": 62.49168303357533,
+  "p95_paint_interval_ms": 16.68345500365831,
+  "max_paint_interval_ms": 21.405914005299564,
+  "gaps_over_25_ms": [],
+  "p95_render_ms": 1.35800099815242,
+  "max_render_ms": 2.6564119980321266,
+  "gc_pauses_over_5_ms": [],
+  "peak_rss_kib": 295024
+}

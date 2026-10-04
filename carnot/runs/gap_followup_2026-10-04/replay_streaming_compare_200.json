@@ -1,0 +1,11 @@
+{
+  "particles": 200,
+  "frames": 601,
+  "events": 18196,
+  "chunks": 19,
+  "event_log_sha256_equal": true,
+  "max_saved_position_error": 0.0,
+  "max_saved_scalar_error": 0.0,
+  "max_sampled_position_error": 0.0,
+  "archive_bytes": 14054318
+}

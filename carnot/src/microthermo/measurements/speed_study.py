@@ -46,7 +46,11 @@ def _branch_record(name, cycle_index, start, end, start_gas, end_gas, events):
 def run_speed_study(*, preset: str, speeds: tuple[float, ...],
                     seeds: tuple[int, ...], cycles: int, particles: int,
                     max_horizon: float = .05, transient_cycles: int = 2,
-                    efficiency_min_cycles: int = 8) -> dict:
+                    efficiency_min_cycles: int = 8,
+                    cold_jacket: bool = False,
+                    hot_jacket: bool = False,
+                    cam_fractions: tuple[float, float, float, float] =
+                    (.25, .25, .25, .25)) -> dict:
     """Measure complete controlled cycles at each speed and independent seed."""
     if preset not in ("carnot_discs", "carnot_triangles"):
         raise ValueError("speed study requires a Carnot preset")
@@ -69,6 +73,9 @@ def run_speed_study(*, preset: str, speeds: tuple[float, ...],
             config=RunConfig(preset=preset,seed=seed,particles=particles,
                              duration=duration,cycles=cycles,max_horizon=max_horizon,
                              shaft_mode="controlled",shaft_speed=speed,
+                             cold_jacket=cold_jacket,
+                             hot_jacket=hot_jacket,
+                             cam_fractions=cam_fractions,
                              transient_cycles=transient_cycles,
                              efficiency_min_cycles=efficiency_min_cycles)
             simulation=load_preset(config)
@@ -169,6 +176,9 @@ def run_speed_study(*, preset: str, speeds: tuple[float, ...],
             "runs":runs,
         })
     return {"preset":preset,"shaft_mode":"controlled", "particles":particles,
+            "cold_jacket":cold_jacket,
+            "hot_jacket":hot_jacket,
+            "cam_fractions":list(cam_fractions),
             "requested_cycles":cycles,"seeds":list(seeds),
             "transient_cycles":transient_cycles,
             "efficiency_min_cycles":efficiency_min_cycles,

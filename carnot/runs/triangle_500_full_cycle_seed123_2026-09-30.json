@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "python": "3.12.3",
+  "numpy": "2.4.6",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz",
+  "settings": {
+    "particles": 500,
+    "seeds": [
+      123
+    ],
+    "cycles": 1,
+    "branches": 4,
+    "shaft_speed": 0.15,
+    "verify_seed": null,
+    "sample_cadence": 0.83,
+    "same_state_queries": true,
+    "numeric_backend": "numba",
+    "pair_search": "sweep"
+  },
+  "runs": [
+    {
+      "seed": 123,
+      "config_digest": "b7f60a715cc62f234a261d0a0b13bf2b3162e5c62363decafdd4080d7a88a0f6",
+      "setup_seconds": 0.4298027580080088,
+      "solver_seconds": 823.6223093380104,
+      "physical_per_wall_second": 0.05085814404606339,
+      "duration": 41.88790204786391,
+      "events": 198943,
+      "event_kinds": {
+        "specular": 33679,
+        "elastic": 162553,
+        "hot": 2100,
+        "branch_transition": 4,
+        "cold": 607
+      },
+      "completed_cycles": 1,
+      "ccd_refinements": 37336,
+      "ccd_failures": 0,
+      "max_penetration": 0.0,
+      "energy_residual": 1.354294454358751e-11,
+      "ledger": {
+        "heat_hot": 347.35840768923845,
+        "heat_cold": 16.880543466566337,
+        "heat_other": 0.0,
+        "work_on": 109.7657850240373,
+        "load_output": 0.12566370614359174,
+        "piston_work_on_gas": 109.76578502404033
+      },
+      "particle_area_fraction_min": 0.031176914536239796,
+      "radius": 0.007745966692414834,
+      "branches": [
+        {
+          "branch": 1,
+          "time": 10.471975511965978,
+          "events": 77834,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 3.183231456205249e-12
+        },
+        {
+          "branch": 2,
+          "time": 20.943951023931955,
+          "events": 116425,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 5.4569682106375694e-12
+        },
+        {
+          "branch": 3,
+          "time": 31.41592653589793,
+          "events": 140446,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 8.526512829121202e-12
+        },
+        {
+          "branch": 4,
+          "time": 41.88790204786391,
+          "events": 198943,
+          "ccd_failures": 0,
+          "max_penetration": 0.0,
+          "energy_residual": 1.354294454358751e-11
+        }
+      ],
+      "same_state_queries": [
+        {
+          "time": 5.235987755982989,
+          "horizon": 0.05,
+          "matches": true,
+          "status_numba": "collision",
+          "status_python": "collision",
+          "reason_numba": "",
+          "reason_python": "",
+          "contacts_numba": 1,
+          "contacts_python": 1,
+          "time_delta": 2.710505431213761e-20,
+          "max_point_delta": 0.0,
+          "max_normal_delta": 0.0,
+          "contact_features_match": true
+        },
+        {
+          "time": 15.707963267948966,
+          "horizon": 0.05,
+          "matches": true,
+          "status_numba": "collision",
+          "status_python": "collision",
+          "reason_numba": "",
+          "reason_python": "",
+          "contacts_numba": 1,
+          "contacts_python": 1,
+          "time_delta": 3.347474207548995e-18,
+          "max_point_delta": 2.7755575615628914e-17,
+          "max_normal_delta": 0.0,
+          "contact_features_match": true
+        },
+        {
+          "time": 26.179938779914945,
+          "horizon": 0.05,
+          "matches": true,
+          "status_numba": "collision",
+          "status_python": "collision",
+          "reason_numba": "",
+          "reason_python": "",
+          "contacts_numba": 1,
+          "contacts_python": 1,
+          "time_delta": 1.566672139241554e-17,
+          "max_point_delta": 0.0,
+          "max_normal_delta": 1.1102230246251565e-16,
+          "contact_features_match": true
+        },
+        {
+          "time": 36.65191429188092,
+          "horizon": 0.05,
+          "matches": true,
+          "status_numba": "collision",
+          "status_python": "collision",
+          "reason_numba": "",
+          "reason_python": "",
+          "contacts_numba": 1,
+          "contacts_python": 1,
+          "time_delta": 1.338989683019598e-17,
+          "max_point_delta": 5.551115123125783e-17,
+          "max_normal_delta": 0.0,
+          "contact_features_match": true
+        }
+      ]
+    }
+  ]
+}

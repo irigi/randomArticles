@@ -11,7 +11,7 @@ class RunConfig:
     preset: str = "gas_box"
     seed: int = 123
     duration: float = 10.0
-    particles: int = 32
+    particles: int | None = None
     temperature: float = 1.0
     sample_interval: float = 0.05
     max_horizon: float = 0.05
@@ -19,6 +19,9 @@ class RunConfig:
     reversed_cycle: bool = False
     shaft_mode: str = "controlled"
     shaft_speed: float = 0.15
+    cold_jacket: bool = False
+    hot_jacket: bool = False
+    cam_fractions: tuple[float, float, float, float] = (.25, .25, .25, .25)
     transient_cycles: int = 2
     efficiency_min_cycles: int = 8
     pair_search: str = "grid"
@@ -26,6 +29,14 @@ class RunConfig:
     wall_search: str = "bounded"
     wall_kernel: str = "auto"
     penetration_kernel: str = "auto"
+    pair_kernel: str = "auto"
+    cam_kernel: str = "auto"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "cam_fractions", tuple(self.cam_fractions))
+        if self.particles is None:
+            object.__setattr__(self, "particles",
+                               96 if self.preset == "carnot_triangles" else 32)
 
     def validate(self) -> None:
         if self.duration <= 0 or self.particles <= 0 or self.temperature <= 0:
@@ -36,10 +47,21 @@ class RunConfig:
             raise ValueError("shaft_mode must be 'controlled' or 'free'")
         if not math.isfinite(self.shaft_speed) or self.shaft_speed <= 0:
             raise ValueError("shaft_speed must be finite and positive")
+        if self.cold_jacket and not self.preset.startswith("carnot_"):
+            raise ValueError("cold jacket applies only to Carnot presets")
+        if self.hot_jacket and not self.preset.startswith("carnot_"):
+            raise ValueError("hot jacket applies only to Carnot presets")
+        if len(self.cam_fractions) != 4 or any(
+                not math.isfinite(x) or x <= 0 for x in self.cam_fractions):
+            raise ValueError("cam_fractions must contain four positive finite values")
+        if not math.isclose(sum(self.cam_fractions), 1., rel_tol=0., abs_tol=1e-12):
+            raise ValueError("cam_fractions must sum to one")
+        if self.cam_fractions != (.25, .25, .25, .25) and not self.preset.startswith("carnot_"):
+            raise ValueError("cam_fractions applies only to Carnot presets")
         if self.transient_cycles < 0 or self.efficiency_min_cycles < 4:
             raise ValueError("require nonnegative transients and at least four efficiency cycles")
-        if self.pair_search not in ("grid", "all"):
-            raise ValueError("pair_search must be grid or all")
+        if self.pair_search not in ("grid", "sweep", "all"):
+            raise ValueError("pair_search must be grid, sweep, or all")
         if self.numeric_backend not in ("auto", "python", "numba"):
             raise ValueError("numeric_backend must be auto, python, or numba")
         if self.wall_search not in ("bounded", "all"):
@@ -48,6 +70,10 @@ class RunConfig:
             raise ValueError("wall_kernel must be auto or python")
         if self.penetration_kernel not in ("auto", "python"):
             raise ValueError("penetration_kernel must be auto or python")
+        if self.pair_kernel not in ("auto", "scalar"):
+            raise ValueError("pair_kernel must be auto or scalar")
+        if self.cam_kernel not in ("auto", "python"):
+            raise ValueError("cam_kernel must be auto or python")
 
     def digest(self) -> str:
         return hashlib.sha256(json.dumps(asdict(self), sort_keys=True).encode()).hexdigest()

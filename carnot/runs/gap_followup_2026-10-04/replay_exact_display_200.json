@@ -1,0 +1,28 @@
+{
+  "particles": 200,
+  "qt_platform": "xcb",
+  "load_seconds": 0.4437596999996458,
+  "seek_ms": [
+    8.40406799397897,
+    19.194528998923488,
+    5.468471004860476,
+    6.4915179973468184,
+    7.449752003594767,
+    4.6485830025631
+  ],
+  "seek_max_ms": 19.194528998923488,
+  "playback_elapsed_seconds": 11.322378976001346,
+  "playback_physical_seconds": 10.0,
+  "painted_frames": 625,
+  "paint_fps": 62.50440115751676,
+  "p95_paint_interval_ms": 16.599907001364045,
+  "max_paint_interval_ms": 39.25041900220094,
+  "gaps_over_25_ms": [
+    {
+      "milliseconds": 39.25,
+      "from_physical_time": 7.953,
+      "to_physical_time": 7.9683
+    }
+  ],
+  "peak_rss_kib": 295180
+}

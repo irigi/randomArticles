@@ -1,0 +1,31 @@
+{
+  "preset": "carnot_discs",
+  "seed": 124,
+  "duration": 120.0,
+  "particles": 32,
+  "temperature": 1.0,
+  "sample_interval": 0.1,
+  "max_horizon": 0.005,
+  "cycles": null,
+  "reversed_cycle": true,
+  "shaft_mode": "free",
+  "shaft_speed": 0.15,
+  "cold_jacket": true,
+  "hot_jacket": false,
+  "cam_fractions": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+  ],
+  "transient_cycles": 2,
+  "efficiency_min_cycles": 8,
+  "pair_search": "grid",
+  "numeric_backend": "auto",
+  "wall_search": "bounded",
+  "wall_kernel": "auto",
+  "penetration_kernel": "auto",
+  "pair_kernel": "auto",
+  "cam_kernel": "auto",
+  "config_hash": "cfdf49b44e56adefa22b1a51ca8c8881c5efc058649f8c81b8ca342cd9a96bcb"
+}

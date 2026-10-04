@@ -2,7 +2,7 @@
   "preset": "carnot_triangles",
   "seed": 123,
   "duration": 10.0,
-  "particles": 32,
+  "particles": 64,
   "temperature": 1.0,
   "sample_interval": 0.05,
   "max_horizon": 0.05,

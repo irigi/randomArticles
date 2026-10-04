@@ -55,6 +55,19 @@ def polygon_axes(poly: np.ndarray) -> list[np.ndarray]:
     return [axes[i] / norms[i] for i in range(len(poly)) if norms[i] > 0]
 
 
+def fixed_polygon_swept_separated(a: np.ndarray, b: np.ndarray,
+                                  relative_velocity: np.ndarray,
+                                  horizon: float, tolerance: float) -> bool:
+    """Prove a fixed-orientation polygon pair stays apart on a SAT axis."""
+    for axis in polygon_axes(a) + polygon_axes(b):
+        pa, pb = a @ axis, b @ axis
+        travel = float(relative_velocity @ axis) * horizon
+        if (float(np.min(pb)) + min(0., travel) - float(np.max(pa)) > tolerance or
+                float(np.min(pa)) - float(np.max(pb)) - max(0., travel) > tolerance):
+            return True
+    return False
+
+
 def convex_separation(a: np.ndarray, b: np.ndarray) -> tuple[float, np.ndarray]:
     """SAT separation; positive means separated, nonpositive means overlap."""
     best_sep = -math.inf
