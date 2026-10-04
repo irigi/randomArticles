@@ -1,0 +1,35 @@
+{
+  "S": 30.0,
+  "cost": 3.9058623948589295,
+  "selected_cost": 3.9058623948589295,
+  "selected_start": "rolling_0.65",
+  "candidates": [
+    {
+      "start": "rolling_0.65",
+      "success": true,
+      "cost": 3.9058623948589295,
+      "min_speed": 7.922024258345046,
+      "min_distance": 1.0436991010926387e-09,
+      "min_stage_speed": 7.922024258345046,
+      "max_defect": 5.684341886080802e-14
+    },
+    {
+      "start": "rolling_0.95",
+      "success": true,
+      "cost": 3.9058625554518667,
+      "min_speed": 7.922027861807141,
+      "min_distance": 1.851890588803414e-08,
+      "min_stage_speed": 7.922027861738501,
+      "max_defect": 2.0081536433735891e-10
+    },
+    {
+      "start": "continuation_0",
+      "success": true,
+      "cost": 3.9058624485965296,
+      "min_speed": 7.922025464692381,
+      "min_distance": 6.892070778365904e-09,
+      "min_stage_speed": 7.922025464692381,
+      "max_defect": 5.684341886080802e-14
+    }
+  ]
+}

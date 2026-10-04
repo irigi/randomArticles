@@ -1,0 +1,84 @@
+{
+  "model": "capped_b4_balance",
+  "S": 33.0,
+  "cells": 480,
+  "direction": "reverse",
+  "selected_cost": 4.239960345476082,
+  "selected_min_speed_kmh": 24.77520038058252,
+  "trial_cost": 4.239960345476082,
+  "trial_selected_start": "rolling_0.65",
+  "candidates": [
+    {
+      "start": "rolling_0.65",
+      "success": true,
+      "cost": 4.239960345476082,
+      "min_speed": 6.882000105717366,
+      "min_distance": 1.0820195367967133e-09,
+      "min_stage_speed": 6.882000105717366,
+      "max_defect": 2.34070540727771e-11
+    },
+    {
+      "start": "rolling_0.95",
+      "success": true,
+      "cost": 4.239960345498056,
+      "min_speed": 6.882000837853988,
+      "min_distance": 1.082199689279516e-09,
+      "min_stage_speed": 6.882000837853988,
+      "max_defect": 2.1265389449354188e-10
+    },
+    {
+      "start": "continuation_0",
+      "success": true,
+      "cost": 4.239960352406111,
+      "min_speed": 6.882000712983282,
+      "min_distance": 1.861409406517231e-09,
+      "min_stage_speed": 6.882000712983282,
+      "max_defect": 1.347419953390272e-10
+    },
+    {
+      "start": "continuation_1",
+      "success": true,
+      "cost": 4.239960345473028,
+      "min_speed": 6.882000024601534,
+      "min_distance": 1.081996969293269e-09,
+      "min_stage_speed": 6.882000024601534,
+      "max_defect": 1.6120438317557273e-12
+    }
+  ],
+  "history": [
+    {
+      "direction": "forward",
+      "selected_cost": 4.239960345476082,
+      "trial_selected_start": "rolling_0.65",
+      "candidates": [
+        {
+          "start": "rolling_0.65",
+          "success": true,
+          "cost": 4.239960345476082,
+          "min_speed": 6.882000105717366,
+          "min_distance": 1.0820195367967133e-09,
+          "min_stage_speed": 6.882000105717366,
+          "max_defect": 2.34070540727771e-11
+        },
+        {
+          "start": "rolling_0.95",
+          "success": true,
+          "cost": 4.239960345498056,
+          "min_speed": 6.882000837853988,
+          "min_distance": 1.082199689279516e-09,
+          "min_stage_speed": 6.882000837853988,
+          "max_defect": 2.1265389449354188e-10
+        },
+        {
+          "start": "continuation_0",
+          "success": true,
+          "cost": 4.239960345492743,
+          "min_speed": 6.882000593373567,
+          "min_distance": 1.0822222481458133e-09,
+          "min_stage_speed": 6.882000593373567,
+          "max_defect": 1.4916956558863603e-10
+        }
+      ]
+    }
+  ]
+}

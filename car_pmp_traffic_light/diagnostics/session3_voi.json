@@ -1,0 +1,34 @@
+{
+  "U_0_60": {
+    "support_s": [
+      0.0,
+      60.0
+    ],
+    "known_reference_cells": 480,
+    "perfect_information_expected_CZK": 4.2757515874326755,
+    "feedback_nlp_expected_CZK": 4.407832739780158,
+    "feedback_realized_integrated_CZK": 4.407826649890713,
+    "feedback_quadrature_residual_CZK": -6.089889445171082e-06,
+    "value_information_using_nlp_CZK": 0.13208115234748252,
+    "integrated_regret_CZK": 0.13207506175262546,
+    "minimum_grid_regret_CZK": 5.004885395010206e-13,
+    "maximum_grid_regret_CZK": 0.4305977820544311,
+    "sensitivity_note": "Known-time reference is the best feasible local solution found at 480 transcription cells; PCHIP interpolation/integration is not a global optimum or temporal-discretization certificate."
+  },
+  "U_26_30": {
+    "support_s": [
+      26.0,
+      30.0
+    ],
+    "known_reference_cells": 480,
+    "perfect_information_expected_CZK": 3.6719925873678694,
+    "feedback_nlp_expected_CZK": 3.8430131660724824,
+    "feedback_realized_integrated_CZK": 3.8430131337911337,
+    "feedback_quadrature_residual_CZK": -3.228134870525423e-08,
+    "value_information_using_nlp_CZK": 0.17102057870461307,
+    "integrated_regret_CZK": 0.17102054642326447,
+    "minimum_grid_regret_CZK": 0.011843303098587388,
+    "maximum_grid_regret_CZK": 0.3403951770932969,
+    "sensitivity_note": "Known-time reference is the best feasible local solution found at 480 transcription cells; PCHIP interpolation/integration is not a global optimum or temporal-discretization certificate."
+  }
+}

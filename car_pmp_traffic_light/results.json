@@ -1,0 +1,116 @@
+{
+  "publication_model": "capped_b4_balance",
+  "status": "Session 6 publication model; best-found feasible local candidates, no global-optimality guarantee",
+  "mechanics": {
+    "net_full_acceleration_cap_m_s2": 4.136672736266082,
+    "brake_addition_m_s2": 4.0,
+    "rest_mode": "balance",
+    "speed_cap_kmh": 50.0
+  },
+  "known_switch_CZK": {
+    "S28": 3.6755043875231594,
+    "S40": 4.960873771923826,
+    "S60": 6.8359062478184685
+  },
+  "capped_value_of_information_CZK": {
+    "U_0_60": {
+      "model": "capped_b4_balance",
+      "support_s": [
+        0.0,
+        60.0
+      ],
+      "known_reference_cells": 480,
+      "feedback_cells": 480,
+      "feedback_nlp_expected_CZK": 4.463750626290725,
+      "feedback_independent_integration_CZK": 4.463747900723676,
+      "quadrature_residual_CZK": -2.725567049388644e-06,
+      "perfect_information_expected_CZK": 4.278767726294927,
+      "value_information_CZK": 0.18498289999579853,
+      "integrated_regret_CZK": 0.1849801737233346,
+      "regret_range_CZK": [
+        2.559286116365911e-12,
+        0.5054621645055555
+      ]
+    },
+    "U_26_30": {
+      "model": "capped_b4_balance",
+      "support_s": [
+        26.0,
+        30.0
+      ],
+      "known_reference_cells": 480,
+      "feedback_cells": 360,
+      "feedback_nlp_expected_CZK": 3.850498273876294,
+      "feedback_independent_integration_CZK": 3.8504982480570327,
+      "quadrature_residual_CZK": -2.581926139555435e-08,
+      "perfect_information_expected_CZK": 3.673527569696465,
+      "value_information_CZK": 0.17697070417982896,
+      "integrated_regret_CZK": 0.17697067836056746,
+      "regret_range_CZK": [
+        0.018157669186522618,
+        0.34597933911977297
+      ]
+    }
+  },
+  "S28_realized_cost_CZK": {
+    "known": 3.6755043875231594,
+    "broad_feedback": 4.133089972033455,
+    "late_feedback": 3.8499041256993953
+  },
+  "anticipation": {
+    "prior_support_s": [
+      27.0,
+      27.5
+    ],
+    "cells": 1100,
+    "pre27_acceleration_onset_s": 26.425,
+    "capped300": {
+      "unrestricted": {
+        "cost_czk": 3.6153979443314332,
+        "file": "data/s4_capped300_unrestricted_N1100.npz"
+      },
+      "before27": {
+        "cost_czk": 3.616782488514875,
+        "file": "data/s4_capped300_before27_N1100.npz"
+      },
+      "cost_of_disallowing_pre27_acceleration_czk": 0.0013845441834416938
+    },
+    "capped900": {
+      "unrestricted": {
+        "cost_czk": 9.40022255399851,
+        "file": "data/s4_capped900_unrestricted_N1100.npz"
+      },
+      "before27": {
+        "cost_czk": 9.410469039624797,
+        "file": "data/s4_capped900_before27_N1100.npz"
+      },
+      "all_red": {
+        "cost_czk": 9.419744606533566,
+        "file": "data/s4_capped900_all_red_N1100.npz"
+      },
+      "cost_of_disallowing_pre27_acceleration_czk": 0.010246485626286272,
+      "cost_of_disallowing_all_red_acceleration_czk": 0.01952205253505568,
+      "extra_cost_of_disallowing_acceleration_during_27_to_27p5_czk": 0.009275566908769406
+    }
+  },
+  "uncapped_mechanics_comparison": {
+    "U_0_60": {
+      "perfect_information_expected_CZK": 4.2757515874326755,
+      "feedback_nlp_expected_CZK": 4.407832739780158,
+      "VOI_CZK": 0.13208115234748252
+    },
+    "U_26_30": {
+      "perfect_information_expected_CZK": 3.6719925873678694,
+      "feedback_nlp_expected_CZK": 3.8430131660724824,
+      "VOI_CZK": 0.17102057870461307
+    }
+  },
+  "source_files": {
+    "known_sweep": "diagnostics/capped_known_sweep/",
+    "feedback_broad": "data/u_0_60_capped.npz",
+    "feedback_late": "data/u_26_30_capped.npz",
+    "regret": "data/voi_capped_regret.npz",
+    "figure_manifest": "figures/session5b_manifest.json"
+  },
+  "historical_status": "Historical original-model results and superseded checkpoints: diagnostics/historical_results_through_session5b.json"
+}

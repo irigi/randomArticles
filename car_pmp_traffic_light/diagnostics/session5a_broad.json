@@ -1,0 +1,49 @@
+{
+  "case": "broad",
+  "model": "capped_b4_balance",
+  "N": 480,
+  "lo": 0.0,
+  "hi": 60.0,
+  "cost_CZK": 4.463750626290725,
+  "min_speed_kmh": 2.776718643757243e-07,
+  "selected_start": "rolling_1.05",
+  "candidates": [
+    {
+      "start": "legacy",
+      "success": false,
+      "reason": "Error in Opti::solve [OptiNode] at .../casadi/core/optistack.cpp:217:\n.../casadi/core/optistack_internal.cpp:1338: Assertion \"return_success(accept_limit)\" failed:\nSolver failed. You may use opti.debug.value to investigate the latest values of variab"
+    },
+    {
+      "start": "rolling_0.65",
+      "success": true,
+      "cost": 4.463751970591735,
+      "min_speed": 5.973524547030735e-06,
+      "min_distance": 4.2117807778665366e-07,
+      "min_stage_speed": 5.973524546879262e-06,
+      "max_defect": 6.750155989720952e-14
+    },
+    {
+      "start": "rolling_1.05",
+      "success": true,
+      "cost": 4.463750626290725,
+      "min_speed": 7.713107343770118e-08,
+      "min_distance": 5.425079908189579e-09,
+      "min_stage_speed": 7.713107343711631e-08,
+      "max_defect": 5.684341886080802e-14
+    },
+    {
+      "start": "coast_then_stop",
+      "success": true,
+      "cost": 4.4637507684787465,
+      "min_speed": 6.899488315974227e-07,
+      "min_distance": 5.036536889689775e-08,
+      "min_stage_speed": 6.899488312218084e-07,
+      "max_defect": 1.6697754290362354e-13
+    },
+    {
+      "start": "brake_recover",
+      "success": false,
+      "reason": "Error in Opti::solve [OptiNode] at .../casadi/core/optistack.cpp:217:\n.../casadi/core/optistack_internal.cpp:1338: Assertion \"return_success(accept_limit)\" failed:\nSolver failed. You may use opti.debug.value to investigate the latest values of variab"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "original300": {
+    "unrestricted": {
+      "cost_czk": 3.6136608590138115,
+      "file": "data/narrow300_N1100.npz"
+    },
+    "before27": {
+      "cost_czk": 3.6139461011059293,
+      "file": "data/s4_original300_before27_N1100.npz"
+    },
+    "all_red": {
+      "cost_czk": 3.614650714142249,
+      "file": "data/s4_original300_all_red_N1100.npz"
+    },
+    "cost_of_disallowing_pre27_acceleration_czk": 0.00028524209211777674,
+    "cost_of_disallowing_all_red_acceleration_czk": 0.0009898551284375223,
+    "extra_cost_of_disallowing_acceleration_during_27_to_27p5_czk": 0.0007046130363197456
+  },
+  "original900": {
+    "unrestricted": {
+      "cost_czk": 9.398187545686758,
+      "file": "data/narrow900_N1100.npz"
+    },
+    "before27": {
+      "cost_czk": 9.402874756912063,
+      "file": "data/s4_original900_before27_N1100.npz"
+    },
+    "all_red": {
+      "cost_czk": 9.408597242608726,
+      "file": "data/s4_original900_all_red_N1100.npz"
+    },
+    "cost_of_disallowing_pre27_acceleration_czk": 0.004687211225304466,
+    "cost_of_disallowing_all_red_acceleration_czk": 0.010409696921968248,
+    "extra_cost_of_disallowing_acceleration_during_27_to_27p5_czk": 0.005722485696663782
+  },
+  "capped300": {
+    "unrestricted": {
+      "cost_czk": 3.6153979443314332,
+      "file": "data/s4_capped300_unrestricted_N1100.npz"
+    },
+    "before27": {
+      "cost_czk": 3.616782488514875,
+      "file": "data/s4_capped300_before27_N1100.npz"
+    },
+    "cost_of_disallowing_pre27_acceleration_czk": 0.0013845441834416938
+  },
+  "capped900": {
+    "unrestricted": {
+      "cost_czk": 9.40022255399851,
+      "file": "data/s4_capped900_unrestricted_N1100.npz"
+    },
+    "before27": {
+      "cost_czk": 9.410469039624797,
+      "file": "data/s4_capped900_before27_N1100.npz"
+    },
+    "all_red": {
+      "cost_czk": 9.419744606533566,
+      "file": "data/s4_capped900_all_red_N1100.npz"
+    },
+    "cost_of_disallowing_pre27_acceleration_czk": 0.010246485626286272,
+    "cost_of_disallowing_all_red_acceleration_czk": 0.01952205253505568,
+    "extra_cost_of_disallowing_acceleration_during_27_to_27p5_czk": 0.009275566908769406
+  },
+  "caponly900_N550": {
+    "unrestricted": {
+      "cost_czk": 9.400121149674666,
+      "file": "data/s4_caponly900_unrestricted_N550.npz"
+    },
+    "before27": {
+      "cost_czk": 9.41035984384798,
+      "file": "data/s4_caponly900_before27_N550.npz"
+    },
+    "cost_of_disallowing_pre27_acceleration_czk": 0.01023869417331369
+  },
+  "mechanics": {
+    "original_net_full_acceleration_at_zero_m_s2": 65.88228,
+    "capped_net_full_acceleration_at_zero_m_s2": 4.136672736266082,
+    "original_0_to_100_kmh_s": 6.751183406890524,
+    "capped_0_to_100_kmh_s": 8.4,
+    "interpretation": "The capped model is still a simplified acceleration envelope, not a measured powertrain/transient-fuel model."
+  },
+  "interpretation": {
+    "restriction": "u[k] <= u_cruise(v[k]) only on k with cell start < 27 s; grid exactly includes 27 s. Legacy all_red continues through 27.5 s.",
+    "onset_original900_N1100": "First increasing-traction cell starts at 26.625 s with u\u22480.676; first near-full-throttle cell starts at 26.650 s.",
+    "capped900_N1100": "First increasing-traction and near-full-throttle cell starts at 26.425 s (550-cell onset differs by one discretization cell).",
+    "globality": "Best feasible local candidate among tested starts; no global-optimality certificate.",
+    "voi": "Session 3 VOI applies ONLY to the original uncapped model. Capped VOI has not been recomputed."
+  }
+}

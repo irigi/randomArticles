@@ -1,0 +1,38 @@
+{
+  "case": "original300",
+  "restriction": "before27",
+  "N": 1100,
+  "time_cost_czk_h": 300,
+  "accel_cap_m_s2": null,
+  "brake_a_m_s2": 7.0,
+  "expected_cost_czk": 3.6139461011059293,
+  "starts": [
+    {
+      "start": "legacy",
+      "success": true,
+      "cost": 3.6139461011059293,
+      "min_speed": 8.975613588015543,
+      "min_distance": 1.0003135513456253e-09,
+      "min_stage_speed": 8.975613588015543,
+      "max_defect": 4.805880138292196e-10
+    },
+    {
+      "start": "brake_recover",
+      "success": true,
+      "cost": 3.6139461011207574,
+      "min_speed": 8.975613537507453,
+      "min_distance": 1.0003135586969219e-09,
+      "min_stage_speed": 8.975613537507453,
+      "max_defect": 1.7424817144728877e-10
+    }
+  ],
+  "selected_start": "legacy",
+  "onset": {
+    "traction_above_cruise_first_cell_s": 27.0,
+    "throttle_first_ge_0p95_cell_s": 27.0,
+    "earliest_green_speed_kmh": 32.31220891685596,
+    "earliest_green_distance_m": 4.970592881222797,
+    "min_speed_kmh": 32.31220891685596,
+    "max_pre_green_speed_change_cell_m_s": -1.4867092446024799e-08
+  }
+}

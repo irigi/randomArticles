@@ -1,0 +1,189 @@
+{
+  "u_0_60.npz": {
+    "lo": 0.0,
+    "hi": 60.0,
+    "N": 480,
+    "time_cost_czk_h": 300.0,
+    "cost_czk": 4.407832739780158,
+    "selected_start": "rolling_1.05",
+    "min_speed_kmh": 2.3676686687842543e-07,
+    "end_distance_m": 6.868004853427452e-09,
+    "end_speed_kmh": 1.2221969096217377e-06,
+    "candidates": [
+      {
+        "start": "legacy",
+        "success": true,
+        "cost": 4.407832850526501,
+        "min_speed": 4.1823642811447574e-08,
+        "min_distance": 4.9838783009372235e-08,
+        "min_stage_speed": 4.1823642811447574e-08,
+        "max_defect": 1.5769808240294863e-09
+      },
+      {
+        "start": "rolling_1.05",
+        "success": true,
+        "cost": 4.407832739780158,
+        "min_speed": 6.576857413289595e-08,
+        "min_distance": 6.868004853427452e-09,
+        "min_stage_speed": 6.576857066887266e-08,
+        "max_defect": 2.842170943040401e-14
+      },
+      {
+        "start": "stop_wait",
+        "success": true,
+        "cost": 4.4078328644997375,
+        "min_speed": 5.274774212035774e-07,
+        "min_distance": 5.508277391606665e-08,
+        "min_stage_speed": 5.274773931288106e-07,
+        "max_defect": 9.346051363675643e-12
+      },
+      {
+        "start": "coast_then_stop",
+        "success": true,
+        "cost": 4.407832739762221,
+        "min_speed": 6.513773802514482e-09,
+        "min_distance": 6.856466012243155e-09,
+        "min_stage_speed": 6.513773802514482e-09,
+        "max_defect": 1.4076930467042914e-11
+      },
+      {
+        "start": "brake_recover",
+        "success": true,
+        "cost": 4.407832739779813,
+        "min_speed": 6.576857338664957e-08,
+        "min_distance": 6.8680047769750394e-09,
+        "min_stage_speed": 6.576856990048183e-08,
+        "max_defect": 5.684341886080802e-14
+      }
+    ]
+  },
+  "u_26_30.npz": {
+    "lo": 26.0,
+    "hi": 30.0,
+    "N": 360,
+    "time_cost_czk_h": 300.0,
+    "cost_czk": 3.8430131660724824,
+    "selected_start": "rolling_0.65",
+    "min_speed_kmh": 28.34582206664176,
+    "end_distance_m": 1.0772180512093833e-09,
+    "end_speed_kmh": 28.34582206664176,
+    "candidates": [
+      {
+        "start": "legacy",
+        "success": true,
+        "cost": 3.843013281686517,
+        "min_speed": 7.87383934446176,
+        "min_distance": 1.837278996550557e-08,
+        "min_stage_speed": 7.87383934446176,
+        "max_defect": 4.4577674884749285e-12
+      },
+      {
+        "start": "rolling_0.65",
+        "success": true,
+        "cost": 3.8430131660724824,
+        "min_speed": 7.873839462956044,
+        "min_distance": 1.0772180512093833e-09,
+        "min_stage_speed": 7.873839462956044,
+        "max_defect": 5.684341886080802e-14
+      },
+      {
+        "start": "rolling_1.05",
+        "success": true,
+        "cost": 3.8430131660726357,
+        "min_speed": 7.873839462926342,
+        "min_distance": 1.0771145723921957e-09,
+        "min_stage_speed": 7.873839462926342,
+        "max_defect": 3.659295089164516e-13
+      },
+      {
+        "start": "stop_wait",
+        "success": true,
+        "cost": 3.843013166072569,
+        "min_speed": 7.873839462773433,
+        "min_distance": 1.0764820833394168e-09,
+        "min_stage_speed": 7.873839462773433,
+        "max_defect": 2.823519196226698e-12
+      },
+      {
+        "start": "coast_then_stop",
+        "success": true,
+        "cost": 3.843013166073387,
+        "min_speed": 7.873839462823612,
+        "min_distance": 1.07677170859377e-09,
+        "min_stage_speed": 7.873839462823612,
+        "max_defect": 1.5720758028692217e-12
+      },
+      {
+        "start": "brake_recover",
+        "success": true,
+        "cost": 3.84301316607337,
+        "min_speed": 7.873839462790293,
+        "min_distance": 1.0766371456916096e-09,
+        "min_stage_speed": 7.873839462790293,
+        "max_defect": 2.0818902157770935e-12
+      }
+    ]
+  },
+  "narrow300_N1100.npz": {
+    "lo": 27.0,
+    "hi": 27.5,
+    "N": 1100,
+    "time_cost_czk_h": 300.0,
+    "cost_czk": 3.6136608590138115,
+    "selected_start": "legacy",
+    "min_speed_kmh": 32.24313553852854,
+    "end_distance_m": 1.0014521649786665e-09,
+    "end_speed_kmh": 37.461764855496256,
+    "candidates": [
+      {
+        "start": "legacy",
+        "success": true,
+        "cost": 3.6136608590138115,
+        "min_speed": 8.95642653848015,
+        "min_distance": 1.0014521649786665e-09,
+        "min_stage_speed": 8.95642653848015,
+        "max_defect": 1.9033663534173684e-11
+      },
+      {
+        "start": "brake_recover",
+        "success": true,
+        "cost": 3.6136608590146553,
+        "min_speed": 8.9564265386436,
+        "min_distance": 1.0014522336832439e-09,
+        "min_stage_speed": 8.9564265386436,
+        "max_defect": 9.627854069549358e-13
+      }
+    ]
+  },
+  "narrow900_N1100.npz": {
+    "lo": 27.0,
+    "hi": 27.5,
+    "N": 1100,
+    "time_cost_czk_h": 900.0,
+    "cost_czk": 9.398187545686758,
+    "selected_start": "legacy",
+    "min_speed_kmh": 32.2403419136751,
+    "end_distance_m": 4.543184758932331e-10,
+    "end_speed_kmh": 42.270290990271796,
+    "candidates": [
+      {
+        "start": "legacy",
+        "success": true,
+        "cost": 9.398187545686758,
+        "min_speed": 8.955650531576417,
+        "min_distance": 4.543184758932331e-10,
+        "min_stage_speed": 8.955650531539812,
+        "max_defect": 1.049222930760152e-10
+      },
+      {
+        "start": "brake_recover",
+        "success": true,
+        "cost": 9.398187545686598,
+        "min_speed": 8.955650533836689,
+        "min_distance": 4.543564963473046e-10,
+        "min_stage_speed": 8.955650533836689,
+        "max_defect": 5.417888360170764e-13
+      }
+    ]
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "broad": {
+    "lo": 0.0,
+    "hi": 60.0,
+    "N": 240,
+    "cost_czk": 4.407884750205067,
+    "min_speed_kmh": 1.212689902415036e-07,
+    "selected_start": "rolling_0.65",
+    "candidates": [
+      {
+        "start": "legacy",
+        "success": true,
+        "cost": 4.40792682716197,
+        "min_speed": 5.161048841706468e-09,
+        "min_distance": 9.094954211490392e-09,
+        "min_stage_speed": 5.161048841706468e-09,
+        "max_defect": 7.03865753575558e-13
+      },
+      {
+        "start": "rolling_0.65",
+        "success": true,
+        "cost": 4.407884750205067,
+        "min_speed": 3.3685830622639884e-08,
+        "min_distance": 6.0820932545999574e-09,
+        "min_stage_speed": 3.1820479799715695e-08,
+        "max_defect": 2.284155038396191e-13
+      },
+      {
+        "start": "rolling_1.05",
+        "success": true,
+        "cost": 4.40788475020505,
+        "min_speed": 3.3685830214418125e-08,
+        "min_distance": 6.082093232726666e-09,
+        "min_stage_speed": 3.1825036144600416e-08,
+        "max_defect": 2.842170943040401e-14
+      },
+      {
+        "start": "stop_wait",
+        "success": true,
+        "cost": 4.407884750225145,
+        "min_speed": 3.368583070177924e-08,
+        "min_distance": 6.082093288884767e-09,
+        "min_stage_speed": 3.179826518762141e-08,
+        "max_defect": 3.0483267877120337e-12
+      },
+      {
+        "start": "coast_then_stop",
+        "success": true,
+        "cost": 4.407884750205049,
+        "min_speed": 3.368583010850791e-08,
+        "min_distance": 6.082171134017892e-09,
+        "min_stage_speed": 3.182445704533188e-08,
+        "max_defect": 5.5786589775622895e-14
+      },
+      {
+        "start": "brake_recover",
+        "success": true,
+        "cost": 4.407885085382571,
+        "min_speed": 5.009682802376409e-07,
+        "min_distance": 2.3487696325626155e-07,
+        "min_stage_speed": 2.2685776860514872e-07,
+        "max_defect": 7.107655508918391e-10
+      }
+    ]
+  },
+  "late": {
+    "lo": 26.0,
+    "hi": 30.0,
+    "N": 240,
+    "cost_czk": 3.843017298909809,
+    "min_speed_kmh": 28.345603888301344,
+    "selected_start": "legacy",
+    "candidates": [
+      {
+        "start": "legacy",
+        "success": true,
+        "cost": 3.843017298909809,
+        "min_speed": 7.873778857861485,
+        "min_distance": 1.0773096566557142e-09,
+        "min_stage_speed": 7.873778857861485,
+        "max_defect": 1.6786572132332367e-13
+      },
+      {
+        "start": "rolling_0.65",
+        "success": true,
+        "cost": 3.8430172989098677,
+        "min_speed": 7.873778857870758,
+        "min_distance": 1.0773728264435712e-09,
+        "min_stage_speed": 7.873778857870758,
+        "max_defect": 5.684341886080802e-14
+      },
+      {
+        "start": "rolling_1.05",
+        "success": true,
+        "cost": 3.843017487317962,
+        "min_speed": 7.873778675626351,
+        "min_distance": 4.3364567377037006e-08,
+        "min_stage_speed": 7.873778675626351,
+        "max_defect": 1.1102230246251565e-11
+      },
+      {
+        "start": "stop_wait",
+        "success": true,
+        "cost": 3.843017298910003,
+        "min_speed": 7.873778857818509,
+        "min_distance": 1.0770524725543943e-09,
+        "min_stage_speed": 7.873778857818509,
+        "max_defect": 8.801848139228241e-13
+      },
+      {
+        "start": "coast_then_stop",
+        "success": true,
+        "cost": 3.843017298909868,
+        "min_speed": 7.873778857870749,
+        "min_distance": 1.0773728140528476e-09,
+        "min_stage_speed": 7.873778857870749,
+        "max_defect": 5.684341886080802e-14
+      },
+      {
+        "start": "brake_recover",
+        "success": true,
+        "cost": 3.8430174758680575,
+        "min_speed": 7.873778686807786,
+        "min_distance": 4.079756702775066e-08,
+        "min_stage_speed": 7.873778686807786,
+        "max_defect": 1.0953016271741944e-11
+      }
+    ]
+  },
+  "narrow": {
+    "lo": 27.0,
+    "hi": 27.5,
+    "N": 300,
+    "cost_czk": 3.614104498550988,
+    "min_speed_kmh": 32.268312557823435,
+    "selected_start": "legacy",
+    "candidates": [
+      {
+        "start": "legacy",
+        "success": true,
+        "cost": 3.614104498550988,
+        "min_speed": 8.963420154950954,
+        "min_distance": 1.000637307064556e-09,
+        "min_stage_speed": 8.963420154950954,
+        "max_defect": 2.8208546609675977e-12
+      },
+      {
+        "start": "rolling_0.65",
+        "success": true,
+        "cost": 3.6141044985509976,
+        "min_speed": 8.96342015483009,
+        "min_distance": 1.0006373070640386e-09,
+        "min_stage_speed": 8.96342015483009,
+        "max_defect": 2.3092638912203256e-12
+      },
+      {
+        "start": "rolling_1.05",
+        "success": true,
+        "cost": 3.6141044985494224,
+        "min_speed": 8.963420173436255,
+        "min_distance": 1.00063665996572e-09,
+        "min_stage_speed": 8.963420173436255,
+        "max_defect": 8.176570531759353e-11
+      },
+      {
+        "start": "stop_wait",
+        "success": true,
+        "cost": 3.6141044985509954,
+        "min_speed": 8.963420154862245,
+        "min_distance": 1.000637307064225e-09,
+        "min_stage_speed": 8.963420154862245,
+        "max_defect": 2.446043367854145e-12
+      },
+      {
+        "start": "coast_then_stop",
+        "success": true,
+        "cost": 3.6141044985510433,
+        "min_speed": 8.96342015428319,
+        "min_distance": 1.0006373070578281e-09,
+        "min_stage_speed": 8.96342015428319,
+        "max_defect": 5.684341886080802e-14
+      },
+      {
+        "start": "brake_recover",
+        "success": true,
+        "cost": 3.614104498538221,
+        "min_speed": 8.963420306275918,
+        "min_distance": 1.0006339057473742e-09,
+        "min_stage_speed": 8.963420305755216,
+        "max_defect": 6.473310776300423e-10
+      }
+    ]
+  },
+  "rest_convention": {
+    "balance_unforced_dvdt": -0.11772,
+    "balance_throttle_at_rest": 0.0017836363636363638,
+    "gamma_at_rest": 0.0
+  }
+}

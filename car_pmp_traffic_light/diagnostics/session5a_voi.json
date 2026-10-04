@@ -1,0 +1,40 @@
+{
+  "U_0_60": {
+    "model": "capped_b4_balance",
+    "support_s": [
+      0.0,
+      60.0
+    ],
+    "known_reference_cells": 480,
+    "feedback_cells": 480,
+    "feedback_nlp_expected_CZK": 4.463750626290725,
+    "feedback_independent_integration_CZK": 4.463747900723676,
+    "quadrature_residual_CZK": -2.725567049388644e-06,
+    "perfect_information_expected_CZK": 4.278767726294927,
+    "value_information_CZK": 0.18498289999579853,
+    "integrated_regret_CZK": 0.1849801737233346,
+    "regret_range_CZK": [
+      2.559286116365911e-12,
+      0.5054621645055555
+    ]
+  },
+  "U_26_30": {
+    "model": "capped_b4_balance",
+    "support_s": [
+      26.0,
+      30.0
+    ],
+    "known_reference_cells": 480,
+    "feedback_cells": 360,
+    "feedback_nlp_expected_CZK": 3.850498273876294,
+    "feedback_independent_integration_CZK": 3.8504982480570327,
+    "quadrature_residual_CZK": -2.581926139555435e-08,
+    "perfect_information_expected_CZK": 3.673527569696465,
+    "value_information_CZK": 0.17697070417982896,
+    "integrated_regret_CZK": 0.17697067836056746,
+    "regret_range_CZK": [
+      0.018157669186522618,
+      0.34597933911977297
+    ]
+  }
+}

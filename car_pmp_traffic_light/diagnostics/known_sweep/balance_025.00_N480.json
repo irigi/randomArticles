@@ -1,0 +1,41 @@
+{
+  "S": 25.0,
+  "cost": 3.311423033926386,
+  "selected_cost": 3.311423033926386,
+  "selected_start": "rolling_0.65",
+  "candidates": [
+    {
+      "start": "legacy",
+      "success": true,
+      "cost": 3.3114236703222457,
+      "min_speed": 10.711229137247477,
+      "min_distance": 1.1867519259474243e-07,
+      "min_stage_speed": 10.711229137247477,
+      "max_defect": 4.46984671498285e-11
+    },
+    {
+      "start": "rolling_0.65",
+      "success": true,
+      "cost": 3.311423033926386,
+      "min_speed": 10.716594262449133,
+      "min_distance": 1.5875246981443627e-09,
+      "min_stage_speed": 10.716594262447016,
+      "max_defect": 3.2237323921435745e-11
+    },
+    {
+      "start": "rolling_0.95",
+      "success": false,
+      "reason": "Error in Opti::solve [OptiNode] at .../casadi/core/optistack.cpp:217:\n.../casadi/core/optistack_internal.cpp:1338: Assertion \"return_success(accept_limit)\" failed:\nSolver failed. You may use opti.debug.value to investigate the latest values of variab"
+    },
+    {
+      "start": "stop_wait",
+      "success": false,
+      "reason": "Error in Opti::solve [OptiNode] at .../casadi/core/optistack.cpp:217:\n.../casadi/core/optistack_internal.cpp:1338: Assertion \"return_success(accept_limit)\" failed:\nSolver failed. You may use opti.debug.value to investigate the latest values of variab"
+    },
+    {
+      "start": "coast_then_stop",
+      "success": false,
+      "reason": "Error in Opti::solve [OptiNode] at .../casadi/core/optistack.cpp:217:\n.../casadi/core/optistack_internal.cpp:1338: Assertion \"return_success(accept_limit)\" failed:\nSolver failed. You may use opti.debug.value to investigate the latest values of variab"
+    }
+  ]
+}

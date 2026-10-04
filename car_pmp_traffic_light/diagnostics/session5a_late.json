@@ -1,0 +1,57 @@
+{
+  "case": "late",
+  "model": "capped_b4_balance",
+  "N": 360,
+  "lo": 26.0,
+  "hi": 30.0,
+  "cost_CZK": 3.850498273876294,
+  "min_speed_kmh": 28.32959813739556,
+  "selected_start": "legacy",
+  "candidates": [
+    {
+      "start": "legacy",
+      "success": true,
+      "cost": 3.850498273876294,
+      "min_speed": 7.869332815943211,
+      "min_distance": 1.0629526495957282e-09,
+      "min_stage_speed": 7.869332815943211,
+      "max_defect": 5.684341886080802e-14
+    },
+    {
+      "start": "rolling_0.65",
+      "success": true,
+      "cost": 3.850498358038918,
+      "min_speed": 7.869333033162961,
+      "min_distance": 1.3480853026934651e-08,
+      "min_stage_speed": 7.869333033162961,
+      "max_defect": 9.947598300641403e-14
+    },
+    {
+      "start": "rolling_1.05",
+      "success": true,
+      "cost": 3.850498273876313,
+      "min_speed": 7.869332815945342,
+      "min_distance": 1.062946274269047e-09,
+      "min_stage_speed": 7.869332815945342,
+      "max_defect": 5.684341886080802e-14
+    },
+    {
+      "start": "coast_then_stop",
+      "success": true,
+      "cost": 3.8504984516069753,
+      "min_speed": 7.869333282857635,
+      "min_distance": 2.731730880896309e-08,
+      "min_stage_speed": 7.869333282857635,
+      "max_defect": 7.105427357601002e-13
+    },
+    {
+      "start": "brake_recover",
+      "success": true,
+      "cost": 3.8504983125617485,
+      "min_speed": 7.869332915769963,
+      "min_distance": 6.77070124183352e-09,
+      "min_stage_speed": 7.869332915769963,
+      "max_defect": 7.638334409421077e-14
+    }
+  ]
+}

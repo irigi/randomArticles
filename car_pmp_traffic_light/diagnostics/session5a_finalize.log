@@ -1,0 +1,67 @@
+{
+  "model_id": "capped_b4_balance",
+  "comparison_original_uncapped": {
+    "U_0_60": {
+      "perfect_information_expected_CZK": 4.2757515874326755,
+      "feedback_nlp_expected_CZK": 4.407832739780158,
+      "VOI_CZK": 0.13208115234748252
+    },
+    "U_26_30": {
+      "perfect_information_expected_CZK": 3.6719925873678694,
+      "feedback_nlp_expected_CZK": 3.8430131660724824,
+      "VOI_CZK": 0.17102057870461307
+    }
+  },
+  "capped": {
+    "U_0_60": {
+      "model": "capped_b4_balance",
+      "support_s": [
+        0.0,
+        60.0
+      ],
+      "known_reference_cells": 480,
+      "feedback_cells": 480,
+      "feedback_nlp_expected_CZK": 4.463750626290725,
+      "feedback_independent_integration_CZK": 4.463747900723676,
+      "quadrature_residual_CZK": -2.725567049388644e-06,
+      "perfect_information_expected_CZK": 4.278767726294927,
+      "value_information_CZK": 0.18498289999579853,
+      "integrated_regret_CZK": 0.1849801737233346,
+      "regret_range_CZK": [
+        2.559286116365911e-12,
+        0.5054621645055555
+      ]
+    },
+    "U_26_30": {
+      "model": "capped_b4_balance",
+      "support_s": [
+        26.0,
+        30.0
+      ],
+      "known_reference_cells": 480,
+      "feedback_cells": 360,
+      "feedback_nlp_expected_CZK": 3.850498273876294,
+      "feedback_independent_integration_CZK": 3.8504982480570327,
+      "quadrature_residual_CZK": -2.581926139555435e-08,
+      "perfect_information_expected_CZK": 3.673527569696465,
+      "value_information_CZK": 0.17697070417982896,
+      "integrated_regret_CZK": 0.17697067836056746,
+      "regret_range_CZK": [
+        0.018157669186522618,
+        0.34597933911977297
+      ]
+    }
+  },
+  "known_S_28_CZK": 3.6755043875231594,
+  "known_S_40_CZK": 4.960873771923826,
+  "known_S_60_CZK": 6.8359062478184685,
+  "known_grid_480_points": 43,
+  "reverse_challenge_points": 18,
+  "resolution": {
+    "60.0": {
+      "480": 6.8359062478184685,
+      "960": 6.83587070633942,
+      "difference_960_minus_480_CZK": -3.5541479048717406e-05
+    }
+  }
+}

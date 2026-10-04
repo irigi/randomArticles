@@ -1,0 +1,39 @@
+{
+  "model": "capped_b4_balance",
+  "S": 37,
+  "cells": 480,
+  "direction": "forward",
+  "selected_cost": 4.659095616573345,
+  "selected_min_speed_kmh": 20.52282888003084,
+  "trial_cost": 4.659095616573345,
+  "trial_selected_start": "rolling_0.65",
+  "candidates": [
+    {
+      "start": "rolling_0.65",
+      "success": true,
+      "cost": 4.659095616573345,
+      "min_speed": 5.700785800008567,
+      "min_distance": 1.1304211409063687e-09,
+      "min_stage_speed": 5.700785800008567,
+      "max_defect": 6.732392421326949e-13
+    },
+    {
+      "start": "rolling_0.95",
+      "success": true,
+      "cost": 4.659095616573582,
+      "min_speed": 5.7007858055548875,
+      "min_distance": 1.1288509349872817e-09,
+      "min_stage_speed": 5.7007858055548875,
+      "max_defect": 2.7142732506035827e-12
+    },
+    {
+      "start": "continuation_0",
+      "success": true,
+      "cost": 4.659095616572794,
+      "min_speed": 5.700785799668485,
+      "min_distance": 1.130486544077188e-09,
+      "min_stage_speed": 5.700785799668485,
+      "max_defect": 5.808686864838819e-13
+    }
+  ]
+}

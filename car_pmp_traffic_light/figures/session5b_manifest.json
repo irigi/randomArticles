@@ -1,0 +1,24 @@
+{
+  "model_id": "capped_b4_balance",
+  "accel_cap_m_s2": 4.136672736266082,
+  "brake_parameter_m_s2": 4.0,
+  "rest_mode": "balance",
+  "deterministic_known_S_28_cost_CZK": 3.6755043875231594,
+  "deterministic_first_speed_increasing_throttle_s": 27.183333333333334,
+  "broad_feedback_expected_cost_CZK": 4.463750626290725,
+  "late_feedback_expected_cost_CZK": 3.850498273876294,
+  "anticipation_pre27_acceleration_onset_s": 26.425,
+  "anticipation_cost_unrestricted_CZK": 9.40022255399851,
+  "anticipation_cost_no_pre27_acceleration_CZK": 9.410469039624797,
+  "anticipation_pre27_benefit_CZK": 0.010246485626286272,
+  "broad_VOI_CZK": 0.18498289999579853,
+  "late_VOI_CZK": 0.17697070417982896,
+  "files": [
+    "fig1_known28_capped",
+    "fig2_information_capped",
+    "fig3_anticipation_capped",
+    "fig4_regret_capped"
+  ],
+  "numerical_status": "best-found feasible local candidates, not global certificates",
+  "paper_status": "article.tex and article.pdf are not updated until Session 6"
+}

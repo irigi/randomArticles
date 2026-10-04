@@ -1,0 +1,218 @@
+{
+  "baseline_Ct_300": {
+    "known_S_28_cost_CZK": 3.6739860422,
+    "broad_U_0_60_expected_cost_CZK": 4.4078327398,
+    "late_U_26_30_expected_cost_CZK": 3.8430131661,
+    "realized_S_28_costs_CZK": {
+      "perfect_knowledge": 3.6739860422,
+      "broad_U_0_60_feedback": 4.0381784372,
+      "late_U_26_30_feedback": 3.8424323794
+    },
+    "value_of_information_recomputed_CZK": {
+      "U_0_60": {
+        "perfect_information": 4.2757515874326755,
+        "feedback": 4.407832739780158,
+        "value": 0.13208115234748252,
+        "regret_integral": 0.13207506175262546
+      },
+      "U_26_30": {
+        "perfect_information": 3.6719925873678694,
+        "feedback": 3.8430131660724824,
+        "value": 0.17102057870461307,
+        "regret_integral": 0.17102054642326447
+      }
+    },
+    "known_S_28_reference_N480_cost_CZK": 3.673977423967712
+  },
+  "narrow_U_27_27_5": {
+    "Ct_300": {
+      "unrestricted_CZK": 3.613660859,
+      "no_speed_increasing_throttle_CZK": 3.614650714142249,
+      "advantage_CZK": 0.0009899293
+    },
+    "Ct_900": {
+      "unrestricted_CZK": 9.3981875457,
+      "no_speed_increasing_throttle_CZK": 9.408597242608726,
+      "advantage_CZK": 0.0104096968,
+      "speed_at_earliest_green_kmh": 39.9501,
+      "acceleration_onset_s": 26.625,
+      "throttle_fraction_at_acceleration_onset": 0.6762723,
+      "near_full_throttle_onset_s": 26.65
+    }
+  },
+  "mechanical_sensitivity": {
+    "net_accel_cap_m_s2": 4.1366727363,
+    "brake_addition_m_s2": 4.0,
+    "known_pregreen_full_throttle_start_s": 27.1667,
+    "broad_U_0_60_expected_cost_CZK": 4.4637506183,
+    "broad_U_0_60_full_brake_start_s": 24.125,
+    "broad_U_0_60_full_brake_start_position_m": -11.7587,
+    "narrow_anticipatory_near_full_throttle_onset_s_1100_cells": 26.425,
+    "previous_narrow_anticipation_advantage_is_all_red_restriction": true,
+    "narrow_anticipation_advantage_CZK_at_900_N550_all_red": 0.0195091676
+  },
+  "cleanup_note": "Session 4 replaces ambiguous acceleration-onset claims, separates before-27s vs all-red costs, and validates capped model; published PDF/figures and overall VOI remain on prior model until Sessions 5-6.",
+  "checkpoint_status": {
+    "session": "5A",
+    "verified_now": [
+      "480-cell known-S local-best sweep S=22..60 and late half-seconds",
+      "U(0,60) and U(26,30) VOI integrations restricted to correct support",
+      "regret curve and independently integrated feedback expectation",
+      "Session 2 unrestricted policies remain intact",
+      "1100-cell pre-earliest-green and full-red counterfactuals for original model",
+      "1100-cell capped model at 300 and 900 CZK/h; 550-cell cap-only comparator",
+      "acceleration onset, 0-100 km/h calibration and 550/1100 resolution",
+      "Capped-model broad/late multistart policy regeneration with explicit model tagging",
+      "Capped-model 480-cell known-S grid, 43 points plus free-flow constant segment",
+      "Capped-model reverse challenge at 18 known switch times",
+      "Capped-model VOI and realized-cost quadrature checks",
+      "Capped known S=60 480 vs 960 cell resolution check"
+    ],
+    "pending": [
+      "restoration of full grid-global optimality guarantees (not claimed)",
+      "publication figures and text update",
+      "final manuscript PDF rebuild",
+      "regenerate publication figures and restructure results narrative in Sessions 5-6",
+      "Publication Fig. 1\u20134 still use old main model; regenerate in Session 5B",
+      "Rebuild manuscript text, citations, tables and PDF in Session 6",
+      "IPOPT multistart yields best local candidates, not globally certified optima"
+    ]
+  },
+  "session4_anticipation": {
+    "original300": {
+      "unrestricted": {
+        "cost_czk": 3.6136608590138115,
+        "file": "data/narrow300_N1100.npz"
+      },
+      "before27": {
+        "cost_czk": 3.6139461011059293,
+        "file": "data/s4_original300_before27_N1100.npz"
+      },
+      "all_red": {
+        "cost_czk": 3.614650714142249,
+        "file": "data/s4_original300_all_red_N1100.npz"
+      },
+      "cost_of_disallowing_pre27_acceleration_czk": 0.00028524209211777674,
+      "cost_of_disallowing_all_red_acceleration_czk": 0.0009898551284375223,
+      "extra_cost_of_disallowing_acceleration_during_27_to_27p5_czk": 0.0007046130363197456
+    },
+    "original900": {
+      "unrestricted": {
+        "cost_czk": 9.398187545686758,
+        "file": "data/narrow900_N1100.npz"
+      },
+      "before27": {
+        "cost_czk": 9.402874756912063,
+        "file": "data/s4_original900_before27_N1100.npz"
+      },
+      "all_red": {
+        "cost_czk": 9.408597242608726,
+        "file": "data/s4_original900_all_red_N1100.npz"
+      },
+      "cost_of_disallowing_pre27_acceleration_czk": 0.004687211225304466,
+      "cost_of_disallowing_all_red_acceleration_czk": 0.010409696921968248,
+      "extra_cost_of_disallowing_acceleration_during_27_to_27p5_czk": 0.005722485696663782
+    },
+    "capped300": {
+      "unrestricted": {
+        "cost_czk": 3.6153979443314332,
+        "file": "data/s4_capped300_unrestricted_N1100.npz"
+      },
+      "before27": {
+        "cost_czk": 3.616782488514875,
+        "file": "data/s4_capped300_before27_N1100.npz"
+      },
+      "cost_of_disallowing_pre27_acceleration_czk": 0.0013845441834416938
+    },
+    "capped900": {
+      "unrestricted": {
+        "cost_czk": 9.40022255399851,
+        "file": "data/s4_capped900_unrestricted_N1100.npz"
+      },
+      "before27": {
+        "cost_czk": 9.410469039624797,
+        "file": "data/s4_capped900_before27_N1100.npz"
+      },
+      "all_red": {
+        "cost_czk": 9.419744606533566,
+        "file": "data/s4_capped900_all_red_N1100.npz"
+      },
+      "cost_of_disallowing_pre27_acceleration_czk": 0.010246485626286272,
+      "cost_of_disallowing_all_red_acceleration_czk": 0.01952205253505568,
+      "extra_cost_of_disallowing_acceleration_during_27_to_27p5_czk": 0.009275566908769406
+    },
+    "caponly900_N550": {
+      "unrestricted": {
+        "cost_czk": 9.400121149674666,
+        "file": "data/s4_caponly900_unrestricted_N550.npz"
+      },
+      "before27": {
+        "cost_czk": 9.41035984384798,
+        "file": "data/s4_caponly900_before27_N550.npz"
+      },
+      "cost_of_disallowing_pre27_acceleration_czk": 0.01023869417331369
+    }
+  },
+  "session4_mechanics": {
+    "original_net_full_acceleration_at_zero_m_s2": 65.88228,
+    "capped_net_full_acceleration_at_zero_m_s2": 4.136672736266082,
+    "original_0_to_100_kmh_s": 6.751183406890524,
+    "capped_0_to_100_kmh_s": 8.4,
+    "interpretation": "The capped model is still a simplified acceleration envelope, not a measured powertrain/transient-fuel model."
+  },
+  "capped_main_candidate_Ct_300": {
+    "status": "verified Session 5A numerical estimate, not published until figures and manuscript are rebuilt",
+    "model_id": "capped_b4_balance",
+    "net_accel_cap_m_s2": 4.136672736266082,
+    "brake_parameter_m_s2": 4.0,
+    "known_reference_cells": 480,
+    "feedback_cells_broad": 480,
+    "feedback_cells_late": 360,
+    "known_S_28_CZK": 3.6755043875231594,
+    "known_S_40_CZK": 4.960873771923826,
+    "known_S_60_CZK": 6.8359062478184685,
+    "U_0_60": {
+      "model": "capped_b4_balance",
+      "support_s": [
+        0.0,
+        60.0
+      ],
+      "known_reference_cells": 480,
+      "feedback_cells": 480,
+      "feedback_nlp_expected_CZK": 4.463750626290725,
+      "feedback_independent_integration_CZK": 4.463747900723676,
+      "quadrature_residual_CZK": -2.725567049388644e-06,
+      "perfect_information_expected_CZK": 4.278767726294927,
+      "value_information_CZK": 0.18498289999579853,
+      "integrated_regret_CZK": 0.1849801737233346,
+      "regret_range_CZK": [
+        2.559286116365911e-12,
+        0.5054621645055555
+      ]
+    },
+    "U_26_30": {
+      "model": "capped_b4_balance",
+      "support_s": [
+        26.0,
+        30.0
+      ],
+      "known_reference_cells": 480,
+      "feedback_cells": 360,
+      "feedback_nlp_expected_CZK": 3.850498273876294,
+      "feedback_independent_integration_CZK": 3.8504982480570327,
+      "quadrature_residual_CZK": -2.581926139555435e-08,
+      "perfect_information_expected_CZK": 3.673527569696465,
+      "value_information_CZK": 0.17697070417982896,
+      "integrated_regret_CZK": 0.17697067836056746,
+      "regret_range_CZK": [
+        0.018157669186522618,
+        0.34597933911977297
+      ]
+    },
+    "S_60_resolution": {
+      "480": 6.8359062478184685,
+      "960": 6.83587070633942,
+      "difference_960_minus_480_CZK": -3.5541479048717406e-05
+    }
+  }
+}

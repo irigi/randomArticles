@@ -1,0 +1,40 @@
+{
+  "S": 23.0,
+  "cost": 3.1382430335006744,
+  "selected_cost": 3.1382430335006744,
+  "selected_start": "legacy",
+  "candidates": [
+    {
+      "start": "legacy",
+      "success": true,
+      "cost": 3.1382430335006744,
+      "min_speed": 12.915243200523255,
+      "min_distance": 1.6137455989086652e-09,
+      "min_stage_speed": 12.915243200523255,
+      "max_defect": 7.650768907296879e-12
+    },
+    {
+      "start": "rolling_0.65",
+      "success": false,
+      "reason": "Error in Opti::solve [OptiNode] at .../casadi/core/optistack.cpp:217:\n.../casadi/core/optistack_internal.cpp:1338: Assertion \"return_success(accept_limit)\" failed:\nSolver failed. You may use opti.debug.value to investigate the latest values of variab"
+    },
+    {
+      "start": "rolling_0.95",
+      "success": true,
+      "cost": 3.13824303350067,
+      "min_speed": 12.91524319254671,
+      "min_distance": 1.61374559880126e-09,
+      "min_stage_speed": 12.91524319254671,
+      "max_defect": 5.288551818694032e-10
+    },
+    {
+      "start": "continuation_0",
+      "success": true,
+      "cost": 3.1382430648905335,
+      "min_speed": 12.912947297392371,
+      "min_distance": 9.194112104627313e-09,
+      "min_stage_speed": 12.91294729733173,
+      "max_defect": 1.0536815864270466e-10
+    }
+  ]
+}
