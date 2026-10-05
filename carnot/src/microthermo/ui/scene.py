@@ -43,13 +43,15 @@ class Camera:
                 center_y+self.pan_y-(screen_y-self.height/2)/self.scale)
 
 
-def scene_bounds(simulation) -> Bounds:
+def scene_bounds(simulation, cylinder_only: bool = False) -> Bounds:
     """Use a fixed full-cycle envelope for Carnot and current geometry elsewhere."""
     mechanism = simulation.world.mechanism
     if hasattr(mechanism, "cam") and hasattr(mechanism, "apparatus_state"):
         cam = mechanism.cam
         width = max(cam.areas)/cam.height
         height = cam.height
+        if cylinder_only:
+            return Bounds(-.05*height, -.08*height, width+.05*height, 1.08*height)
         return Bounds(-.15*height, -.85*height,
                       width+.15*height, 1.15*height)
 

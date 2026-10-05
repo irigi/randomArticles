@@ -32,6 +32,11 @@ class RunConfig:
     pair_kernel: str = "auto"
     cam_kernel: str = "auto"
     carnot_radius_scale: float = 1.0
+    # Carnot only: gas starts at this temperature instead of `temperature`,
+    # which still sets the reservoirs (T_hot = 1.5*temperature).
+    initial_temperature: float | None = None
+    # Carnot only: T_hot/T_cold. The cam adiabats are recalibrated to it.
+    temperature_ratio: float = 2.0
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "cam_fractions", tuple(self.cam_fractions))
@@ -63,6 +68,14 @@ class RunConfig:
             raise ValueError("cam_fractions must sum to one")
         if self.cam_fractions != (.25, .25, .25, .25) and not self.preset.startswith("carnot_"):
             raise ValueError("cam_fractions applies only to Carnot presets")
+        if self.initial_temperature is not None and not (
+                math.isfinite(self.initial_temperature) and self.initial_temperature > 0):
+            raise ValueError("initial_temperature must be finite and positive")
+        if not math.isfinite(self.temperature_ratio) or self.temperature_ratio <= 1:
+            raise ValueError("temperature_ratio must be finite and above one")
+        if ((self.initial_temperature is not None or self.temperature_ratio != 2.0)
+                and not self.preset.startswith("carnot_")):
+            raise ValueError("initial_temperature and temperature_ratio apply only to Carnot presets")
         if self.transient_cycles < 0 or self.efficiency_min_cycles < 4:
             raise ValueError("require nonnegative transients and at least four efficiency cycles")
         if self.pair_search not in ("grid", "sweep", "all"):
@@ -81,4 +94,10 @@ class RunConfig:
             raise ValueError("cam_kernel must be auto or python")
 
     def digest(self) -> str:
-        return hashlib.sha256(json.dumps(asdict(self), sort_keys=True).encode()).hexdigest()
+        data = asdict(self)
+        # Fields added later are omitted at their defaults so older run
+        # hashes, archives, and checkpoints remain valid.
+        for key, default in (("initial_temperature", None), ("temperature_ratio", 2.0)):
+            if data[key] == default:
+                del data[key]
+        return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()

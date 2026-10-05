@@ -33,9 +33,15 @@ class ReplayUiTests(unittest.TestCase):
                 app.processEvents()
                 window.slider.setValue(5000)
                 self.assertAlmostEqual(window.view.snapshot.time,.1)
-                self.assertIn("recorded statistics at t=0.100",window.readout.text())
+                self.assertIn("recorded statistics at t=0.100",window.status_line.text())
+                self.assertTrue(window.lab.diagrams.isVisibleTo(window))
+                self.assertNotEqual(window.lab.readout.values["Area"].text(),"—")
+                self.assertGreater(len(window.lab.readout.temp_trans.getData()[0]),1)
                 window.speed.setCurrentIndex(4)
                 self.assertEqual(window.playback_speed,4.)
+                # Play slowly so the short archive cannot end during the
+                # first (slower) paint of the plots.
+                window.speed.setCurrentIndex(0)
                 gc_before=gc.isenabled()
                 window.play.setChecked(True)
                 app.processEvents()

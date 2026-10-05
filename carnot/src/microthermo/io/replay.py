@@ -16,11 +16,27 @@ import numpy as np
 from ..api import load_preset
 from ..config import RunConfig
 from ..core.apparatus import ApparatusComponent
+from ..measurements.cycles import CycleMarker, assess_efficiency, summarize_cycle
+from ..measurements.live import InstrumentSample, LiveInstruments
+from ..measurements.pressure_area import PressureAreaComparison
 from ..runner.simulation import Snapshot
 from .exports import _json
 
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
+SUPPORTED_VERSIONS = (1, 2)
+# Version 2 adds per-frame instrument columns (prefixed "i_") and the cycle
+# markers with their pressure-area comparisons in the manifest, so a replay
+# can show the same instruments as the live window.
+INSTRUMENT_COLUMNS = {
+    "area": np.float64, "pressure": np.float64, "gas_energy": np.float64,
+    "entropy": np.float64, "motor_work": np.float64,
+    "piston_energy": np.float64, "flywheel_energy": np.float64,
+    "spring_energy": np.float64, "completed_cycles": np.int64,
+    "max_penetration": np.float64, "ccd_refinements": np.int64,
+    "ccd_failures": np.int64, "cluster_count": np.int64,
+    "max_cluster_residual": np.float64,
+}
 
 
 def _interpolate_apparatus(left: Snapshot, right: Snapshot, alpha: float,
@@ -71,8 +87,12 @@ def _frame_arrays(frames: list[Snapshot]) -> dict[str, np.ndarray]:
 
 
 def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
-                        chunk_frames: int = 256) -> Path:
-    """Simulate once and flush bounded frame chunks; store exact event records."""
+                        chunk_frames: int = 256, progress=None) -> Path:
+    """Simulate once and flush bounded frame chunks; store exact event records.
+
+    ``progress(physical_time, duration, event_count)`` is called after each
+    chunk is written.
+    """
     if not math.isfinite(fps) or fps <= 0 or chunk_frames < 2:
         raise ValueError("fps must be positive and chunk_frames at least two")
     config.validate()
@@ -98,6 +118,10 @@ def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
     }
     frames: list[Snapshot] = []
     ledgers: list[tuple[float, float, float, float]] = []
+    samples: list[InstrumentSample] = []
+    instruments = LiveInstruments(history_limit=2,
+                                  transient_cycles=config.transient_cycles,
+                                  efficiency_min_cycles=config.efficiency_min_cycles)
     chunks = []
     frame_count = 0
 
@@ -108,21 +132,29 @@ def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
         name = f"frames_{len(chunks):06d}.npz"
         columns = _frame_arrays(frames)
         columns["ledger"] = np.array(ledgers, dtype=np.float64)
+        for column, dtype in INSTRUMENT_COLUMNS.items():
+            values = [getattr(sample, column) for sample in samples]
+            columns["i_"+column] = np.array(
+                [math.nan if value is None else value for value in values], dtype=dtype)
         np.savez_compressed(path/name, **columns)
         chunks.append({"file": name, "first_frame": frame_count,
                        "count": len(frames), "first_time": frames[0].time,
                        "last_time": frames[-1].time})
         frame_count += len(frames)
+        if progress is not None:
+            progress(frames[-1].time, config.duration, frames[-1].event_count)
         frames.clear()
         ledgers.clear()
+        samples.clear()
 
-    def append_frame(snapshot: Snapshot) -> None:
+    def append_frame(snapshot: Snapshot, events) -> None:
         frames.append(snapshot)
+        samples.append(instruments.observe(simulation, snapshot, events=events).current)
         ledger = simulation.ledger
         ledgers.append((ledger.heat_hot.value, ledger.heat_cold.value,
                         ledger.work_on.value, ledger.load_output.value))
 
-    append_frame(simulation.snapshot())
+    append_frame(simulation.snapshot(), simulation.drain_events())
     sample = 1
     max_kind_length, max_participant_length = 1, 2
     with (path/"events.jsonl").open("w") as file:
@@ -130,8 +162,10 @@ def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
             target = min(config.duration, sample/fps)
             if target <= simulation.time + 1e-12:
                 break
-            append_frame(simulation.advance_to(target))
-            for event in simulation.drain_events():
+            snapshot = simulation.advance_to(target)
+            events = simulation.drain_events()
+            append_frame(snapshot, events)
+            for event in events:
                 file.write(json.dumps(event.as_dict(), default=_json)+"\n")
                 max_kind_length = max(max_kind_length, len(event.kind))
                 max_participant_length = max(
@@ -187,6 +221,14 @@ def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
         "final_energy_residual": final.energy_residual,
         "reconstruction": "float64 snapshots; exact at saved timestamps",
         "ledger_columns": ["heat_hot", "heat_cold", "work_on", "load_output"],
+        "instruments": {
+            "pressure_window": instruments.pressure_window,
+            "transient_cycles": config.transient_cycles,
+            "efficiency_min_cycles": config.efficiency_min_cycles,
+            "cycle_markers": [asdict(m) for m in simulation.cycle_markers],
+            "cycle_pressure_area": [None if c is None else asdict(c)
+                                    for c in instruments.cycle_pressure_area],
+        },
     }
     (path/"manifest.json").write_text(json.dumps(manifest, indent=2,
                                                  default=_json)+"\n")
@@ -201,9 +243,12 @@ class ReplayReader:
     def __init__(self, path: str | Path):
         self.path = Path(path)
         self.manifest = json.loads((self.path/"manifest.json").read_text())
-        if (self.manifest.get("format"), self.manifest.get("version")) != (
-                "microthermo-replay", FORMAT_VERSION):
+        if (self.manifest.get("format") != "microthermo-replay" or
+                self.manifest.get("version") not in SUPPORTED_VERSIONS):
             raise ValueError("unsupported replay format or version")
+        self._series = None
+        self._cycles = None
+        self._efficiency = {}
         self.chunks = self.manifest["chunks"]
         self._starts = [chunk["first_frame"] for chunk in self.chunks]
         self._data = None
@@ -345,6 +390,82 @@ class ReplayReader:
         row = self._load(index)
         return dict(zip(self.manifest["ledger_columns"],
                         (float(x) for x in self._data["ledger"][row])))
+
+    @property
+    def has_instruments(self) -> bool:
+        return "instruments" in self.manifest
+
+    def instrument_series(self) -> dict[str, np.ndarray]:
+        """Whole-run scalar columns; reads only small columns of each chunk."""
+        if self._series is None:
+            names = ["time", "temperature_trans", "temperature_rot", "branch",
+                     "energy_residual", "event_count", "ledger"]
+            if self.has_instruments:
+                names += ["i_"+name for name in INSTRUMENT_COLUMNS]
+            parts = {name: [] for name in names}
+            for chunk in self.chunks:
+                with np.load(self.path/chunk["file"], allow_pickle=False) as archive:
+                    for name in names:
+                        parts[name].append(archive[name])
+            self._series = {name.removeprefix("i_"): np.concatenate(values)
+                            for name, values in parts.items()}
+        return self._series
+
+    def cycles(self):
+        """Completed-cycle summaries and pressure-area comparisons (v2)."""
+        if self._cycles is None:
+            info = self.manifest.get("instruments", {})
+            markers = [CycleMarker(**m) for m in info.get("cycle_markers", [])]
+            summaries = [summarize_cycle(a, b) for a, b in zip(markers[:-1], markers[1:])]
+            comparisons = [None if c is None else PressureAreaComparison(**c)
+                           for c in info.get("cycle_pressure_area", [])]
+            self._cycles = (tuple(summaries), tuple(comparisons), tuple(markers))
+        return self._cycles
+
+    def instrument_sample(self, index: int) -> InstrumentSample:
+        """The live-window instrument reading recorded at a saved frame (v2)."""
+        if not self.has_instruments:
+            raise ValueError("this archive predates recorded instruments")
+        series = self.instrument_series()
+        info = self.manifest["instruments"]
+        summaries, comparisons, _ = self.cycles()
+        completed = int(series["completed_cycles"][index])
+        if completed not in self._efficiency:
+            self._efficiency[completed] = assess_efficiency(
+                summaries[:completed], info["transient_cycles"],
+                info["efficiency_min_cycles"])
+        ledger = dict(zip(self.manifest["ledger_columns"], series["ledger"][index]))
+        metadata = self.manifest["world_metadata"]
+
+        def number(name):
+            value = float(series[name][index])
+            return None if math.isnan(value) else value
+        return InstrumentSample(
+            time=float(series["time"][index]), area=number("area"),
+            pressure=number("pressure"), pressure_window=info["pressure_window"],
+            temperature_trans=float(series["temperature_trans"][index]),
+            temperature_rot=float(series["temperature_rot"][index]),
+            reservoir_hot=metadata.get("T_hot"), reservoir_cold=metadata.get("T_cold"),
+            gas_energy=float(series["gas_energy"][index]),
+            piston_energy=float(series["piston_energy"][index]),
+            flywheel_energy=float(series["flywheel_energy"][index]),
+            spring_energy=float(series["spring_energy"][index]),
+            heat_hot=float(ledger["heat_hot"]), heat_cold=float(ledger["heat_cold"]),
+            motor_work=float(series["motor_work"][index]),
+            load_output=float(ledger["load_output"]),
+            first_law_residual=float(series["energy_residual"][index]),
+            branch=str(series["branch"][index]) or None,
+            event_count=int(series["event_count"][index]),
+            max_penetration=float(series["max_penetration"][index]),
+            ccd_refinements=int(series["ccd_refinements"][index]),
+            ccd_failures=int(series["ccd_failures"][index]),
+            cluster_count=int(series["cluster_count"][index]),
+            max_cluster_residual=float(series["max_cluster_residual"][index]),
+            entropy=number("entropy"), completed_cycles=completed,
+            latest_cycle=summaries[completed-1] if completed else None,
+            latest_pressure_area=(comparisons[completed-1]
+                                  if 0 < completed <= len(comparisons) else None),
+            efficiency_report=self._efficiency[completed])
 
     def _times(self):
         if self._event_times is None:

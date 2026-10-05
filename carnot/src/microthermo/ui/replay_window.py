@@ -10,7 +10,10 @@ from PySide6 import QtCore, QtWidgets
 from ..api import load_preset
 from ..config import RunConfig
 from ..io.replay import ReplayReader
-from .main_window import ApparatusView
+from ..measurements.ideal import ideal_carnot_reference
+from ..measurements.live import InstrumentFrame, gas_degrees_of_freedom
+from .instruments import InstrumentSeries
+from .lab_view import LabView
 
 
 class ReplayWindow(QtWidgets.QMainWindow):
@@ -19,7 +22,21 @@ class ReplayWindow(QtWidgets.QMainWindow):
         self.reader = ReplayReader(path)
         self.reader.prepare_playback()
         config = RunConfig(**self.reader.manifest["config"])
-        self.view = ApparatusView(load_preset(config))
+        simulation = load_preset(config)
+        self.lab = LabView(simulation)
+        self.instruments = self.reader.has_instruments
+        if self.instruments:
+            self._columns = self.reader.instrument_series()
+            self._reference = ideal_carnot_reference(simulation)
+            self._particles = simulation.world.bodies.n
+            self._dof = gas_degrees_of_freedom(simulation)
+        else:
+            # Version-1 archives hold no instrument history; show the cylinder
+            # and the one-line ledger only.
+            self.lab.diagrams.setVisible(False)
+            self.lab.readout.setVisible(False)
+        self._shown_index = None
+        self._plotted_index = None
         self.duration = self.reader.manifest["duration"]
         self.physical_time = 0.0
         self.playback_speed = 1.0
@@ -29,7 +46,7 @@ class ReplayWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(f"Replay — {config.preset} — seed {config.seed}")
         root = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout(root)
-        layout.addWidget(self.view, stretch=1)
+        layout.addWidget(self.lab, stretch=1)
         controls = QtWidgets.QHBoxLayout()
         self.play = QtWidgets.QPushButton("Play")
         self.play.setCheckable(True)
@@ -47,11 +64,12 @@ class ReplayWindow(QtWidgets.QMainWindow):
         self.slider.valueChanged.connect(self._seek_slider)
         controls.addWidget(self.slider, stretch=1)
         layout.addLayout(controls)
-        self.readout = QtWidgets.QLabel()
-        self.readout.setWordWrap(True)
-        layout.addWidget(self.readout)
+        self.status_line = QtWidgets.QLabel()
+        self.status_line.setWordWrap(True)
+        layout.addWidget(self.status_line)
         self.setCentralWidget(root)
-        self.resize(1100, 700)
+        self.lab.setSizes([1100, 380])
+        self.resize(1480, 940)
         self.timer = QtCore.QTimer(self)
         self.timer.setInterval(16)
         self.timer.timeout.connect(self._tick)
@@ -82,6 +100,7 @@ class ReplayWindow(QtWidgets.QMainWindow):
             self.timer.stop()
             self._clock = None
             self._restore_gc_state()
+            self._render()
 
     def _set_speed(self):
         self.playback_speed = float(self.speed.currentData())
@@ -106,12 +125,40 @@ class ReplayWindow(QtWidgets.QMainWindow):
         if self.physical_time >= self.duration:
             self.play.setChecked(False)
 
+    @property
+    def view(self):
+        return self.lab.view
+
+    def _instrument_frame(self, index):
+        current = self.reader.instrument_sample(index)
+        summaries, _, markers = self.reader.cycles()
+        completed = current.completed_cycles
+        return InstrumentFrame(
+            current, (), self._reference, summaries[:completed],
+            markers[completed] if completed < len(markers) else None,
+            self._particles, self._dof)
+
     def _render(self):
         snapshot, index = self.reader.sample(self.physical_time)
-        self.view.set_snapshot(snapshot)
+        if self.instruments:
+            if index != self._shown_index:
+                self._shown_index = index
+                self._frame = self._instrument_frame(index)
+                self._plotted_index = None
+            series = None
+            if (self._plotted_index != index and
+                    self.lab.plots_due(force=not self.play.isChecked())):
+                self._plotted_index = index
+                series = InstrumentSeries.from_columns(self._columns, index+1,
+                                                       max_points=3000)
+            self.lab.show_frame(snapshot, self._frame, series, replay=True)
+        else:
+            self.lab.view.set_snapshot(snapshot)
+            if self.lab.dial is not None:
+                self.lab.dial.set_snapshot(snapshot)
         ledger = self.reader.ledger(index)
         recorded = self.reader.frame(index)
-        self.readout.setText(
+        self.status_line.setText(
             f"t={snapshot.time:.3f}/{self.duration:.3f} s · "
             f"recorded statistics at t={recorded.time:.3f} s · "
             f"events={recorded.event_count} · "

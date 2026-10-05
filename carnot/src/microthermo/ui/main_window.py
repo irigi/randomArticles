@@ -11,7 +11,7 @@ import time
 from ..api import load_preset
 from ..config import RunConfig
 from ..experiments import preset_names
-from .instruments import InstrumentPanel
+from .instruments import InstrumentSeries
 from .scene import Camera, scene_bounds
 from .worker import SimulationWorker
 
@@ -24,7 +24,17 @@ class ApparatusView(QtWidgets.QWidget):
         shaft = getattr(sim.world.mechanism, "shaft", None)
         self.controlled_shaft = (shaft is not None and
                                  shaft.prescribed_omega is not None)
-        self.bounds=scene_bounds(sim)
+        mechanism = sim.world.mechanism
+        cam = getattr(mechanism, "cam", None)
+        # Carnot scenes draw only the cylinder; the drive train is summarized
+        # by the cycle dial. Its energies remain in the readout panel.
+        self.cylinder_only = cam is not None and hasattr(mechanism, "apparatus_state")
+        self.bounds=scene_bounds(sim, cylinder_only=self.cylinder_only)
+        if self.cylinder_only:
+            self.barrel = (max(cam.areas)/cam.height, cam.height)
+            metadata = sim.world.metadata
+            self.jackets = {"hot": bool(metadata.get("hot_jacket")),
+                            "cold": bool(metadata.get("cold_jacket"))}
         state=sim.world.bodies
         self.shape=tuple(int(value) for value in state.shape)
         self.radius=tuple(float(value) for value in state.radius)
@@ -49,7 +59,7 @@ class ApparatusView(QtWidgets.QWidget):
         self.selected_particle=None
         self.selected_component=None
         self._drag_at=None
-        self.setMinimumSize(500,340)
+        self.setMinimumSize(*((300,120) if self.cylinder_only else (500,340)))
 
     def set_snapshot(self, snapshot):
         self.snapshot=snapshot
@@ -183,6 +193,8 @@ class ApparatusView(QtWidgets.QWidget):
         super().mouseReleaseEvent(event)
 
     def component_visible(self, component):
+        if self.cylinder_only:
+            return component.name in ("cylinder", "piston", "thermal_wall")
         # The stored spring path is a phase marker, not a literal deforming
         # spring. Keep its energy in the instruments without drawing a coil.
         return component.name != "shaft_spring"
@@ -215,12 +227,33 @@ class ApparatusView(QtWidgets.QWidget):
         painter.setPen(QtGui.QPen(QtGui.QColor(color),2))
         painter.drawLine(self._point(camera,start),self._point(camera,end))
 
+    def _paint_jackets(self, painter, camera):
+        # Thermal jackets make the top and bottom walls exchange heat during
+        # their sector; colour them while they are active.
+        branch=self.snapshot.branch
+        if branch not in ("hot","cold") or not self.jackets.get(branch):
+            return
+        piston=next(p for p in self.snapshot.apparatus if p.name=="piston")
+        right=piston.points[0][0]
+        top=max(y for _,y in piston.points)
+        color=QtGui.QColor("#f2a65a" if branch=="hot" else "#76bce3")
+        painter.setPen(QtGui.QPen(color,3))
+        for y in (0.,top):
+            painter.drawLine(self._point(camera,(0.,y)),self._point(camera,(right,y)))
+
     def paintEvent(self, event):
         painter=QtGui.QPainter(self)
         painter.fillRect(self.rect(),QtGui.QColor("#15191f"))
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         camera=self.camera()
         snap=self.snapshot
+        if snap.apparatus and self.cylinder_only:
+            # The full barrel shows the piston's range of travel.
+            painter.setPen(QtGui.QPen(QtGui.QColor("#3a4350"),1,
+                                      QtCore.Qt.PenStyle.DashLine))
+            width,height=self.barrel
+            painter.drawPolyline(QtGui.QPolygonF([self._point(camera,p) for p in
+                ((0.,0.),(width,0.),(width,height),(0.,height))]))
         if snap.apparatus:
             for component in snap.apparatus:
                 if self.component_visible(component):
@@ -250,7 +283,9 @@ class ApparatusView(QtWidgets.QWidget):
                                     max(8.,self.radius[i]*camera.scale+6.))
                 painter.setBrush(QtGui.QColor("#e8b44d"))
                 painter.setPen(QtGui.QPen(QtGui.QColor("#f3e7c3"),1))
-        if snap.apparatus:
+        if snap.apparatus and self.cylinder_only:
+            self._paint_jackets(painter,camera)
+        elif snap.apparatus:
             painter.setPen(QtGui.QColor("#d5dce4"))
             parts={part.name:part for part in snap.apparatus}
             def center(name):
@@ -299,27 +334,27 @@ class MainWindow(QtWidgets.QMainWindow):
     export_requested=QtCore.Signal(str)
 
     def __init__(self,preset,autoplay=True,transient_cycles=2,
-                 efficiency_min_cycles=8,shaft_speed=.15,shaft_mode="controlled"):
+                 efficiency_min_cycles=8,shaft_speed=.15,shaft_mode="controlled",
+                 config=None):
         super().__init__(); self.setWindowTitle("Microscopic Thermodynamics Laboratory" +
             (" — experimental triangle CCD" if preset=="carnot_triangles" else ""))
-        config=RunConfig(preset=preset,
-                         particles=96 if preset=="carnot_triangles" else 48,
-                         max_horizon=.02,shaft_speed=shaft_speed,
-                         shaft_mode=shaft_mode)
+        from .lab_view import LabView
+        if config is None:
+            config=RunConfig(preset=preset,
+                             particles=96 if preset=="carnot_triangles" else 48,
+                             max_horizon=.02,shaft_speed=shaft_speed,
+                             shaft_mode=shaft_mode)
+        config.validate()
+        preset,shaft_speed,shaft_mode=config.preset,config.shaft_speed,config.shaft_mode
         simulation=load_preset(config)
         self.config=config
         self._generation=0
-        self.view=ApparatusView(simulation)
-        self.instruments=InstrumentPanel()
-        self.view.inspected.connect(self.instruments.inspector.setText)
-        self.splitter=QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
-        self.splitter.addWidget(self.view)
-        self.splitter.addWidget(self.instruments)
-        self.splitter.setStretchFactor(0,2)
-        self.splitter.setStretchFactor(1,1)
-        self.splitter.setSizes([720,360])
-        self.setCentralWidget(self.splitter)
-        self.resize(1100,700)
+        self.lab=LabView(simulation)
+        self.readout=self.lab.readout
+        self.diagrams=self.lab.diagrams
+        self.setCentralWidget(self.lab)
+        self.lab.setSizes([1100,380])
+        self.resize(1480,900)
         bar=self.addToolBar("Simulation")
         bar.addWidget(QtWidgets.QLabel(" Scene "))
         self.preset_choice=QtWidgets.QComboBox()
@@ -435,15 +470,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.thread.finished.connect(self.worker.deleteLater)
         self.thread.start()
 
+    @property
+    def view(self):
+        return self.lab.view
+
     @QtCore.Slot(object)
     def on_snapshot(self, frame):
         if frame.generation != self._generation:
             self.frame_received.emit()
             return
         snapshot=frame.snapshot
-        self.view.set_snapshot(snapshot)
-        self.instruments.set_frame(frame.instruments)
-        self.instruments.set_rates(frame.rates)
+        # Paused or stepped frames (no playback rates) always redraw plots.
+        series=(InstrumentSeries.from_history(frame.instruments.history)
+                if self.lab.plots_due(force=frame.rates is None) else None)
+        self.lab.show_frame(snapshot,frame.instruments,series,frame.rates)
         self.status.showMessage(
             f"{'PAUSED' if self.play.isChecked() else 'RUNNING'}  "
             f"t={snapshot.time:.3f}  events={snapshot.event_count}  "
@@ -504,8 +544,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.play.setChecked(True)
         self.view.selected_particle=None
         self.view.selected_component=None
-        self.instruments.inspector.setText(
-            "Click a particle or apparatus part to inspect it.")
+        self.readout.show_inspection("")
         self.config=replace(self.config,seed=self.seed.value())
         self._generation += 1
         self.reset_requested.emit(self.seed.value())
@@ -521,13 +560,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._install_config(config)
 
     def _install_config(self, config, generation=None, reset_worker=True):
-        replacement=ApparatusView(load_preset(config))
-        replacement.inspected.connect(self.instruments.inspector.setText)
-        previous=self.splitter.replaceWidget(0,replacement)
-        self.view=replacement
-        self.instruments.inspector.setText(
-            "Click a particle or apparatus part to inspect it.")
-        previous.deleteLater()
+        self.lab.set_simulation(load_preset(config))
         self.config=config
         self.seed.setValue(config.seed)
         self.shaft_speed.blockSignals(True)
@@ -562,7 +595,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             data=json.loads(Path(path).read_text())
             names={field.name for field in fields(RunConfig)}
-            if set(data)!=names:
+            # Files from older versions may lack fields added since; those
+            # take their defaults.
+            if not set(data)<=names:
                 raise ValueError("configuration fields do not match this version")
             config=RunConfig(**data)
             config.validate()
@@ -600,13 +635,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 self,"Export plots","plots.png","PNG image (*.png)")
         if path:
             stem=Path(path).with_suffix("")
-            for name,plot in (("pressure_area",self.instruments.pa),
-                              ("temperatures",self.instruments.temperatures),
-                              ("energy",self.instruments.energy)):
+            for name,plot in (("pressure_area",self.diagrams.pv),
+                              ("temperature_entropy",self.diagrams.ts),
+                              ("temperatures",self.readout.temperatures)):
                 exporter=pyqtgraph.exporters.ImageExporter(plot.plotItem)
                 exporter.parameters()["width"]=1200
                 exporter.export(str(stem)+f"_{name}.png")
-            self.on_saved(str(stem)+"_{pressure_area,temperatures,energy}.png")
+            self.on_saved(str(stem)+"_{pressure_area,temperature_entropy,temperatures}.png")
 
     def start_recording(self, path=None):
         if path is None:
@@ -706,9 +741,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def launch(preset="gas_box",transient_cycles=2,efficiency_min_cycles=8,
-           shaft_speed=.15,shaft_mode="controlled"):
+           shaft_speed=.15,shaft_mode="controlled",config=None):
     app=QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
     window=MainWindow(preset,transient_cycles=transient_cycles,
                       efficiency_min_cycles=efficiency_min_cycles,
-                      shaft_speed=shaft_speed,shaft_mode=shaft_mode)
+                      shaft_speed=shaft_speed,shaft_mode=shaft_mode,config=config)
     window.show(); return app.exec()

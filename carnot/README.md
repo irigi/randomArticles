@@ -51,6 +51,31 @@ completed. Numerical failures pause the GUI and write a diagnostic checkpoint
 in a temporary directory. See
 `docs/archive/codex/CARNOT_GAP_CLOSURE_PLAN.md` for the remaining acceptance gates.
 
+## Quick start: watch a Carnot engine
+
+Large scenes run far slower than real time, so record once and replay.
+The settings below run the cycle slowly enough to behave like a Carnot engine
+(see `docs/PLAN.md` §3). Expect several hours of recording for 500 triangles.
+Progress is printed after each chunk.
+
+```bash
+.venv/bin/python -m microthermo precalculate --preset carnot_triangles \
+  --particles 500 --seed 123 --cycles 3 --shaft-speed 0.0375 \
+  --hot-jacket --cold-jacket --initial-temperature 1.5 --fps 30 \
+  --output runs/replays/carnot_500tri_slow_3cycles
+.venv/bin/python -m microthermo replay runs/replays/carnot_500tri_slow_3cycles
+```
+
+The replay shows the same instruments as the live window: the cylinder with a
+cycle dial, the p–V and T–S diagrams, a per-cycle scoreboard, and the readout
+column. `runs/replays/` is git-ignored. A small live version of the same
+setup:
+
+```bash
+.venv/bin/python -m microthermo gui --preset carnot_triangles --particles 96 \
+  --shaft-speed 0.0375 --hot-jacket --cold-jacket --initial-temperature 1.5
+```
+
 ## Available configurations
 
 Run these commands from the repository root after activating the virtual

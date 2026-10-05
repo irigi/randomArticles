@@ -56,6 +56,10 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--cam-fractions", type=float, nargs=4,
                      metavar=("HOT", "EXPANSION", "COLD", "COMPRESSION"),
                      help="fractions of a revolution assigned to the four cam sectors")
+    run.add_argument("--initial-temperature", type=float,
+                     help="Carnot: starting gas temperature (default: --temperature)")
+    run.add_argument("--temperature-ratio", type=float,
+                     help="Carnot: T_hot/T_cold with T_hot = 1.5*temperature (default 2.0)")
     run.add_argument("--transient-cycles", type=int)
     run.add_argument("--efficiency-min-cycles", type=int)
     study = sub.add_parser("speed-study", help="compare controlled Carnot shaft speeds across seeds")
@@ -83,13 +87,21 @@ def parser() -> argparse.ArgumentParser:
     replay.add_argument("--preset", choices=preset_names(), default="carnot_discs")
     replay.add_argument("--seed", type=int, default=123)
     replay.add_argument("--particles", type=int, default=32)
-    replay.add_argument("--duration", type=float, required=True)
+    length = replay.add_mutually_exclusive_group(required=True)
+    length.add_argument("--duration", type=float)
+    length.add_argument("--cycles", type=int, help="Carnot: whole shaft revolutions")
     replay.add_argument("--shaft-speed", type=float, default=.15)
     replay.add_argument("--cold-jacket", action="store_true")
     replay.add_argument("--hot-jacket", action="store_true")
     replay.add_argument("--cam-fractions", type=float, nargs=4,
                         metavar=("HOT", "EXPANSION", "COLD", "COMPRESSION"),
                         default=(.25,.25,.25,.25))
+    replay.add_argument("--initial-temperature", type=float,
+                     help="Carnot: starting gas temperature (default: --temperature)")
+    replay.add_argument("--temperature-ratio", type=float,
+                     help="Carnot: T_hot/T_cold with T_hot = 1.5*temperature (default 2.0)")
+    replay.add_argument("--pair-search", choices=("grid", "sweep", "all"), default="sweep",
+                        help="broad phase; sweep is about 2x faster for 500 triangles")
     replay.add_argument("--fps", type=float, default=60.)
     replay.add_argument("--chunk-frames", type=int, default=256)
     replay.add_argument("--output", required=True)
@@ -105,6 +117,15 @@ def parser() -> argparse.ArgumentParser:
     gui.add_argument("--efficiency-min-cycles", type=int, default=8)
     gui.add_argument("--shaft-speed", type=float, default=.15)
     gui.add_argument("--shaft-mode", choices=("controlled", "free"), default="controlled")
+    gui.add_argument("--seed", type=int, default=123)
+    gui.add_argument("--particles", type=int,
+                     help="default: 96 for carnot_triangles, otherwise 48")
+    gui.add_argument("--cold-jacket", action="store_true")
+    gui.add_argument("--hot-jacket", action="store_true")
+    gui.add_argument("--initial-temperature", type=float,
+                     help="Carnot: starting gas temperature (default: --temperature)")
+    gui.add_argument("--temperature-ratio", type=float, default=2.0,
+                     help="Carnot: T_hot/T_cold with T_hot = 1.5*temperature (default 2.0)")
     return p
 
 
@@ -118,7 +139,8 @@ def _run(args) -> int:
             "pair_search":"grid","numeric_backend":"auto",
             "wall_search":"bounded","wall_kernel":"auto",
             "penetration_kernel":"auto","pair_kernel":"auto",
-            "cam_kernel":"auto"}
+            "cam_kernel":"auto","initial_temperature":None,
+            "temperature_ratio":2.0}
     if args.config:
         with open(args.config,"rb") as f:
             loaded=tomllib.load(f)
@@ -130,7 +152,8 @@ def _run(args) -> int:
                 "max_horizon","cycles","shaft_mode","shaft_speed","transient_cycles",
                 "efficiency_min_cycles","pair_search","numeric_backend",
                 "wall_search","wall_kernel","penetration_kernel","pair_kernel",
-                "cam_kernel","cold_jacket","hot_jacket","cam_fractions"):
+                "cam_kernel","cold_jacket","hot_jacket","cam_fractions",
+                "initial_temperature","temperature_ratio"):
         value=getattr(args,key)
         if value is not None: values[key]=tuple(value) if key=="cam_fractions" else value
     if args.reversed: values["reversed_cycle"]=True
@@ -208,12 +231,28 @@ def main(argv=None) -> int:
     if args.command == "benchmark": return _benchmark(args)
     if args.command == "speed-study": return _speed_study(args)
     if args.command == "precalculate":
+        duration=args.duration
+        if args.cycles is not None:
+            if args.cycles <= 0 or not args.preset.startswith("carnot_"):
+                raise SystemExit("--cycles needs a Carnot preset and a positive count")
+            duration=args.cycles*2*math.pi/args.shaft_speed
         cfg=RunConfig(preset=args.preset,seed=args.seed,particles=args.particles,
-                      duration=args.duration,shaft_speed=args.shaft_speed,
+                      duration=duration,shaft_speed=args.shaft_speed,
                       cold_jacket=args.cold_jacket,hot_jacket=args.hot_jacket,
-                      cam_fractions=tuple(args.cam_fractions))
+                      cam_fractions=tuple(args.cam_fractions),
+                      initial_temperature=args.initial_temperature,
+                      temperature_ratio=(2.0 if args.temperature_ratio is None
+                                         else args.temperature_ratio),
+                      pair_search=args.pair_search)
+        started=time.perf_counter()
+        def progress(physical,duration,events):
+            elapsed=time.perf_counter()-started
+            remaining=elapsed*(duration-physical)/physical if physical>0 else math.nan
+            print(f"t={physical:.1f}/{duration:.1f} s ({100*physical/duration:.1f}%) "
+                  f"events={events} elapsed={elapsed/60:.1f} min "
+                  f"remaining≈{remaining/60:.0f} min",file=sys.stderr,flush=True)
         output=precalculate_replay(cfg,args.output,fps=args.fps,
-                                   chunk_frames=args.chunk_frames)
+                                   chunk_frames=args.chunk_frames,progress=progress)
         print(json.dumps({"output":str(output)},indent=2))
         return 0
     if args.command == "replay":
@@ -233,6 +272,21 @@ def main(argv=None) -> int:
         except ImportError as exc:
             print("GUI dependencies are missing; install with: pip install -e '.[gui]'", file=sys.stderr)
             return 3
+        config=RunConfig(preset=args.preset,seed=args.seed,
+                         particles=(args.particles if args.particles is not None else
+                                    96 if args.preset=="carnot_triangles" else 48),
+                         max_horizon=.02,shaft_speed=args.shaft_speed,
+                         pair_search="sweep",
+                         shaft_mode=args.shaft_mode,cold_jacket=args.cold_jacket,
+                         hot_jacket=args.hot_jacket,
+                         initial_temperature=args.initial_temperature,
+                         temperature_ratio=args.temperature_ratio,
+                         transient_cycles=args.transient_cycles,
+                         efficiency_min_cycles=args.efficiency_min_cycles)
+        try:
+            config.validate()
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
         return launch(args.preset,args.transient_cycles,args.efficiency_min_cycles,
-                      args.shaft_speed,args.shaft_mode)
+                      args.shaft_speed,args.shaft_mode,config=config)
     return 1

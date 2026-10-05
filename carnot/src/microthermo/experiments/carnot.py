@@ -282,7 +282,8 @@ class CarnotExperiment(Experiment):
 
     def build(self, config: RunConfig, rng: np.random.Generator) -> World:
         height, a1, ratio = 1.0, 1.25, 1.35
-        th, tc = 1.5*config.temperature, 0.75*config.temperature
+        th = 1.5*config.temperature
+        tc = th/config.temperature_ratio
         dof = 3 if self.triangles else 2
         base_cam = CarnotCam.design(a1, ratio, th, tc, dof, height)
         cam = CarnotCam(base_cam.areas, tuple(config.cam_fractions), height)
@@ -296,7 +297,9 @@ class CarnotExperiment(Experiment):
         # At 48 particles triangles fill about 3.1% of the minimum cylinder.
         radius = 0.025 * math.sqrt(48 / config.particles) * config.carnot_radius_scale
         specs = particle_specs(config.particles, max(cam.areas)/height, height, radius,
-                               config.temperature, rng, shape, x_max=min(cam.areas)/height)
+                               (config.temperature if config.initial_temperature is None
+                                else config.initial_temperature),
+                               rng, shape, x_max=min(cam.areas)/height)
         state = BodyArrays.from_specs(specs)
         # The simulation updates this clock at every committed or sampled time.
         clock = [0.0]

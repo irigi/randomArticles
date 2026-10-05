@@ -19,9 +19,9 @@ in `docs/archive/codex/`. Design decisions remain in `docs/adr/`.
   reference, temperatures, energy plot, cycle ledger, guarded efficiency estimate.
 - **Precalculate and replay.** `microthermo precalculate` writes a chunked,
   lossless archive; `microthermo replay` plays it back smoothly with seeking.
-  The replay window shows only the apparatus and one line of text. It does
-  **not** show the instrument panel.
-- 157 unit tests and 16 scientific checks pass on Ubuntu 24.04.
+  Since archive format v2 (2026-10-05), the replay window shows the same
+  instruments as the live window.
+- 160 unit tests and 16 scientific checks pass on Ubuntu 24.04 (2026-10-05).
 
 ## What is not established
 
@@ -47,7 +47,12 @@ In both cycles the gas *absorbs* net work and almost no heat leaves on the cold
 isotherm. The gas is still heating up from its initial temperature (1.0,
 between the reservoirs at 1.5 and 0.75). It is not yet running as an engine.
 A 3-cycle recording that uses the same settings will show this warm-up
-transient, not a Carnot engine. See the plan, section 3.
+transient, not a Carnot engine.
+
+**Update 2026-10-05:** a 96-triangle pilot links the problem to shaft speed.
+With jackets, the gas started at T_H and the shaft at 0.0375 rad/s (4× slower
+than the default), three consecutive cycles delivered W ≈ 23–26, against an
+ideal 21.6, with η ≈ 0.47–0.52, against η_C = 0.5. See `PLAN.md` §3.
 
 ## Known rough edges
 

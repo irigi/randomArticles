@@ -22,16 +22,43 @@ class PressureAreaComparison:
         return self.integrated_work_by_gas-self.event_work_by_gas
 
 
+def piston_wall_index(simulation) -> int | None:
+    return next((index for index, wall in enumerate(simulation.world.walls)
+                 if wall.name == "cam_piston"), None)
+
+
+def piston_impulses(simulation, events, first_index: int):
+    """Yield (global event index, time, |normal impulse|) for piston contacts."""
+    piston = piston_wall_index(simulation)
+    for offset, event in enumerate(events):
+        if (event.metadata or {}).get("boundary") == piston:
+            yield first_index+offset, event.time, abs(event.impulse[0])
+
+
 def compare_pressure_area(simulation, start: CycleMarker, end: CycleMarker,
                           window: float = .25) -> PressureAreaComparison | None:
+    """Integrate the trailing pressure window over the retained event history."""
+    if window <= 0:
+        raise ValueError("pressure window must be positive")
+    first = bisect_left(simulation.events, start.time-window,
+                        hi=end.event_count, key=lambda event: event.time)
+    impulses = piston_impulses(simulation, simulation.events[first:end.event_count], first)
+    return pressure_area_from_impulses(simulation, start, end, impulses, window)
+
+
+def pressure_area_from_impulses(simulation, start: CycleMarker, end: CycleMarker,
+                                impulses, window: float = .25
+                                ) -> PressureAreaComparison | None:
     """Integrate the fixed-width trailing pressure window exactly for a controlled cam.
 
-    Each impulse contributes constant pressure for ``window`` seconds. Its
-    integral against dA is the exact cam-area difference over the portion of
-    that interval inside this cycle. The error bound sums absolute per-impulse
-    changes caused by smoothing and clipping; it is deterministic, not a
-    statistical confidence interval. Free-shaft histories need stored phase
-    trajectories before this estimator can be used there.
+    ``impulses`` holds (global event index, time, |impulse|) piston contacts
+    covering at least [start.time-window, end.time]. Each impulse contributes
+    constant pressure for ``window`` seconds. Its integral against dA is the
+    exact cam-area difference over the portion of that interval inside this
+    cycle. The error bound sums absolute per-impulse changes caused by
+    smoothing and clipping; it is deterministic, not a statistical confidence
+    interval. Free-shaft histories need stored phase trajectories before this
+    estimator can be used there.
     """
     if window <= 0:
         raise ValueError("pressure window must be positive")
@@ -40,9 +67,7 @@ def compare_pressure_area(simulation, start: CycleMarker, end: CycleMarker,
     cam = getattr(mechanism, "cam", None)
     if shaft is None or cam is None or shaft.prescribed_omega is None:
         return None
-    piston = next((index for index, wall in enumerate(simulation.world.walls)
-                   if wall.name == "cam_piston"), None)
-    if piston is None:
+    if piston_wall_index(simulation) is None:
         return None
     omega = shaft.prescribed_omega
 
@@ -51,18 +76,15 @@ def compare_pressure_area(simulation, start: CycleMarker, end: CycleMarker,
 
     integrated = 0.
     bound = 0.
-    first = bisect_left(simulation.events, start.time-window,
-                        hi=end.event_count, key=lambda event: event.time)
-    for index in range(first, end.event_count):
-        event = simulation.events[index]
-        if (event.metadata or {}).get("boundary") != piston:
+    for index, time, magnitude in impulses:
+        if index >= end.event_count or time < start.time-window:
             continue
-        impulse = abs(event.impulse[0])/cam.height
-        left = max(start.time, event.time)
-        right = min(end.time, event.time+window)
+        impulse = magnitude/cam.height
+        left = max(start.time, time)
+        right = min(end.time, time+window)
         smooth = (impulse*(cam.area(phase(right))-cam.area(phase(left)))/window
                   if right > left else 0.)
-        instantaneous = (impulse*cam.area_derivative(phase(event.time))*omega
+        instantaneous = (impulse*cam.area_derivative(phase(time))*omega
                          if index >= start.event_count else 0.)
         integrated += smooth
         bound += abs(smooth-instantaneous)

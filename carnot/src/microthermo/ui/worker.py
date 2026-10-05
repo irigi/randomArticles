@@ -66,6 +66,7 @@ class SimulationWorker(QtCore.QObject):
         self._efficiency_min_cycles=efficiency_min_cycles
         self._timer=None
         self._instruments=LiveInstruments(
+            history_limit=3000,history_spacing=.05,
             transient_cycles=transient_cycles,
             efficiency_min_cycles=efficiency_min_cycles)
         self._awaiting_frame=False
@@ -184,6 +185,7 @@ class SimulationWorker(QtCore.QObject):
             self._config=config
             self._rates=None
             self._instruments=LiveInstruments(
+                history_limit=3000,history_spacing=.05,
                 transient_cycles=self._transient_cycles,
                 efficiency_min_cycles=self._efficiency_min_cycles)
             self._generation += 1
@@ -286,6 +288,7 @@ class SimulationWorker(QtCore.QObject):
             self._config=config
             self._simulation=simulation
             self._instruments=LiveInstruments(
+                history_limit=3000,history_spacing=.05,
                 transient_cycles=self._transient_cycles,
                 efficiency_min_cycles=self._efficiency_min_cycles)
             self._generation += 1

@@ -30,31 +30,48 @@ class UiRenderTests(unittest.TestCase):
             time.sleep(.005)
         self.fail("timed out waiting for Qt worker snapshot")
 
-    def test_small_carnot_view_draws_cylinder_and_drive(self):
+    def test_small_carnot_view_draws_only_the_cylinder(self):
         from microthermo.ui.main_window import ApparatusView
 
         app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
-        sim = load_preset(RunConfig(preset="carnot_triangles",particles=8,seed=123))
+        sim = load_preset(RunConfig(preset="carnot_triangles",particles=8,seed=123,
+                                    hot_jacket=True,cold_jacket=True))
         view = ApparatusView(sim)
-        view.resize(500,340)
+        view.resize(500,200)
         view.show()
         app.processEvents()
         image = view.grab().toImage()
-        self.assertEqual((image.width(),image.height()),(500,340))
-        camera = Camera(scene_bounds(sim),500,340)
+        self.assertEqual((image.width(),image.height()),(500,200))
+        camera = Camera(scene_bounds(sim,cylinder_only=True),500,200)
         parts = {part.name:part for part in sim.snapshot().apparatus}
         self.assertTrue(view.controlled_shaft)
-        self.assertFalse(view.component_visible(parts["shaft_spring"]))
-        for name,index in (("piston",0),("thermal_wall",0),
-                           ("piston_cam",20),("selector_cam",20),
-                           ("flywheel",20),
-                           ("load",1)):
-            x,y = camera.map(*parts[name].points[index])
+        self.assertTrue(view.cylinder_only)
+        for name in ("piston_cam","selector_cam","flywheel","load","shaft_spring"):
+            self.assertFalse(view.component_visible(parts[name]),name)
+        # Piston, thermal wall, and the active hot jacket on the bottom wall.
+        for name,point in (("piston",parts["piston"].points[0]),
+                           ("thermal_wall",parts["thermal_wall"].points[0]),
+                           ("jacket",(parts["piston"].points[0][0]/2,0.))):
+            x,y = camera.map(*point)
             pixels = [image.pixelColor(int(x)+dx,int(y)+dy)
                       for dx in (-2,-1,0,1,2) for dy in (-2,-1,0,1,2)]
             self.assertTrue(any(color.red()+color.green()+color.blue() > 300
                                 for color in pixels),name)
         view.close()
+
+    def test_cycle_dial_tracks_sector_progress(self):
+        from microthermo.ui.lab_view import CycleDial
+
+        QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        sim = load_preset(RunConfig(preset="carnot_discs",particles=4,
+                                    cam_fractions=(.4,.2,.2,.2)))
+        dial = CycleDial(sim)
+        dial.set_snapshot(sim.advance_to(.2*2*math.pi/.15))
+        self.assertEqual(dial.branch,"hot")
+        self.assertAlmostEqual(dial.phase_fraction(),.5,places=9)
+        self.assertEqual([s[2] for s in dial.sectors],
+                         ["hot","adiabatic_expansion","cold","adiabatic_compression"])
+        self.assertGreater(dial.grab().toImage().width(),0)
 
     def test_camera_zoom_pan_and_inverse_mapping(self):
         from microthermo.ui.scene import Bounds
@@ -74,18 +91,20 @@ class UiRenderTests(unittest.TestCase):
         window=MainWindow("carnot_discs",autoplay=False)
         try:
             window.show()
-            self.wait_until(app,lambda: window.instruments.values["Area"].text()!="—")
-            cam=next(part for part in window.view.snapshot.apparatus
-                     if part.name=="selector_cam")
-            x,y=window.view.camera().map(*cam.points[20])
+            self.wait_until(app,lambda: window.readout.values["Area"].text()!="—")
+            self.assertFalse(window.readout.inspector.isVisibleTo(window))
+            piston=next(part for part in window.view.snapshot.apparatus
+                        if part.name=="piston")
+            x,y=window.view.camera().map(*piston.points[0])
             QtTest.QTest.mouseClick(window.view,QtCore.Qt.MouseButton.LeftButton,
-                                    pos=QtCore.QPoint(round(x),round(y)))
-            self.assertIn("selector cam",window.instruments.inspector.text().lower())
+                                    pos=QtCore.QPoint(round(x),round(y)-20))
+            self.assertIn("piston",window.readout.inspector.text().lower())
+            self.assertTrue(window.readout.inspector.isVisibleTo(window))
             x,y=window.view.camera().map(*window.view.snapshot.position[0])
             QtTest.QTest.mouseClick(window.view,QtCore.Qt.MouseButton.LeftButton,
                                     pos=QtCore.QPoint(round(x),round(y)))
-            self.assertIn("Particle 0",window.instruments.inspector.text())
-            self.assertIn("velocity",window.instruments.inspector.text())
+            self.assertIn("Particle 0",window.readout.inspector.text())
+            self.assertIn("velocity",window.readout.inspector.text())
         finally:
             window.close()
 
@@ -165,19 +184,19 @@ class UiRenderTests(unittest.TestCase):
             window.play_requested.emit(True)
             self.wait_until(app,lambda: window.view.snapshot.time>=.02)
             self.wait_until(app,lambda:
-                window.instruments.diagnostic_values["Achieved playback"].text()
+                window.readout.diagnostic_values["Achieved playback"].text()
                 .endswith("×"))
-            self.assertIn("events/s",window.instruments.diagnostic_values[
+            self.assertIn("events/s",window.readout.diagnostic_values[
                 "Event throughput"].text())
             window.play_requested.emit(False)
             self.wait_until(app,lambda:
-                window.instruments.diagnostic_values["Achieved playback"].text()
+                window.readout.diagnostic_values["Achieved playback"].text()
                 == "Paused")
             paused=window.view.snapshot.time
             time.sleep(.05)
             app.processEvents()
             self.assertEqual(window.view.snapshot.time,paused)
-            self.assertEqual(window.instruments.diagnostic_values[
+            self.assertEqual(window.readout.diagnostic_values[
                 "Achieved playback"].text(),"Paused")
             window.advance_requested.emit(.01)
             self.wait_until(app,lambda: window.view.snapshot.time>paused)
@@ -193,7 +212,7 @@ class UiRenderTests(unittest.TestCase):
         try:
             window.show()
             self.wait_until(app,lambda: window.view.snapshot.time==0 and
-                            window.instruments.values["Area"].text() != "—")
+                            window.readout.values["Area"].text() != "—")
             window.playback_rate.setCurrentIndex(window.playback_rate.findData(4.))
             self.wait_until(app,lambda: abs(window.worker._physical_step-.064)<1e-12)
             self.assertAlmostEqual(window.view.snapshot.shaft_phase,0.)
@@ -250,7 +269,7 @@ class UiRenderTests(unittest.TestCase):
         window=MainWindow("carnot_discs",autoplay=False)
         try:
             window.show()
-            self.wait_until(app,lambda: window.instruments.values["Area"].text() != "—")
+            self.wait_until(app,lambda: window.readout.values["Area"].text() != "—")
             window.advance_requested.emit(.05)
             self.wait_until(app,lambda: window.view.snapshot.time>=.05)
             original=window.view.snapshot
@@ -264,7 +283,7 @@ class UiRenderTests(unittest.TestCase):
                 window.export_plots(root/"plots.png")
                 self.assertTrue((root/"plots_pressure_area.png").exists())
                 self.assertTrue((root/"plots_temperatures.png").exists())
-                self.assertTrue((root/"plots_energy.png").exists())
+                self.assertTrue((root/"plots_temperature_entropy.png").exists())
                 window.start_recording(root/"recording")
                 window._capture_recording_frame()
                 window.stop_recording()
@@ -288,69 +307,103 @@ class UiRenderTests(unittest.TestCase):
         finally:
             window.close()
 
-    def test_splitter_and_live_plots_fit_minimum_window(self):
+    def test_lab_layout_fits_a_laptop_screen(self):
         from microthermo.ui.main_window import MainWindow
 
         app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
         window=MainWindow("carnot_triangles",autoplay=False)
         try:
-            window.resize(850,520)
+            window.resize(1280,800)
             window.show()
-            self.wait_until(app,lambda: window.instruments.values["Area"].text() != "—")
-            self.assertGreaterEqual(window.view.width(),500)
-            self.assertGreaterEqual(window.instruments.width(),320)
+            self.wait_until(app,lambda: window.readout.values["Area"].text() != "—")
+            self.assertGreaterEqual(window.view.width(),300)
+            self.assertGreaterEqual(window.readout.width(),320)
             for toolbar in window.findChildren(QtWidgets.QToolBar):
                 self.assertTrue(all(toolbar.actionGeometry(action).right()
                                     <= toolbar.width()
                                     for action in toolbar.actions()))
             self.assertTrue(window.view.isVisible())
-            self.assertTrue(window.instruments.isVisible())
-            window.advance_requested.emit(.05)
-            self.wait_until(app,lambda: window.view.snapshot.time>=.05)
-            area_x,pressure_y=window.instruments.pa_line.getData()
-            temp_x,temp_y=window.instruments.temp_trans.getData()
-            self.assertGreaterEqual(len(area_x),1)
-            self.assertGreaterEqual(len(temp_x),2)
+            self.assertTrue(window.lab.dial.isVisible())
+            self.assertTrue(window.diagrams.isVisible())
+            self.assertTrue(window.readout.isVisible())
+            window.advance_requested.emit(.2)
+            self.wait_until(app,lambda: window.view.snapshot.time>=.2)
+            def temperatures_drawn():
+                x=window.readout.temp_trans.getData()[0]
+                return x is not None and len(x)>=2
+            self.wait_until(app,temperatures_drawn)
+            area_x,pressure_y=window.diagrams.pv_lines["hot"].getData()
+            entropy_x,temperature_y=window.diagrams.ts_lines["hot"].getData()
+            self.assertGreaterEqual(len(area_x),2)
             self.assertEqual(len(area_x),len(pressure_y))
-            self.assertEqual(len(temp_x),len(temp_y))
-            self.assertEqual(len(window.instruments.pa_reference["hot"].getData()[0]),65)
-            self.assertIn("analytical point gas",window.instruments.pa_legend.text())
-            self.assertNotEqual(window.instruments.values["Gas energy"].text(),"—")
-            self.assertNotEqual(window.instruments.values["First-law residual"].text(),"—")
-            self.assertFalse(window.instruments.diagnostics.isVisible())
-            self.assertFalse(window.instruments.energy.isVisible())
-            window.instruments.energy_toggle.setChecked(True)
-            self.assertTrue(window.instruments.energy.isVisible())
-            energy_x,energy_y=window.instruments.energy_lines["stored_energy"].getData()
-            self.assertEqual(len(energy_x),len(energy_y))
-            self.assertGreaterEqual(len(energy_x),2)
-            window.instruments.diagnostics_toggle.setChecked(True)
-            self.assertTrue(window.instruments.diagnostics.isVisible())
-            self.assertNotEqual(window.instruments.diagnostic_values[
+            self.assertEqual(len(entropy_x),len(temperature_y))
+            self.assertEqual(len(window.diagrams.pv_reference["hot"].getData()[0]),65)
+            # The ideal T–S rectangle starts at zero entropy on the hot isotherm.
+            ts_x,ts_y=window.diagrams.ts_reference["hot"].getData()
+            self.assertEqual(ts_x[0],0.)
+            self.assertEqual(ts_y[0],1.5)
+            self.assertIn("Q_H",window.diagrams.current_cycle.text())
+            self.assertNotEqual(window.readout.values["Gas energy"].text(),"—")
+            self.assertNotEqual(window.readout.values["First-law residual"].text(),"—")
+            self.assertFalse(window.readout.diagnostics.body.isVisible())
+            self.assertFalse(window.readout.mechanism.body.isVisible())
+            window.readout.diagnostics_toggle.setChecked(True)
+            self.assertTrue(window.readout.diagnostics.body.isVisible())
+            self.assertNotEqual(window.readout.diagnostic_values[
                 "Max penetration"].text(),"—")
-            self.assertNotEqual(window.instruments.diagnostic_values[
-                "Max cluster residual"].text(),"—")
+            # The right column fits without scrolling at this size.
+            scroll=window.readout.findChild(QtWidgets.QScrollArea)
+            window.readout.diagnostics_toggle.setChecked(False)
+            app.processEvents()
+            self.assertEqual(scroll.verticalScrollBar().maximum(),0)
             image=window.grab().toImage()
             self.assertEqual((image.width(),image.height()),
                              (window.width(),window.height()))
         finally:
             window.close()
 
-    def test_completed_cycle_totals_reach_instrument_panel(self):
+    def test_non_carnot_scene_hides_cycle_diagrams(self):
+        from microthermo.ui.main_window import MainWindow
+
+        app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        window=MainWindow("gas_box",autoplay=False)
+        try:
+            window.show()
+            self.wait_until(app,lambda: window.readout.values["Gas energy"].text() != "—")
+            self.assertFalse(window.diagrams.isVisible())
+            self.assertIsNone(window.lab.dial)
+        finally:
+            window.close()
+
+    def test_completed_cycle_totals_reach_readout_and_scoreboard(self):
         from microthermo.measurements.live import LiveInstruments
-        from microthermo.ui.instruments import InstrumentPanel
+        from microthermo.ui.instruments import (CycleDiagrams, InstrumentSeries,
+                                                ReadoutPanel)
 
         app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
         sim=load_preset(RunConfig(preset="carnot_discs",particles=2,
                                       seed=123,max_horizon=.1))
         snapshot=sim.advance_to(2*math.pi/.15)
-        panel=InstrumentPanel()
-        panel.set_frame(LiveInstruments().observe(sim,snapshot))
-        self.assertEqual(panel.values["Completed cycles"].text(),"1")
-        self.assertNotEqual(panel.values["Last cycle QH / QC"].text(),"—")
-        self.assertNotEqual(panel.values["Last cycle gas residual"].text(),"—")
-        self.assertNotEqual(panel.values["Cycle ∮P dA / smoothing bound"].text(),"—")
+        frame=LiveInstruments().observe(sim,snapshot)
+        panel=ReadoutPanel()
+        panel.set_sample(frame.current)
+        self.assertTrue(panel.values["Time / cycles"].text().endswith("/ 1"))
+        self.assertNotEqual(panel.values["Q_H / Q_C"].text(),"—")
+        self.assertNotEqual(panel.diagnostic_values["Last cycle gas residual"].text(),"—")
+        self.assertIn("±",panel.values["Work by gas: ledger / ∮P dA"].text())
         panel.close()
+        diagrams=CycleDiagrams()
+        diagrams.set_reference(frame.ideal_reference)
+        diagrams.update_series(InstrumentSeries.from_history(frame.history),
+                               frame.current,frame.particles,frame.degrees_of_freedom)
+        diagrams.update_scoreboard(frame.current,frame.cycles,frame.cycle_start,2,.5)
+        self.assertEqual(diagrams.table.rowCount(),1)
+        # Engine sign: the table shows work delivered by the gas.
+        cycle=frame.cycles[0]
+        self.assertEqual(diagrams.table.item(0,3).text(),
+                         f"{-cycle.piston_work_on_gas:.4g}")
+        self.assertIn("warm-up",diagrams.table.item(0,0).text())
+        diagrams.close()
 
 
 if __name__ == "__main__":

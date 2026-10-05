@@ -16,6 +16,7 @@ from microthermo.config import RunConfig
 from microthermo.core.apparatus import ApparatusComponent
 from microthermo.io.exports import _json
 from microthermo.io.replay import ReplayReader, _interpolate_apparatus, precalculate_replay
+from microthermo.measurements.live import LiveInstruments
 
 
 class ReplayTests(unittest.TestCase):
@@ -52,6 +53,34 @@ class ReplayTests(unittest.TestCase):
         np.testing.assert_array_equal(later.position,expected.position)
         self.assertEqual(later.event_count,expected.event_count)
 
+    def test_recorded_instruments_match_live_observer(self):
+        # A fast shaft completes a cycle, so the drained-event observer must
+        # reproduce the live pressure window and the cycle P dA integral.
+        config=RunConfig(preset="carnot_discs",particles=8,seed=123,
+                         shaft_speed=3.,duration=2.4)
+        with tempfile.TemporaryDirectory() as directory:
+            reader=ReplayReader(precalculate_replay(
+                config,Path(directory)/"replay",fps=20.,chunk_frames=8))
+            self.assertTrue(reader.has_instruments)
+            direct=load_preset(config)
+            live=LiveInstruments()
+            for index in range(len(reader)):
+                saved=reader.instrument_sample(index)
+                snapshot=(direct.snapshot() if index==0 else
+                          direct.advance_to(saved.time))
+                expected=live.observe(direct,snapshot).current
+                for name in ("time","area","pressure","entropy","gas_energy",
+                             "heat_hot","heat_cold","motor_work",
+                             "completed_cycles","branch"):
+                    self.assertEqual(getattr(saved,name),getattr(expected,name),name)
+            self.assertEqual(saved.completed_cycles,1)
+            self.assertEqual(saved.latest_cycle,expected.latest_cycle)
+            self.assertEqual(saved.latest_pressure_area,expected.latest_pressure_area)
+            self.assertEqual(saved.efficiency_report,expected.efficiency_report)
+            series=reader.instrument_series()
+            self.assertEqual(len(series["time"]),len(reader))
+            reader.close()
+
     def test_chunked_frames_and_events_match_source_run(self):
         config=RunConfig(preset="carnot_discs",particles=4,seed=123,
                          duration=.5)
@@ -60,7 +89,7 @@ class ReplayTests(unittest.TestCase):
                                      chunk_frames=2)
             reader=ReplayReader(path)
             manifest=reader.manifest
-            self.assertEqual(manifest["version"],1)
+            self.assertEqual(manifest["version"],2)
             self.assertEqual(manifest["config_hash"],config.digest())
             self.assertEqual(len(reader),6)
             self.assertEqual(len(manifest["chunks"]),3)
