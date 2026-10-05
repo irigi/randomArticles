@@ -58,11 +58,23 @@ The settings below run the cycle slowly enough to behave like a Carnot engine
 (see `docs/PLAN.md` §3). Expect several hours of recording for 500 triangles.
 Progress is printed after each chunk.
 
+Record in the background (it survives closing the terminal). The folder must
+exist first, because the shell opens the log file before the program starts:
+
 ```bash
-.venv/bin/python -m microthermo precalculate --preset carnot_triangles \
+mkdir -p runs/replays
+nohup .venv/bin/python -m microthermo precalculate --preset carnot_triangles \
   --particles 500 --seed 123 --cycles 3 --shaft-speed 0.0375 \
   --hot-jacket --cold-jacket --initial-temperature 1.5 --fps 30 \
-  --output runs/replays/carnot_500tri_slow_3cycles
+  --output runs/replays/carnot_500tri_slow_3cycles \
+  > runs/replays/carnot_500tri_slow_3cycles.log 2>&1 &
+tail -f runs/replays/carnot_500tri_slow_3cycles.log   # Ctrl+C stops only tail
+```
+
+The first progress line appears after a few minutes. When the log ends with
+the output path, replay it:
+
+```bash
 .venv/bin/python -m microthermo replay runs/replays/carnot_500tri_slow_3cycles
 ```
 
