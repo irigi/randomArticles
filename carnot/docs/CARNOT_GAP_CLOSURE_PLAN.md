@@ -164,8 +164,8 @@ five-item queue.
   and dropped-render-frame physics parity.
 - [ ] Complete release acceptance under the gate in section 5.
 - [ ] Run the clean Ubuntu installation check from
-  `docs/CARNOT_CLEAN_UBUNTU_PROTOCOL_2026-10-05.md` and review both isolated
-  install paths before deleting its temporary batch.
+  `docs/CARNOT_CLEAN_UBUNTU_PROTOCOL_2026-10-05.md` on a genuinely clean
+  system. The first run passed both isolated installs on the existing host.
 - [x] Add precalculated smooth replay under the measured gate in section 6
   for controlled-shaft Carnot discs and triangles at 200/500 particles.
 
@@ -953,6 +953,9 @@ speed, lower compression heating was partly offset by warmer cold exit and
 fewer hot contacts. No longer dilution run is planned. Further scientific
 work needs a new physical protocol or a documented limitation, not another
 unchanged cohort.
+The saved-branch synthesis and the cold-equilibration question are in
+`docs/CARNOT_STATIONARITY_DIAGNOSIS_2026-10-05.md`. No additional science run
+is queued until an intervention has a matched design and fixed decision rule.
 
 ## 3. Finish numerical acceptance
 
@@ -1153,9 +1156,13 @@ An initial Carnot-specific map of the original brief and its remaining gaps is
 in `docs/CARNOT_RELEASE_EVIDENCE_MAP_2026-10-05.md`. Other experiments in the
 brief still need release mapping.
 The prepared clean-image check is described in
-`docs/CARNOT_CLEAN_UBUNTU_PROTOCOL_2026-10-05.md`. It has not been run; this
-host has no Docker or Podman executable, so evidence must come from a separate
-clean Ubuntu system.
+`docs/CARNOT_CLEAN_UBUNTU_PROTOCOL_2026-10-05.md`. Its first run on this
+existing host passed a separate headless install (16 quick checks, no Qt
+import) and GUI/Numba install (157 unit tests, 16 scientific checks), from
+committed source revision `c029f3f`; see the retained compact JSON. The
+machine identity matches the prior fresh-venv test, so clean-image evidence
+still requires a separate clean Ubuntu system. This host has no Docker or
+Podman executable.
 
 ## 6. Add precalculated, smooth replay
 

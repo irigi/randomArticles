@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# TEMPORARY: run on a clean Ubuntu 24.04 checkout, then delete this launcher
-# and its TEMP_gap_release_clean_ubuntu_batch_* directory after review.
+# Run on a clean Ubuntu 24.04 checkout. Delete each generated
+# TEMP_gap_release_clean_ubuntu_batch_* directory after review.
 set -u
 set -o pipefail
 cd "$(dirname "$0")/.." || exit 1
