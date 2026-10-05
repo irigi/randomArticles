@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from collections import deque
+import gzip
+import pickle
+from pathlib import Path
 import tempfile
 import time
 import traceback
@@ -12,7 +15,9 @@ import numpy as np
 from PySide6 import QtCore
 
 from ..api import load_preset
-from ..runner.simulation import NumericalFailure, Snapshot
+from ..runner.simulation import Checkpoint, NumericalFailure, Snapshot
+from ..config import RunConfig
+from ..io.exports import export_run
 from ..measurements.live import InstrumentFrame, LiveInstruments
 
 
@@ -44,6 +49,9 @@ class SimulationWorker(QtCore.QObject):
     snapshot_ready = QtCore.Signal(object)
     failed = QtCore.Signal(str, str)
     finished = QtCore.Signal()
+    busy = QtCore.Signal()
+    saved = QtCore.Signal(str)
+    checkpoint_loaded = QtCore.Signal(object, int)
 
     def __init__(self, simulation, autoplay=True, physical_step=.016,
                  transient_cycles=2, efficiency_min_cycles=8, config=None):
@@ -129,6 +137,7 @@ class SimulationWorker(QtCore.QObject):
         if self._stopping:
             return
         try:
+            self.busy.emit()
             before_time=self._simulation.time
             before_events=self._simulation.event_count
             action()
@@ -144,6 +153,54 @@ class SimulationWorker(QtCore.QObject):
         except Exception as exc:
             self._timer.stop()
             self.failed.emit(f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}","")
+
+    @QtCore.Slot(str)
+    def save_checkpoint(self, path):
+        try:
+            payload={"config":self._config,
+                     "checkpoint":self._simulation.checkpoint()}
+            target=Path(path)
+            with gzip.open(target,"wb",compresslevel=1) as stream:
+                pickle.dump(payload,stream,protocol=pickle.HIGHEST_PROTOCOL)
+            self.saved.emit(str(target))
+        except Exception as exc:
+            self.failed.emit(f"Checkpoint save failed: {exc}","")
+
+    @QtCore.Slot(str)
+    def load_checkpoint(self, path):
+        try:
+            # Pickle is restricted to files deliberately selected by the user.
+            with gzip.open(path,"rb") as stream:
+                payload=pickle.load(stream)
+            config=payload["config"]
+            checkpoint=payload["checkpoint"]
+            if not isinstance(config,RunConfig) or not isinstance(checkpoint,Checkpoint):
+                raise ValueError("unrecognized checkpoint")
+            simulation=load_preset(config)
+            simulation.restore(checkpoint)
+            if self._timer is not None:
+                self._timer.stop()
+            self._simulation=simulation
+            self._config=config
+            self._rates=None
+            self._instruments=LiveInstruments(
+                transient_cycles=self._transient_cycles,
+                efficiency_min_cycles=self._efficiency_min_cycles)
+            self._generation += 1
+            self._awaiting_frame=False
+            self._dirty_frame=False
+            self.checkpoint_loaded.emit(config,self._generation)
+            self._publish()
+        except Exception as exc:
+            self.failed.emit(f"Checkpoint load failed: {exc}","")
+
+    @QtCore.Slot(str)
+    def export(self, path):
+        try:
+            export_run(path,self._config,self._simulation)
+            self.saved.emit(str(path))
+        except Exception as exc:
+            self.failed.emit(f"Export failed: {exc}","")
 
     @QtCore.Slot()
     def tick(self):

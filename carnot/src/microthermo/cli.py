@@ -32,6 +32,8 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--cycles", type=int)
     run.add_argument("--particles", type=int)
     run.add_argument("--temperature", type=float)
+    run.add_argument("--carnot-radius-scale", type=float,
+                     help="multiply Carnot particle radius; default 1.0")
     run.add_argument("--sample-interval", type=float)
     run.add_argument("--max-horizon", type=float)
     run.add_argument("--pair-search", choices=("grid", "sweep", "all"))
@@ -63,6 +65,8 @@ def parser() -> argparse.ArgumentParser:
     study.add_argument("--seeds", type=int, nargs="+", default=[123,124,125])
     study.add_argument("--cycles", type=int, default=10)
     study.add_argument("--particles", type=int, default=8)
+    study.add_argument("--carnot-radius-scale", type=float, default=1.0,
+                       help="multiply Carnot particle radius; default 1.0")
     study.add_argument("--max-horizon", type=float, default=.05)
     study.add_argument("--transient-cycles", type=int, default=2)
     study.add_argument("--efficiency-min-cycles", type=int, default=8)
@@ -109,6 +113,7 @@ def _run(args) -> int:
             "temperature":1.,"sample_interval":.05,"max_horizon":.05,
             "cycles":None,"reversed_cycle":False,"shaft_mode":"controlled",
             "shaft_speed":.15,
+            "carnot_radius_scale":1.0,
             "transient_cycles":2,"efficiency_min_cycles":8,
             "pair_search":"grid","numeric_backend":"auto",
             "wall_search":"bounded","wall_kernel":"auto",
@@ -121,7 +126,7 @@ def _run(args) -> int:
         unknown=set(loaded)-set(values)
         if unknown: raise SystemExit(f"unknown configuration keys: {', '.join(sorted(unknown))}")
         values.update(loaded)
-    for key in ("preset","seed","duration","particles","temperature","sample_interval",
+    for key in ("preset","seed","duration","particles","temperature","carnot_radius_scale","sample_interval",
                 "max_horizon","cycles","shaft_mode","shaft_speed","transient_cycles",
                 "efficiency_min_cycles","pair_search","numeric_backend",
                 "wall_search","wall_kernel","penetration_kernel","pair_kernel",
@@ -181,7 +186,8 @@ def _speed_study(args) -> int:
             transient_cycles=args.transient_cycles,
             efficiency_min_cycles=args.efficiency_min_cycles,
             cold_jacket=args.cold_jacket,hot_jacket=args.hot_jacket,
-            cam_fractions=tuple(args.cam_fractions))
+            cam_fractions=tuple(args.cam_fractions),
+            carnot_radius_scale=args.carnot_radius_scale)
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
     output=Path(args.output)

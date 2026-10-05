@@ -50,7 +50,8 @@ def run_speed_study(*, preset: str, speeds: tuple[float, ...],
                     cold_jacket: bool = False,
                     hot_jacket: bool = False,
                     cam_fractions: tuple[float, float, float, float] =
-                    (.25, .25, .25, .25)) -> dict:
+                    (.25, .25, .25, .25),
+                    carnot_radius_scale: float = 1.0) -> dict:
     """Measure complete controlled cycles at each speed and independent seed."""
     if preset not in ("carnot_discs", "carnot_triangles"):
         raise ValueError("speed study requires a Carnot preset")
@@ -62,6 +63,8 @@ def run_speed_study(*, preset: str, speeds: tuple[float, ...],
         raise ValueError("shaft speeds must be finite and positive")
     if transient_cycles < 0 or efficiency_min_cycles < 4:
         raise ValueError("invalid efficiency cycle gate")
+    if not math.isfinite(carnot_radius_scale) or carnot_radius_scale <= 0:
+        raise ValueError("carnot_radius_scale must be finite and positive")
 
     groups=[]
     for speed in speeds:
@@ -75,6 +78,7 @@ def run_speed_study(*, preset: str, speeds: tuple[float, ...],
                              shaft_mode="controlled",shaft_speed=speed,
                              cold_jacket=cold_jacket,
                              hot_jacket=hot_jacket,
+                             carnot_radius_scale=carnot_radius_scale,
                              cam_fractions=cam_fractions,
                              transient_cycles=transient_cycles,
                              efficiency_min_cycles=efficiency_min_cycles)
@@ -178,6 +182,7 @@ def run_speed_study(*, preset: str, speeds: tuple[float, ...],
     return {"preset":preset,"shaft_mode":"controlled", "particles":particles,
             "cold_jacket":cold_jacket,
             "hot_jacket":hot_jacket,
+            "carnot_radius_scale":carnot_radius_scale,
             "cam_fractions":list(cam_fractions),
             "requested_cycles":cycles,"seeds":list(seeds),
             "transient_cycles":transient_cycles,

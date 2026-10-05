@@ -1,0 +1,89 @@
+{
+  "cases": [
+    {
+      "offset": -0.0001,
+      "events": 4,
+      "clusters": 2,
+      "sampled_match": true,
+      "replay_match": true,
+      "compiled_match": true,
+      "max_penetration": 0.0,
+      "energy_residual": -9.992007221626409e-16,
+      "ccd_failures": 0,
+      "passed": true
+    },
+    {
+      "offset": -1e-06,
+      "events": 4,
+      "clusters": 2,
+      "sampled_match": true,
+      "replay_match": true,
+      "compiled_match": true,
+      "max_penetration": 0.0,
+      "energy_residual": 4.440892098500626e-16,
+      "ccd_failures": 0,
+      "passed": true
+    },
+    {
+      "offset": -1e-08,
+      "events": 4,
+      "clusters": 2,
+      "sampled_match": true,
+      "replay_match": true,
+      "compiled_match": true,
+      "max_penetration": 0.0,
+      "energy_residual": 4.440892098500626e-16,
+      "ccd_failures": 0,
+      "passed": true
+    },
+    {
+      "offset": 0.0,
+      "events": 4,
+      "clusters": 2,
+      "sampled_match": true,
+      "replay_match": true,
+      "compiled_match": true,
+      "max_penetration": 0.0,
+      "energy_residual": 8.881784197001252e-16,
+      "ccd_failures": 0,
+      "passed": true
+    },
+    {
+      "offset": 1e-08,
+      "events": 4,
+      "clusters": 2,
+      "sampled_match": true,
+      "replay_match": true,
+      "compiled_match": true,
+      "max_penetration": 0.0,
+      "energy_residual": 8.881784197001252e-16,
+      "ccd_failures": 0,
+      "passed": true
+    },
+    {
+      "offset": 1e-06,
+      "events": 4,
+      "clusters": 2,
+      "sampled_match": true,
+      "replay_match": true,
+      "compiled_match": true,
+      "max_penetration": 0.0,
+      "energy_residual": -5.551115123125783e-16,
+      "ccd_failures": 0,
+      "passed": true
+    },
+    {
+      "offset": 0.0001,
+      "events": 4,
+      "clusters": 2,
+      "sampled_match": true,
+      "replay_match": true,
+      "compiled_match": true,
+      "max_penetration": 0.0,
+      "energy_residual": 4.440892098500626e-16,
+      "ccd_failures": 0,
+      "passed": true
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,21 @@
+{
+  "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "numpy": "2.4.6",
+  "results": [
+    {
+      "particles": 20,
+      "physical_seconds": 0.1,
+      "wall_seconds": 0.008523074997356161,
+      "events": 1,
+      "events_per_second": 117.32854636503818
+    },
+    {
+      "particles": 50,
+      "physical_seconds": 0.1,
+      "wall_seconds": 0.015086662999237888,
+      "events": 19,
+      "events_per_second": 1259.390496159409
+    }
+  ]
+}

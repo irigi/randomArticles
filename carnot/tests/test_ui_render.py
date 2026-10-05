@@ -4,11 +4,13 @@ import os
 import time
 import math
 import unittest
+import tempfile
+from pathlib import Path
 import numpy as np
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 try:
-    from PySide6 import QtWidgets
+    from PySide6 import QtCore, QtTest, QtWidgets
 except ImportError:
     QtWidgets = None
 
@@ -64,6 +66,52 @@ class UiRenderTests(unittest.TestCase):
                                        point,atol=1e-12)
         self.assertGreater(camera.scale,
                            Camera(camera.bounds,800,600).scale)
+
+    def test_apparatus_and_particle_inspection(self):
+        from microthermo.ui.main_window import MainWindow
+
+        app=QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        window=MainWindow("carnot_discs",autoplay=False)
+        try:
+            window.show()
+            self.wait_until(app,lambda: window.instruments.values["Area"].text()!="—")
+            cam=next(part for part in window.view.snapshot.apparatus
+                     if part.name=="selector_cam")
+            x,y=window.view.camera().map(*cam.points[20])
+            QtTest.QTest.mouseClick(window.view,QtCore.Qt.MouseButton.LeftButton,
+                                    pos=QtCore.QPoint(round(x),round(y)))
+            self.assertIn("selector cam",window.instruments.inspector.text().lower())
+            x,y=window.view.camera().map(*window.view.snapshot.position[0])
+            QtTest.QTest.mouseClick(window.view,QtCore.Qt.MouseButton.LeftButton,
+                                    pos=QtCore.QPoint(round(x),round(y)))
+            self.assertIn("Particle 0",window.instruments.inspector.text())
+            self.assertIn("velocity",window.instruments.inspector.text())
+        finally:
+            window.close()
+
+    def test_dropped_render_frames_preserve_physics_horizon(self):
+        from microthermo.ui.worker import SimulationWorker
+
+        QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        config=RunConfig(preset="gas_box",particles=8,seed=124,max_horizon=.02)
+        simulation=load_preset(config)
+        worker=SimulationWorker(simulation,autoplay=False,config=config)
+        frames=[]
+        worker.snapshot_ready.connect(frames.append)
+        worker.start()
+        worker.advance_duration(.01)
+        worker.advance_duration(.02)
+        self.assertEqual(len(frames),1)
+        worker.frame_received()
+        self.assertEqual(len(frames),2)
+        reference=load_preset(config)
+        expected=reference.advance_to(.03)
+        actual=frames[-1].snapshot
+        np.testing.assert_array_equal(actual.position,expected.position)
+        np.testing.assert_array_equal(actual.velocity,expected.velocity)
+        self.assertEqual(actual.event_count,expected.event_count)
+        self.assertAlmostEqual(actual.time,.03,places=12)
+        worker.stop()
 
     def test_free_shaft_and_active_spring_are_labeled_by_state(self):
         from microthermo.ui.main_window import ApparatusView
@@ -195,6 +243,51 @@ class UiRenderTests(unittest.TestCase):
         self.assertAlmostEqual(sim.time,math.pi/(2*.15),delta=1e-9)
         self.assertEqual(sim.snapshot().branch,"adiabatic_expansion")
 
+    def test_desktop_checkpoint_config_and_exports_round_trip(self):
+        from microthermo.ui.main_window import MainWindow
+
+        app=QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        window=MainWindow("carnot_discs",autoplay=False)
+        try:
+            window.show()
+            self.wait_until(app,lambda: window.instruments.values["Area"].text() != "—")
+            window.advance_requested.emit(.05)
+            self.wait_until(app,lambda: window.view.snapshot.time>=.05)
+            original=window.view.snapshot
+            with tempfile.TemporaryDirectory() as folder:
+                root=Path(folder)
+                window.save_configuration(root/"config.json")
+                window.save_checkpoint(root/"checkpoint.pkl.gz")
+                self.wait_until(app,lambda: (root/"checkpoint.pkl.gz").exists())
+                window.export_run(root/"export")
+                self.wait_until(app,lambda: (root/"export"/"summary.json").exists())
+                window.export_plots(root/"plots.png")
+                self.assertTrue((root/"plots_pressure_area.png").exists())
+                self.assertTrue((root/"plots_temperatures.png").exists())
+                self.assertTrue((root/"plots_energy.png").exists())
+                window.start_recording(root/"recording")
+                window._capture_recording_frame()
+                window.stop_recording()
+                self.assertEqual(window.state_label.text(),"PAUSED")
+                import json
+                manifest=json.loads((root/"recording"/"recording.json").read_text())
+                self.assertEqual(len(manifest["frames"]),2)
+                self.assertEqual(manifest["frames"][0]["physical_time"],.05)
+                window.advance_requested.emit(.02)
+                self.wait_until(app,lambda: window.view.snapshot.time>=.07)
+                window.open_checkpoint(root/"checkpoint.pkl.gz")
+                self.wait_until(app,lambda: window._generation==1 and
+                                window.view.snapshot.time==original.time)
+                np.testing.assert_array_equal(window.view.snapshot.position,
+                                              original.position)
+                self.assertEqual(window.view.snapshot.event_count,
+                                 original.event_count)
+                window.open_configuration(root/"config.json")
+                self.wait_until(app,lambda: window._generation==2 and
+                                window.view.snapshot.time==0)
+        finally:
+            window.close()
+
     def test_splitter_and_live_plots_fit_minimum_window(self):
         from microthermo.ui.main_window import MainWindow
 
@@ -206,6 +299,10 @@ class UiRenderTests(unittest.TestCase):
             self.wait_until(app,lambda: window.instruments.values["Area"].text() != "—")
             self.assertGreaterEqual(window.view.width(),500)
             self.assertGreaterEqual(window.instruments.width(),320)
+            for toolbar in window.findChildren(QtWidgets.QToolBar):
+                self.assertTrue(all(toolbar.actionGeometry(action).right()
+                                    <= toolbar.width()
+                                    for action in toolbar.actions()))
             self.assertTrue(window.view.isVisible())
             self.assertTrue(window.instruments.isVisible())
             window.advance_requested.emit(.05)
@@ -221,6 +318,12 @@ class UiRenderTests(unittest.TestCase):
             self.assertNotEqual(window.instruments.values["Gas energy"].text(),"—")
             self.assertNotEqual(window.instruments.values["First-law residual"].text(),"—")
             self.assertFalse(window.instruments.diagnostics.isVisible())
+            self.assertFalse(window.instruments.energy.isVisible())
+            window.instruments.energy_toggle.setChecked(True)
+            self.assertTrue(window.instruments.energy.isVisible())
+            energy_x,energy_y=window.instruments.energy_lines["stored_energy"].getData()
+            self.assertEqual(len(energy_x),len(energy_y))
+            self.assertGreaterEqual(len(energy_x),2)
             window.instruments.diagnostics_toggle.setChecked(True)
             self.assertTrue(window.instruments.diagnostics.isVisible())
             self.assertNotEqual(window.instruments.diagnostic_values[

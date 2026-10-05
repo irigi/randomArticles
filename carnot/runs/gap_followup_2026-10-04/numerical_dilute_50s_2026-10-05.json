@@ -1,0 +1,164 @@
+{
+  "suite_tests": 156,
+  "suite_passed": true,
+  "scientific_validation_passed": true,
+  "cases": {
+    "gas_box_128": {
+      "preset": "gas_box",
+      "seed": 128,
+      "particles": 32,
+      "duration": 50.0,
+      "direct_wall_seconds": 3.4962930729961954,
+      "events": 4726,
+      "direct_energy_residual": -3.907985046680551e-14,
+      "direct_max_penetration": 1.2559397966072083e-14,
+      "direct_ccd_failures": 0,
+      "direct_ccd_refinements": 0,
+      "tolerance_geometry": 1e-10,
+      "chronology_monotone": true,
+      "cadences": [
+        {
+          "cadence": 0.37,
+          "samples": 137,
+          "sampled_wall_seconds": 3.4024421089998214,
+          "direct_match": true,
+          "checkpoint_replay_match": true,
+          "energy_residual": -3.907985046680551e-14,
+          "max_penetration": 1.2559397966072083e-14,
+          "ccd_failures": 0,
+          "ccd_refinements": 0
+        },
+        {
+          "cadence": 1.11,
+          "samples": 47,
+          "sampled_wall_seconds": 3.437107860998367,
+          "direct_match": true,
+          "checkpoint_replay_match": true,
+          "energy_residual": -3.907985046680551e-14,
+          "max_penetration": 1.2559397966072083e-14,
+          "ccd_failures": 0,
+          "ccd_refinements": 0
+        }
+      ],
+      "passed": true
+    },
+    "gas_box_129": {
+      "preset": "gas_box",
+      "seed": 129,
+      "particles": 32,
+      "duration": 50.0,
+      "direct_wall_seconds": 3.4381861929869046,
+      "events": 4657,
+      "direct_energy_residual": 0.0,
+      "direct_max_penetration": 1.5681900222830336e-14,
+      "direct_ccd_failures": 0,
+      "direct_ccd_refinements": 0,
+      "tolerance_geometry": 1e-10,
+      "chronology_monotone": true,
+      "cadences": [
+        {
+          "cadence": 0.37,
+          "samples": 137,
+          "sampled_wall_seconds": 3.3437666520039784,
+          "direct_match": true,
+          "checkpoint_replay_match": true,
+          "energy_residual": 0.0,
+          "max_penetration": 1.5681900222830336e-14,
+          "ccd_failures": 0,
+          "ccd_refinements": 0
+        },
+        {
+          "cadence": 1.11,
+          "samples": 47,
+          "sampled_wall_seconds": 3.365420764006558,
+          "direct_match": true,
+          "checkpoint_replay_match": true,
+          "energy_residual": 0.0,
+          "max_penetration": 1.5681900222830336e-14,
+          "ccd_failures": 0,
+          "ccd_refinements": 0
+        }
+      ],
+      "passed": true
+    },
+    "triangle_equipartition_128": {
+      "preset": "triangle_equipartition",
+      "seed": 128,
+      "particles": 32,
+      "duration": 50.0,
+      "direct_wall_seconds": 5.215134922997095,
+      "events": 5400,
+      "direct_energy_residual": 1.4210854715202004e-14,
+      "direct_max_penetration": 0.0,
+      "direct_ccd_failures": 0,
+      "direct_ccd_refinements": 39,
+      "tolerance_geometry": 1e-10,
+      "chronology_monotone": true,
+      "cadences": [
+        {
+          "cadence": 0.37,
+          "samples": 137,
+          "sampled_wall_seconds": 5.1586784810060635,
+          "direct_match": true,
+          "checkpoint_replay_match": true,
+          "energy_residual": 1.4210854715202004e-14,
+          "max_penetration": 0.0,
+          "ccd_failures": 0,
+          "ccd_refinements": 78
+        },
+        {
+          "cadence": 1.11,
+          "samples": 47,
+          "sampled_wall_seconds": 4.870378747989889,
+          "direct_match": true,
+          "checkpoint_replay_match": true,
+          "energy_residual": 1.4210854715202004e-14,
+          "max_penetration": 0.0,
+          "ccd_failures": 0,
+          "ccd_refinements": 78
+        }
+      ],
+      "passed": true
+    },
+    "triangle_equipartition_129": {
+      "preset": "triangle_equipartition",
+      "seed": 129,
+      "particles": 32,
+      "duration": 50.0,
+      "direct_wall_seconds": 5.414685996001936,
+      "events": 5562,
+      "direct_energy_residual": -1.4210854715202004e-14,
+      "direct_max_penetration": 0.0,
+      "direct_ccd_failures": 0,
+      "direct_ccd_refinements": 104,
+      "tolerance_geometry": 1e-10,
+      "chronology_monotone": true,
+      "cadences": [
+        {
+          "cadence": 0.37,
+          "samples": 137,
+          "sampled_wall_seconds": 5.340995184000349,
+          "direct_match": true,
+          "checkpoint_replay_match": true,
+          "energy_residual": -1.4210854715202004e-14,
+          "max_penetration": 0.0,
+          "ccd_failures": 0,
+          "ccd_refinements": 175
+        },
+        {
+          "cadence": 1.11,
+          "samples": 47,
+          "sampled_wall_seconds": 5.007465691000107,
+          "direct_match": true,
+          "checkpoint_replay_match": true,
+          "energy_residual": -1.4210854715202004e-14,
+          "max_penetration": 0.0,
+          "ccd_failures": 0,
+          "ccd_refinements": 175
+        }
+      ],
+      "passed": true
+    }
+  },
+  "note": "cadence rows report cumulative CCD refinements after the extra checkpoint replay; compare direct refinements separately"
+}

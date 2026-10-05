@@ -1,0 +1,167 @@
+{
+  "cases": [
+    {
+      "case": "rotation_only",
+      "backend": "python",
+      "geometry": 1e-08,
+      "time_tolerance": 1e-10,
+      "status": "collision",
+      "time": 0.04576053720840164,
+      "reason": ""
+    },
+    {
+      "case": "rotation_only",
+      "backend": "numba",
+      "geometry": 1e-08,
+      "time_tolerance": 1e-10,
+      "status": "collision",
+      "time": 0.045760537208401626,
+      "reason": ""
+    },
+    {
+      "case": "rotation_only",
+      "backend": "python",
+      "geometry": 1e-10,
+      "time_tolerance": 1e-12,
+      "status": "collision",
+      "time": 0.0457605485741927,
+      "reason": ""
+    },
+    {
+      "case": "rotation_only",
+      "backend": "numba",
+      "geometry": 1e-10,
+      "time_tolerance": 1e-12,
+      "status": "collision",
+      "time": 0.0457605485741927,
+      "reason": ""
+    },
+    {
+      "case": "rotation_only",
+      "backend": "python",
+      "geometry": 1e-12,
+      "time_tolerance": 1e-14,
+      "status": "collision",
+      "time": 0.04576054868825757,
+      "reason": ""
+    },
+    {
+      "case": "rotation_only",
+      "backend": "numba",
+      "geometry": 1e-12,
+      "time_tolerance": 1e-14,
+      "status": "collision",
+      "time": 0.04576054868825757,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_hit",
+      "backend": "python",
+      "geometry": 1e-08,
+      "time_tolerance": 1e-10,
+      "status": "collision",
+      "time": 0.8267943303792602,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_hit",
+      "backend": "numba",
+      "geometry": 1e-08,
+      "time_tolerance": 1e-10,
+      "status": "collision",
+      "time": 0.8267943303792602,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_hit",
+      "backend": "python",
+      "geometry": 1e-10,
+      "time_tolerance": 1e-12,
+      "status": "collision",
+      "time": 0.8267943417781027,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_hit",
+      "backend": "numba",
+      "geometry": 1e-10,
+      "time_tolerance": 1e-12,
+      "status": "collision",
+      "time": 0.8267943417781028,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_hit",
+      "backend": "python",
+      "geometry": 1e-12,
+      "time_tolerance": 1e-14,
+      "status": "collision",
+      "time": 0.826794341891692,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_hit",
+      "backend": "numba",
+      "geometry": 1e-12,
+      "time_tolerance": 1e-14,
+      "status": "collision",
+      "time": 0.826794341891692,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_miss",
+      "backend": "python",
+      "geometry": 1e-08,
+      "time_tolerance": 1e-10,
+      "status": "no_collision",
+      "time": null,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_miss",
+      "backend": "numba",
+      "geometry": 1e-08,
+      "time_tolerance": 1e-10,
+      "status": "no_collision",
+      "time": null,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_miss",
+      "backend": "python",
+      "geometry": 1e-10,
+      "time_tolerance": 1e-12,
+      "status": "no_collision",
+      "time": null,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_miss",
+      "backend": "numba",
+      "geometry": 1e-10,
+      "time_tolerance": 1e-12,
+      "status": "no_collision",
+      "time": null,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_miss",
+      "backend": "python",
+      "geometry": 1e-12,
+      "time_tolerance": 1e-14,
+      "status": "no_collision",
+      "time": null,
+      "reason": ""
+    },
+    {
+      "case": "near_parallel_miss",
+      "backend": "numba",
+      "geometry": 1e-12,
+      "time_tolerance": 1e-14,
+      "status": "no_collision",
+      "time": null,
+      "reason": ""
+    }
+  ],
+  "passed": true
+}

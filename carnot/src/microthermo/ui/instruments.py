@@ -36,6 +36,11 @@ class InstrumentPanel(QtWidgets.QWidget):
         self.summary.setWordWrap(True)
         self.summary.setStyleSheet("color:#d5dce4")
         layout.addWidget(self.summary)
+        self.inspector=QtWidgets.QLabel(
+            "Click a particle or apparatus part to inspect it.")
+        self.inspector.setWordWrap(True)
+        self.inspector.setStyleSheet("background:#222a33;color:#d5dce4;padding:6px")
+        layout.addWidget(self.inspector)
         self.pa=pg.PlotWidget(background="#15191f")
         self.pa.setFixedHeight(160)
         self.pa.setLabel("bottom","Area A")
@@ -73,6 +78,28 @@ class InstrumentPanel(QtWidgets.QWidget):
         legend=QtWidgets.QLabel("● translation   ● rotation   ┄ hot   ┄ cold")
         legend.setStyleSheet("color:#aeb9c8")
         layout.addWidget(legend)
+
+        self.energy_toggle=QtWidgets.QToolButton()
+        self.energy_toggle.setText("Energy and ledger plot")
+        self.energy_toggle.setCheckable(True)
+        self.energy_toggle.setArrowType(QtCore.Qt.ArrowType.RightArrow)
+        self.energy_toggle.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        layout.addWidget(self.energy_toggle)
+        self.energy=pg.PlotWidget(background="#15191f")
+        self.energy.setFixedHeight(200)
+        self.energy.setLabel("bottom","Physical time")
+        self.energy.setLabel("left","Energy / cumulative transfer")
+        self.energy.showGrid(x=True,y=True,alpha=.2)
+        energy_colors={"gas_energy":"#f0c46c", "stored_energy":"#d5dce4",
+                       "heat_hot":"#f2a65a", "heat_cold":"#76bce3",
+                       "motor_work":"#ab9edb", "load_output":"#dc9c9c"}
+        self.energy_lines={name:self.energy.plot(
+            pen=pg.mkPen(color,width=2),name=name.replace("_"," "))
+            for name,color in energy_colors.items()}
+        self.energy.setVisible(False)
+        layout.addWidget(self.energy)
+        self.energy_toggle.toggled.connect(self._toggle_energy)
 
         grid=QtWidgets.QGridLayout()
         layout.addLayout(grid)
@@ -147,6 +174,12 @@ class InstrumentPanel(QtWidgets.QWidget):
             QtCore.Qt.ArrowType.DownArrow if expanded else
             QtCore.Qt.ArrowType.RightArrow)
 
+    def _toggle_energy(self, expanded):
+        self.energy.setVisible(expanded)
+        self.energy_toggle.setArrowType(
+            QtCore.Qt.ArrowType.DownArrow if expanded else
+            QtCore.Qt.ArrowType.RightArrow)
+
     def set_rates(self, rates):
         self.diagnostic_values["Event throughput"].setText(
             f"{rates.events_per_wall:.1f} events/s" if rates else "Paused")
@@ -191,6 +224,13 @@ class InstrumentPanel(QtWidgets.QWidget):
         self.temp_cold.setData(times,[sample.reservoir_cold if sample.reservoir_cold
                                       is not None else math.nan for sample in history])
         self.temperatures.setTitle("Temperature · translation / rotation")
+        for name,line in self.energy_lines.items():
+            if name=="stored_energy":
+                values=[s.gas_energy+s.piston_energy+s.flywheel_energy+
+                        s.spring_energy for s in history]
+            else:
+                values=[getattr(s,name) for s in history]
+            line.setData(times,values)
 
         def fmt(value):
             if value is None or not math.isfinite(value):

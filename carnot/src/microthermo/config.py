@@ -31,6 +31,7 @@ class RunConfig:
     penetration_kernel: str = "auto"
     pair_kernel: str = "auto"
     cam_kernel: str = "auto"
+    carnot_radius_scale: float = 1.0
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "cam_fractions", tuple(self.cam_fractions))
@@ -51,6 +52,10 @@ class RunConfig:
             raise ValueError("cold jacket applies only to Carnot presets")
         if self.hot_jacket and not self.preset.startswith("carnot_"):
             raise ValueError("hot jacket applies only to Carnot presets")
+        if not math.isfinite(self.carnot_radius_scale) or self.carnot_radius_scale <= 0:
+            raise ValueError("carnot_radius_scale must be finite and positive")
+        if self.carnot_radius_scale != 1.0 and not self.preset.startswith("carnot_"):
+            raise ValueError("carnot_radius_scale applies only to Carnot presets")
         if len(self.cam_fractions) != 4 or any(
                 not math.isfinite(x) or x <= 0 for x in self.cam_fractions):
             raise ValueError("cam_fractions must contain four positive finite values")

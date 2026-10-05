@@ -294,7 +294,7 @@ class CarnotExperiment(Experiment):
         shape = Shape.TRIANGLE if self.triangles else Shape.DISC
         # Keep the occupied area fraction fixed as particle count changes.
         # At 48 particles triangles fill about 3.1% of the minimum cylinder.
-        radius = 0.025 * math.sqrt(48 / config.particles)
+        radius = 0.025 * math.sqrt(48 / config.particles) * config.carnot_radius_scale
         specs = particle_specs(config.particles, max(cam.areas)/height, height, radius,
                                config.temperature, rng, shape, x_max=min(cam.areas)/height)
         state = BodyArrays.from_specs(specs)
@@ -328,6 +328,7 @@ class CarnotExperiment(Experiment):
                                "hot_jacket": config.hot_jacket,
                                "cam_fractions": cam.fractions,
                                "particle_radius": radius,
+                               "carnot_radius_scale": config.carnot_radius_scale,
                                "particle_area_fraction_min": (config.particles * radius**2 *
                                    (3*math.sqrt(3)/4 if self.triangles else math.pi) / a1),
                                "ideal_efficiency": 1-tc/th, "cam_areas": cam.areas})

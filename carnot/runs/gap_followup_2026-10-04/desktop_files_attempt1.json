@@ -1,0 +1,35 @@
+{
+  "unit_tests": 154,
+  "unit_tests_passed": true,
+  "scientific_validation_passed": true,
+  "desktop_exit": 134,
+  "desktop_failure": "Assertion at embedded line 80: busy and len(pings)>10; counts were not logged",
+  "checkpoint_round_trip_and_exports_reached": true,
+  "export_events": 10,
+  "recorded_frames": 10,
+  "recording_wall_seconds": [
+    0.021,
+    0.649,
+    1.009,
+    1.349,
+    1.683,
+    1.891,
+    2.175,
+    2.434,
+    2.547,
+    2.574
+  ],
+  "recording_physical_times": [
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    10.472
+  ],
+  "last_recording_frame": "desktop_files_attempt1.png"
+}

@@ -1,6 +1,6 @@
 # Carnot gap closure: remaining work
 
-Updated: 2026-10-04
+Updated: 2026-10-05
 
 The gap is not closed. The application has a working experimental apparatus,
 plots, diagnostics, event accounting, and a reproducible speed study. The full
@@ -9,8 +9,25 @@ open gates and their measurement evidence. The 24-run baseline and 16-run
 optional cold-jacket studies support a hot-heat speed effect for 16 discs and
 improved cold-sector coupling for both gas types, but all drift screens are
 inconclusive and no stationary efficiency trend is established.
-The collision engine also needs broader long-run validation before
-`carnot_triangles` can lose its experimental label.
+The measured numerical and desktop gates now pass, while the stationary
+Carnot thermodynamic claim and release acceptance remain open.
+
+## Remaining external run-and-review iterations (updated after dilution pilot)
+
+| Work | Next iterations | Condition |
+| --- | ---: | --- |
+| Physical protocol diagnosis and redesign | No external batch queued | Dilution failed its fixed rule; use saved evidence before another run. |
+| New thermodynamic pilot and possible extension/comparison | At least 1, conditionally 2+ | A justified protocol must be specified first; no finite upper bound is known. |
+| Clean-OS release check | 1 | Fresh venv on the current Ubuntu host passed; clean OS and full brief map remain. |
+
+The dilution batch is complete and is no longer counted. There are **zero
+science runs currently queued**. From this point, at least **two external
+iterations** remain on a successful path: one new thermodynamic pilot and one
+clean-OS release check. A favorable pilot would likely add a longer
+stationarity/comparison batch, making **three or more**. The physics redesign
+has no reliable upper bound; this estimate will change only when a new
+protocol and its decision rule are justified. In-session analysis, code work,
+and requirement mapping are separate from these user-run batches.
 
 ## Next checkpoints
 
@@ -91,6 +108,12 @@ five-item queue.
 - [x] Run the predeclared 18-cycle, two-speed, three-seed compression-timing
   pilot. It missed the hot-entry-temperature decision threshold at both
   speeds, so stop this variant without a longer run.
+- [x] Run the predeclared 64-disc, two-speed, three-seed both-jacket pilot.
+  All six runs passed numerical and positive-heat checks, but zero of twelve
+  drift screens were bounded; stop this variant without a longer extension.
+- [x] Run the predeclared 32-disc dilution pilot at two radius scales, two
+  speeds, and three seeds. The quarter-scale hot-entry threshold failed at
+  fast speed; no drift screen was bounded. Stop this variant.
 - [x] Benchmark sustained real-display playback and seek/load behavior for the
   saved 200/500-disc replay archives. Both averaged about 61 paint/s, but
   three pauses above 25 ms per archive leave smooth playback open.
@@ -126,13 +149,19 @@ five-item queue.
 - [ ] Establish stationary positive hot input across seeds and shaft speeds;
   then compare efficiency, pressure–area work, and free-shaft work against the
   reference under the gate in section 2.
-- [ ] Finish numerical acceptance under the gate in section 3.
+- [x] Finish numerical acceptance under the measured gate in section 3:
+  long dilute runs, multi-feature clusters, moving walls, rotating-pair CCD,
+  tolerance convergence, and sampling/checkpoint parity.
 - [x] Add desktop seed reset, fixed-duration and branch steps, target playback
   rate, recorded physical shaft-speed intervention, preset switching, and
   zoom/pan/particle selection. Focused UI and intervention tests pass.
-- [ ] Verify these controls on the real desktop against an identical headless
-  command schedule, then finish checkpoint/export and presentation controls.
-- [ ] Finish desktop controls and presentation under the gate in section 4.
+- [x] Verify the first control pass on the real desktop against an identical
+  headless command schedule.
+- [x] Add configuration, checkpoint, run and plot file actions, a refining
+  status, and a two-row toolbar; the focused offscreen round trip passes.
+- [x] Complete the measured desktop controls and presentation gate in section 4:
+  headless parity, file actions, real-display response, recording, inspector,
+  and dropped-render-frame physics parity.
 - [ ] Complete release acceptance under the gate in section 5.
 - [x] Add precalculated smooth replay under the measured gate in section 6
   for controlled-shaft Carnot discs and triangles at 200/500 particles.
@@ -904,6 +933,23 @@ its decision rule are predeclared in `docs/CARNOT_NEXT_PROTOCOL_2026-10-04.md`.
 That pilot failed its predeclared hot-entry reduction threshold at both shaft
 speeds; all twelve drift screens remained inconclusive. No 36-cycle extension
 of this variant is planned.
+The next matched 64-disc, both-jacket pilot tests whether finite-count noise
+explains the inconclusive drift screens. Its 18-cycle decision rule is fixed in
+`docs/CARNOT_PARTICLE_COUNT_PILOT_2026-10-05.md`. The completed pilot found
+zero bounded drift screens out of twelve, so the predeclared 36-cycle threshold
+failed. Hot entry remained above the hot reservoir mean at both speeds. The
+64-disc cohort does not establish stationary operation or justify an unchanged
+extension. Section 2 stays open for physical model/protocol diagnosis and a
+new controlled test; no measured efficiency convergence should be claimed.
+The next matched dilution pilot varies only particle radius at fixed count,
+with scale 0.5 and 0.25 at both speeds. Its decision rule is predeclared in
+`docs/CARNOT_DILUTION_PROTOCOL_2026-10-05.md`. The completed pilot reduced
+hot-entry temperature at slow speed but showed only a 0.015 mean reduction at
+fast speed for quarter-scale radius, below the fixed 0.10 threshold. At fast
+speed, lower compression heating was partly offset by warmer cold exit and
+fewer hot contacts. No longer dilution run is planned. Further scientific
+work needs a new physical protocol or a documented limitation, not another
+unchanged cohort.
 
 ## 3. Finish numerical acceptance
 
@@ -959,6 +1005,54 @@ changing-feature acceptance remains open.
 Two additional 96-triangle seeds completed two cycles with exact sampled and
 checkpoint replay at distinct cadences and matching branch-midpoint same-state
 backend queries; see `docs/CARNOT_GAP_FOLLOWUP_2026-10-04.md`.
+The next batched acceptance probe covers dilute 32-disc and 32-triangle box
+trajectories for 50 physical seconds at seeds 128–129. It compares the direct
+trajectory with two sample cadences and a midpoint checkpoint replay, and
+records event chronology, penetration, CCD failures, and first-law residual.
+This extends the long-run sampling evidence; the harder moving-boundary and
+multi-feature cases above remain separate requirements.
+The completed batch passed all four trajectories, all 156 unit tests, and
+scientific validation. Each trajectory recorded 4,657–5,562 events with
+monotone chronology, zero CCD failures, and absolute first-law residual below
+`4e-14`. Penetration was at most `1.6e-14`, versus `1e-10` geometry tolerance.
+Both 0.37 s and 1.11 s sampling schedules and midpoint checkpoint replay
+matched the direct event history, ledger, and final body state exactly.
+The compact report is
+`runs/gap_followup_2026-10-04/numerical_dilute_50s_2026-10-05.json`.
+The report's sampled CCD refinement totals include the additional replay
+work; they are computational counters, not a sampling-dependent event change.
+The remaining targeted numerical batch runs three independent checks in
+parallel: two fast-shaft cycles at 32 triangles across seeds 130–132 with
+moving-wall Python/Numba next-contact comparisons; 300 separated rotating
+triangle-pair CCD queries checked against both backends and dense overlap
+sampling; and seven offsets around a symmetric two-feature triangle impact
+with sampling, checkpoint replay, and backend comparison. Any mismatch will
+be investigated before closing section 3.
+The first hard-contact batch completed the moving-boundary and cluster jobs:
+all three seeds finished two fast-shaft cycles with zero CCD failures,
+penetration, or branch-midpoint Python/Numba query disagreements; seed 130's
+sampled and checkpoint-restored trajectories matched direct. All seven
+two-feature offsets matched direct, sampled, checkpoint, and compiled results,
+with zero CCD failures or penetration. The random pair job completed its
+queries but failed while serializing a NumPy integer, before reporting a
+scientific verdict. The successful reports are saved as
+`runs/gap_followup_2026-10-04/numerical_hard_moving_boundary_2026-10-05.json`
+and `numerical_hard_offset_clusters_2026-10-05.json`. The next launcher retries
+only the random pair report and adds an independent tolerance-convergence
+probe; it does not repeat the passed jobs.
+The retry passed both probes. All 300 separated rotating triangle pairs had
+matching Python/Numba status and contact time within `1e-8`, no observed
+overlap classified as no collision, and no indeterminate result. Rotation-only
+contact, a nearly parallel hit, and a nearby miss kept their classifications
+at geometry tolerances `1e-8`, `1e-10`, and `1e-12`; both backends agreed and
+the hit times converged. Reports are
+`runs/gap_followup_2026-10-04/numerical_hard_random_pairs_2026-10-05.json`
+and `numerical_hard_tolerance_2026-10-05.json`. Together with the 50-second
+dilute cohorts, earlier high-count triangle cohorts, and strict diagnostic
+handling for unsupported simultaneous policies, these satisfy section 3's
+declared acceptance set. The numerical gate is closed for that set; this is
+not a proof for arbitrary geometries or the brief's aspirational million-impact
+engineering target, which belongs to release evidence.
 
 Gate: no unreported overlap or skipped event, and event chronology is
 sampling-independent within declared tolerances across the acceptance set.
@@ -982,9 +1076,57 @@ reset, preset switching, target playback rate, and a separate physical
 shaft-speed control. The latter logs an explicit motor-work intervention and
 updates the controlled phase origin; checkpoint restore preserves that origin.
 The apparatus view now has zoom, pan, selection, and fit-to-scene. Focused
-offscreen UI and physics tests pass. A real-desktop same-command schedule,
-responsive long-step check, checkpoint/export actions, and remaining
-presentation controls are still required before this gate closes.
+offscreen UI and physics tests pass.
+The real xcb desktop run matched the headless position, velocity, event count,
+and energy residual after the same shaft-speed and branch-step schedule. The
+1.136 s branch step allowed 43 GUI timer callbacks; pan, selection, preset
+switch, seed reset, and the 850×520 window also passed. All 153 unit tests and
+scientific validation passed. The compact result and screenshot are in
+`runs/gap_followup_2026-10-04/desktop_controls_acceptance.json` and
+`desktop_controls.png` in the same folder. The 850 px screenshot showed toolbar
+overflow, so the toolbar is now split into two rows. Configuration and checkpoint
+save/restore, run export, and three PNG plot exports pass a focused offscreen
+round trip. An expandable energy/ledger plot is also present. Real-display
+verification of these new actions and layout, recording, explanatory inspectors,
+and dropped-frame responsiveness are still required before this gate closes.
+The next desktop batch also tests timestamped screen-frame recording.
+Its first attempt passed 154 unit tests and scientific validation. Desktop
+checkpoint restore, run export, three plot exports, toolbar fit, and ten
+recorded frames completed, but a GUI timer-count assertion failed before the
+script printed its timing counts. Recording timestamps showed irregular frame
+spacing up to about 0.63 s while the branch step ran. PNG compression now runs
+in a bounded background writer, and the repeat batch will report GUI timer
+gaps, capture time, and dropped recording frames before judging responsiveness.
+The attempt's compact diagnosis and final screenshot are saved as
+`runs/gap_followup_2026-10-04/desktop_files_attempt1.json` and
+`desktop_files_attempt1.png`.
+The second real-display attempt confirmed the two-row toolbar fits 850×520,
+checkpoint restore and exports work, and the full 154-test and scientific
+suites pass. The isolated standard benchmark also passed. Recording still
+blocked GUI timer callbacks: nine frames took up to 0.418 s each to capture,
+leaving only ten 20 ms timer callbacks over a 2.386 s branch step and a maximum
+callback gap of 0.436 s. The asynchronous PNG writer therefore did not solve
+the expensive QWidget capture. The second attempt is preserved as
+`runs/gap_followup_2026-10-04/desktop_files_attempt2.json` and its screenshot.
+The third batch compared physics steps without and with recording through an
+X11 screen capture path, while keeping the paused/refining state visible after
+file actions.
+The third xcb batch passed all five jobs: 154 tests, scientific validation,
+environment capture, the isolated standard benchmark, and desktop acceptance.
+At 850×520 there was no toolbar overflow. The same checkpoint restored twice;
+run and three plot exports succeeded. The 10.472-physical-second branch step
+took 2.438 s without recording and 2.484 s with recording; corresponding
+20 ms GUI timer maxima were 46.3 ms and 51.8 ms. The X11 capture path saved
+26 frames with no drops, a maximum capture cost of 18.7 ms, and a final frame
+at the branch endpoint. The persistent state returned to PAUSED. The compact
+result, screenshot, and environment are in
+`runs/gap_followup_2026-10-04/desktop_files_acceptance.json` and
+`desktop_files_acceptance.png`. A focused offscreen test additionally verifies
+that dropping intermediate render frames leaves the final gas-box trajectory
+and event count identical to headless, while click inspection displays live
+particle and apparatus details. This closes the desktop gate for the measured
+controlled-shaft desktop scope; other hardware and display backends have not
+been measured.
 
 ## 5. Release acceptance
 
@@ -999,6 +1141,14 @@ Gate: all applicable requirements have reviewable evidence. The experimental
 label remains until the numerical and scientific gates above pass.
 The 36-cycle study batch also passed 144 unit tests and all scientific
 validation checks; GUI and release acceptance remain open.
+The 2026-10-05 fresh-venv run on Ubuntu 24.04.5 LTS and Python 3.12.3
+installed the GUI and Numba extras, passed 156 unit tests and all 16 scientific
+checks, and confirmed that a headless import did not load Qt. This covers the
+local fresh-environment part of installation acceptance; a clean OS image and
+the complete requirement-to-evidence map remain open.
+An initial Carnot-specific map of the original brief and its remaining gaps is
+in `docs/CARNOT_RELEASE_EVIDENCE_MAP_2026-10-05.md`. Other experiments in the
+brief still need release mapping.
 
 ## 6. Add precalculated, smooth replay
 

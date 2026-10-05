@@ -13,5 +13,8 @@
     850,
     520
   ],
-  "screenshot": "/home/blue-whale/randomArticles/carnot/runs/TEMP_gap_desktop_controls_batch_20261004_212353_GG2vpz/desktop_controls.png"
+  "screenshot": "desktop_controls.png",
+  "unit_tests": 153,
+  "unit_tests_passed": true,
+  "scientific_validation_passed": true
 }

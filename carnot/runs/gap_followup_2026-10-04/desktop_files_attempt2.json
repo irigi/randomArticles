@@ -1,0 +1,40 @@
+{
+  "qt_platform": "xcb",
+  "toolbar_count": 2,
+  "toolbar_overflow": {
+    "Simulation": [],
+    "Run settings": []
+  },
+  "window_size": [
+    850,
+    520
+  ],
+  "checkpoint_round_trip": true,
+  "run_export_events": 10,
+  "plot_exports": [
+    "plots_pressure_area.png",
+    "plots_temperatures.png",
+    "plots_energy.png"
+  ],
+  "branch_step_wall_seconds": 2.386347763997037,
+  "gui_pings_during_step": 10,
+  "max_gui_ping_gap_seconds": 0.4362178790033795,
+  "refining_signal_count": 1,
+  "recorded_frames": 9,
+  "recording_dropped_frames": 0,
+  "recording_max_capture_seconds": 0.4176137629983714,
+  "paused_after_step": false,
+  "screenshot": "desktop_files_attempt2.png",
+  "responsive": false,
+  "exit_codes": {
+    "desktop": 1,
+    "environment": 1,
+    "scientific_validation": 0,
+    "standard_benchmark": 0,
+    "test_suite": 0
+  },
+  "unit_tests": 154,
+  "unit_tests_passed": true,
+  "scientific_validation_passed": true,
+  "environment_failure": "optional scipy is not installed"
+}

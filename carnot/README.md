@@ -30,7 +30,15 @@ The desktop toolbar has play/pause, collision, duration, and Carnot branch
 steps; seed reset; preset selection; and separate target playback and physical
 shaft-speed controls. A shaft-speed edit is recorded as a motor intervention.
 Use the mouse wheel to zoom, drag empty scene space to pan, click a particle
-to inspect it, and select **Fit scene** to restore the view.
+or apparatus part for a live inspector, and select **Fit scene** to restore
+the view.
+The **File** menu saves or opens a JSON run configuration, saves or opens a
+locally created checkpoint, exports the current run to a folder, and exports
+the pressure–area, temperature, and energy plots as separate PNG files. Open checkpoint
+files only when you created them locally; they use Python pickle. The status
+bar shows when the worker is refining a physics step.
+**Start screen recording** saves timestamped PNG frames and a JSON manifest
+in a chosen folder; **Stop screen recording** completes the sequence.
 
 The default scenes are intentionally modest.  The rotating polygon CCD and
 compound-host machinery are strict reference implementations suitable for
@@ -276,6 +284,12 @@ The same `--cam-fractions` option works for `run`; a run TOML file may set
 `cam_fractions = [0.25, 0.15, 0.25, 0.35]`. The default is four equal
 sectors. Timing changes preserve the cam's area endpoints but change piston
 speed within the affected sectors.
+
+For a controlled dilute-gas geometry comparison, `speed-study` and `run`
+accept `--carnot-radius-scale`. The default is 1.0. At fixed particle count,
+0.5 makes the particle radius half as large and the occupied fraction one
+quarter as large; the cam areas and reservoir temperatures stay fixed. This
+setting applies only to Carnot presets and changes the collision trajectory.
 
 To repeat the longer, three-seed slow triangle jacket study:
 

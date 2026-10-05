@@ -1,0 +1,53 @@
+{
+  "qt_platform": "xcb",
+  "toolbar_count": 2,
+  "toolbar_overflow": {
+    "Simulation": [],
+    "Run settings": []
+  },
+  "window_size": [
+    850,
+    520
+  ],
+  "checkpoint_round_trip": true,
+  "run_export_events": 10,
+  "plot_exports": [
+    "plots_pressure_area.png",
+    "plots_temperatures.png",
+    "plots_energy.png"
+  ],
+  "plain_branch": {
+    "wall_seconds": 2.4379892779979855,
+    "gui_pings": 102,
+    "max_ping_gap_seconds": 0.04621088299609255,
+    "refining_signal_count": 1,
+    "paused": true
+  },
+  "recorded_branch": {
+    "wall_seconds": 2.4842698690044926,
+    "gui_pings": 123,
+    "max_ping_gap_seconds": 0.05179442500229925,
+    "refining_signal_count": 1,
+    "paused": true
+  },
+  "recorded_frames": 26,
+  "recording_dropped_frames": 0,
+  "recording_max_capture_seconds": 0.018693304009502754,
+  "recording_capture_backend": "xcb-screen",
+  "recording_final_physical_time": 10.471975511965978,
+  "screenshot": "desktop_files_acceptance.png",
+  "responsive": true,
+  "unit_tests": 154,
+  "unit_tests_passed": true,
+  "scientific_validation_passed": true,
+  "standard_benchmark_passed": true,
+  "environment": {
+    "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz",
+    "numpy": "2.4.6",
+    "scipy": null,
+    "numba": "0.67.0",
+    "pyside": "6.11.2"
+  }
+}

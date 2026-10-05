@@ -8,7 +8,7 @@ import unittest
 import numpy as np
 
 from microthermo.api import load_preset
-from microthermo.cli import main
+from microthermo.cli import main, parser
 from microthermo.config import RunConfig
 from microthermo.core.boundaries import BoundaryKind
 from microthermo.core.numeric import controlled_cam_disc_toi
@@ -17,6 +17,24 @@ from microthermo.measurements.stationarity import cycle_drift, gas_energy_drift
 
 
 class SpeedStudyTests(unittest.TestCase):
+    def test_carnot_radius_scale_changes_occupied_fraction_and_cli(self):
+        base=load_preset(RunConfig(preset="carnot_discs",particles=32,seed=123))
+        dilute=load_preset(RunConfig(preset="carnot_discs",particles=32,
+                                      seed=123,carnot_radius_scale=.5))
+        self.assertAlmostEqual(dilute.world.metadata["particle_radius"],
+                               .5*base.world.metadata["particle_radius"])
+        self.assertAlmostEqual(dilute.world.metadata["particle_area_fraction_min"],
+                               .25*base.world.metadata["particle_area_fraction_min"])
+        self.assertEqual(base.world.mechanism.cam.areas,
+                         dilute.world.mechanism.cam.areas)
+        args=parser().parse_args(["speed-study","--carnot-radius-scale","0.5"])
+        self.assertEqual(args.carnot_radius_scale,.5)
+        for bad in (0.,-1.,math.inf,math.nan):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):
+                RunConfig(preset="carnot_discs",carnot_radius_scale=bad).validate()
+        with self.assertRaises(ValueError):
+            RunConfig(preset="gas_box",carnot_radius_scale=.5).validate()
+
     def test_compression_timing_changes_boundaries_and_preserves_ledger(self):
         fractions=(.25,.15,.25,.35)
         config=RunConfig(preset="carnot_discs",particles=16,seed=123,

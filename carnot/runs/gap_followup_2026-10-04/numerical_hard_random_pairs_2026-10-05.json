@@ -1,0 +1,10 @@
+{
+  "generator_seed": 20261005,
+  "cases": 300,
+  "status_disagreements": 0,
+  "time_disagreements": 0,
+  "observed_overlaps_missed": 0,
+  "indeterminate": 0,
+  "failures": [],
+  "passed": true
+}
