@@ -49,7 +49,7 @@ compiled kernels after profiling.
 mixed-policy contact clusters, and the mechanism/UI acceptance gates are
 completed. Numerical failures pause the GUI and write a diagnostic checkpoint
 in a temporary directory. See
-`docs/CARNOT_GAP_CLOSURE_PLAN.md` for the remaining acceptance gates.
+`docs/archive/codex/CARNOT_GAP_CLOSURE_PLAN.md` for the remaining acceptance gates.
 
 ## Available configurations
 
@@ -240,7 +240,7 @@ The speed study reports descriptive hot-heat and gas-energy drift screens.
 An efficiency estimate requires positive hot heat in each contiguous block;
 it does not by itself establish stationarity or convergence to the ideal
 Carnot value. The measured results and limitations of these matrices are in
-[`docs/CARNOT_THERMODYNAMIC_EVIDENCE_2026-09-30.md`](docs/CARNOT_THERMODYNAMIC_EVIDENCE_2026-09-30.md).
+[`docs/archive/codex/CARNOT_THERMODYNAMIC_EVIDENCE_2026-09-30.md`](docs/archive/codex/CARNOT_THERMODYNAMIC_EVIDENCE_2026-09-30.md).
 
 An optional cold jacket makes the stationary top and bottom cylinder walls
 thermal at the cold-reservoir temperature during the cold cam sector. They
@@ -460,7 +460,7 @@ short 200 and 500 triangle probes over the grid on the measured machine. They
 remain far below interactive playback, and long-run physics still needs
 validation. A compressed offline replay archive and desktop playback are
 available; long-run display acceptance remains open. See the
-[performance plan](docs/CARNOT_GAP_CLOSURE_PLAN.md).
+[performance plan](docs/archive/codex/CARNOT_GAP_CLOSURE_PLAN.md).
 
 To precalculate a versioned, chunked replay archive:
 
@@ -474,7 +474,7 @@ The output directory must be empty. `ReplayReader` can load an exact saved
 frame or seek to the latest frame at or before a physical time without
 running the solver. To play it in the desktop view, run
 `.venv/bin/python -m microthermo replay runs/disc_replay`. The
-[format specification](docs/REPLAY_FORMAT.md) describes the saved columns,
+[format specification](docs/archive/codex/REPLAY_FORMAT.md) describes the saved columns,
 interpolation limits, and short size and display probes.
 
 The solver keeps swept-box candidates as sorted NumPy arrays, avoiding a
