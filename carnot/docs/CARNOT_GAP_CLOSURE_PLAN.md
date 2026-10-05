@@ -18,7 +18,7 @@ Carnot thermodynamic claim and release acceptance remain open.
 | --- | ---: | --- |
 | Physical protocol diagnosis and redesign | No external batch queued | Dilution failed its fixed rule; use saved evidence before another run. |
 | New thermodynamic pilot and possible extension/comparison | At least 1, conditionally 2+ | A justified protocol must be specified first; no finite upper bound is known. |
-| Clean-OS release check | 1 | Fresh venv on the current Ubuntu host passed; clean OS and full brief map remain. |
+| Clean-OS release check | 1 | Bash launcher prepared for a separate clean Ubuntu 24.04 checkout; full brief map also remains. |
 
 The dilution batch is complete and is no longer counted. There are **zero
 science runs currently queued**. From this point, at least **two external
@@ -163,6 +163,9 @@ five-item queue.
   headless parity, file actions, real-display response, recording, inspector,
   and dropped-render-frame physics parity.
 - [ ] Complete release acceptance under the gate in section 5.
+- [ ] Run the clean Ubuntu installation check from
+  `docs/CARNOT_CLEAN_UBUNTU_PROTOCOL_2026-10-05.md` and review both isolated
+  install paths before deleting its temporary batch.
 - [x] Add precalculated smooth replay under the measured gate in section 6
   for controlled-shaft Carnot discs and triangles at 200/500 particles.
 
@@ -1149,6 +1152,10 @@ the complete requirement-to-evidence map remain open.
 An initial Carnot-specific map of the original brief and its remaining gaps is
 in `docs/CARNOT_RELEASE_EVIDENCE_MAP_2026-10-05.md`. Other experiments in the
 brief still need release mapping.
+The prepared clean-image check is described in
+`docs/CARNOT_CLEAN_UBUNTU_PROTOCOL_2026-10-05.md`. It has not been run; this
+host has no Docker or Podman executable, so evidence must come from a separate
+clean Ubuntu system.
 
 ## 6. Add precalculated, smooth replay
 
