@@ -54,6 +54,10 @@ class World:
     metadata: dict[str, Any] = field(default_factory=dict)
     # Fixed circular posts; only the edmd engine supports them.
     posts: list = field(default_factory=list)
+    # Ring hosts: body index -> RingGeometry (edmd engine only), and the
+    # probability that a contact involving a host is perfectly rough.
+    rings: dict = field(default_factory=dict)
+    contact_roughness: float = 1.0
 
     def energy(self) -> float:
         value = self.bodies.kinetic_energy()
@@ -125,8 +129,8 @@ class Simulation:
             raise ValueError("pair_kernel must be auto or scalar")
         if cam_kernel not in ("auto", "python"):
             raise ValueError("cam_kernel must be auto or python")
-        if world.posts:
-            raise ValueError("fixed circular posts require the edmd engine")
+        if world.posts or world.rings:
+            raise ValueError("fixed circular posts and ring hosts require the edmd engine")
         self.pair_search = pair_search
         self.numeric_backend = numeric_backend
         self.wall_search = wall_search

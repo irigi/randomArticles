@@ -44,7 +44,9 @@ def single_cell(sim):
     sim.ip[:] = 1
     sim.head = np.full(1, -1, np.int64)
     sim.cps, sim.cpi = edmd.post_cell_lists(sim.ppos, sim.prad, 1., sim.fp, sim.ip)
-    edmd.build_grid(sim._bodies(), sim._grid(), sim.time)
+    sim.reg = np.zeros((1, len(sim.hb)), np.int8)
+    edmd.build_grid(sim._bodies(), sim._grid(), sim._hosts(), sim.time)
+    edmd.register_all(sim._bodies(), sim._grid(), sim._hosts(), sim.time)
     sim._rebuild()
     return sim
 
@@ -57,7 +59,7 @@ class PostAnalyticTests(unittest.TestCase):
         sim.step_collision()
         self.assertAlmostEqual(sim.time, (1.5 - .15 - .5)/2., delta=1e-15)
         event = sim.events[-1]
-        self.assertEqual((event.kind, event.metadata), ("post", {"post": 0}))
+        self.assertEqual((event.kind, event.metadata), ("post", {"post": 0, "rough": False}))
         np.testing.assert_allclose(sim.world.bodies.vel[0], [-2., 0.])
         np.testing.assert_allclose(sim.post_impulses(), [[4., 0.]])
 

@@ -49,6 +49,38 @@ milestone-1 kernel's long argument lists (0.19 vs 0.24 M events/s at
 N = 1000, same machine), accepted for readability. The larger lever, if
 needed, is keeping one pending event per body instead of every prediction.
 
-Scope: smooth spinless discs in an axis-aligned box of stationary specular
-or thermal walls, with fixed posts. Rotating rough ring hosts and the
-binding step follow in milestones 3–4 of `docs/PLAN_OSMOSIS.md`.
+**Rotating ring hosts** (milestone 3). A host is a *thick arc*: every point
+within h/2 of an arc of radius R_mid that leaves out the mouth. The distance
+from a disc to the host is its distance to that arc minus h/2. Inside the
+arc's span that distance is radial, so outer and inner surface contacts are
+quadratics that rotation does not change; only the rounded mouth ends
+rotate. A disc can touch them only while crossing the wall band through the
+mouth, an interval given by two more quadratics. Only inside it does a
+conservative-advancement search run (bound |v_rel| + |omega|·R_mid; an
+unresolved search is a strict failure).
+
+- **Rough contacts.** Disc–host, host–host and host–post contacts are
+  perfectly rough with probability `World.contact_roughness`: the whole
+  relative contact velocity reverses. The 2×2 effective-mass inverse keeps
+  energy, momentum and angular momentum (tested per contact to ~1e-13).
+  Discs carry spin (I = m r²/2), which only these contacts change.
+  Equipartition between disc translation and spin and host translation and
+  rotation holds within about 3 % at roughness 1 and 0.3.
+- **Mouth lid (modelling choice).** Hosts meet walls, posts and other hosts
+  as their full outer circle, as if a lid that only discs can pass covered
+  the mouth. With a 3-diameter mouth and a 0.03 wall, one ring's end could
+  otherwise slide into another's mouth and hook the two together. The lid
+  rules that out, keeps those contacts quadratic, and makes the host–host
+  reference the hard-disc virial. Discs see the real mouth.
+- **Locality.** Hosts are not in the disc grid. Each host is registered in
+  the cells around it (outer circle plus the largest disc radius plus a
+  two-cell margin) and re-registers when it has moved by the margin, so a
+  host hit re-predicts only nearby discs (tested against a single cell).
+- **Throughput.** About 0.15 M events/s for plain discs and 0.13 M with
+  six hosts and 200 discs, against 0.19 M at milestone 2 (same session).
+  The cost is the larger compiled loop; per-function inlining did not
+  recover it. The structural fix, if needed, is one pending event per body.
+
+Scope: discs (spinless or spinning) and rotating rough ring hosts in an
+axis-aligned box of stationary specular or thermal walls, with fixed posts.
+The binding step follows in milestone 4 of `docs/PLAN_OSMOSIS.md`.

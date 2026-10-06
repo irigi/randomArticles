@@ -1,10 +1,10 @@
-"""`Simulation`-compatible driver for the compiled event-driven disc kernel.
+"""`Simulation`-compatible driver for the compiled event-driven kernel.
 
 The worker, instruments, exports and replay writer call the same methods and
-attributes as on the reference `Simulation`. Supported worlds: smooth
-spinless discs inside an axis-aligned box of stationary infinite-line walls
-(specular or thermal), optionally with fixed circular posts, and with no
-portals or mechanism.
+attributes as on the reference `Simulation`. Supported worlds: discs (smooth;
+spinless or with spin) and rotating ring hosts inside an axis-aligned box of
+stationary infinite-line walls (specular or thermal), optionally with fixed
+circular posts, and with no portals or mechanism.
 """
 from __future__ import annotations
 
@@ -20,18 +20,19 @@ import numpy as np
 from ..core import edmd
 from ..core.boundaries import BoundaryKind, CircularPost, Wall
 from ..core.events import InteractionRecord
-from ..core.state import Shape, Tolerances
+from ..core.state import RingGeometry, Shape, Tolerances
 from ..measurements.ledger import CompensatedCounter, EnergyLedger
 from ..measurements.observables import rotational_temperature, translational_temperature
 from .simulation import NumericalFailure, Snapshot, World
 
-_LOG_KINDS = ("elastic", "specular", "hot", "cold", "post")
+_LOG_KINDS = ("elastic", "specular", "hot", "cold", "post", "host", "host_host")
+_FEATURES = ("outer", "inner", "cap_plus", "cap_minus")
 _WALL_KINDS = {BoundaryKind.SPECULAR: edmd.WALL_SPECULAR,
                BoundaryKind.HOT: edmd.WALL_HOT, BoundaryKind.COLD: edmd.WALL_COLD}
-_ARRAYS = ("pos", "vel", "tl", "cnt", "cell", "head", "nxt", "prv",
-           "ht", "hk", "si", "sf", "rand", "pimp")
+_ARRAYS = ("pos", "vel", "tl", "cnt", "ang", "om", "cell", "head", "nxt", "prv",
+           "reg", "hregc", "hregb", "ht", "hk", "si", "sf", "rand", "pimp")
 _GAP_KINDS = {edmd.EV_PAIR: "pair", edmd.EV_WALL: "wall", edmd.EV_POST: "post",
-              edmd.EV_CELL: "cell"}
+              edmd.EV_CELL: "cell", edmd.EV_DH: "disc_host", edmd.EV_HH: "host_host"}
 
 
 @dataclass
@@ -51,10 +52,25 @@ def edmd_unsupported_reason(world: World) -> str | None:
         return "mechanisms are not supported"
     if world.portals:
         return "portals are not supported"
-    if np.any(s.shape != Shape.DISC) or np.any(np.isfinite(s.inertia)):
-        return "only smooth spinless discs are supported"
+    hosts = set(world.rings)
+    for i in range(s.n):
+        if i in hosts:
+            if s.shape[i] != Shape.HOST or not isinstance(world.rings[i], RingGeometry):
+                return f"body {i} has ring geometry but is not a HOST"
+            if not np.isfinite(s.inertia[i]):
+                return f"host {i} needs a finite moment of inertia"
+            if not math.isclose(s.radius[i], world.rings[i].outer_radius):
+                return f"host {i} radius must equal the ring's outer radius"
+        elif s.shape[i] != Shape.DISC:
+            return "only discs and ring hosts are supported"
     if not np.all(s.dynamic):
         return "static bodies are not supported"
+    if not 0. <= world.contact_roughness <= 1.:
+        return "contact roughness must lie in [0, 1]"
+    if hosts and world.contact_roughness > 0:
+        discs = [i for i in range(s.n) if i not in hosts]
+        if not np.all(np.isfinite(s.inertia[discs])):
+            return "rough host contacts need discs with spin (finite inertia)"
     for wall in world.walls:
         if type(wall) is not Wall:
             return f"wall {wall.name!r} of type {type(wall).__name__} is not supported"
@@ -106,9 +122,21 @@ class EdmdSimulation:
         s = world.bodies
         n = s.n
         self.pos, self.vel = s.pos.copy(), s.vel.copy()
+        self.ang = s.angle.copy()
+        self.om = np.where(np.isfinite(s.inertia), s.omega, 0.0)
+        self.inr = np.where(np.isfinite(s.inertia), 1.0/s.inertia, 0.0)
         self.tl = np.zeros(n)
         self.rad, self.mass = s.radius.copy(), s.mass.copy()
         self.cnt = np.zeros(n, np.int64)
+        # Hosts.
+        hosts = sorted(world.rings)
+        self.hb = np.asarray(hosts, np.int64)
+        self.bh = np.full(n, -1, np.int64)
+        self.bh[self.hb] = np.arange(len(hosts))
+        self.hg = np.asarray([[g.inner_radius, g.outer_radius, g.mid, g.cap,
+                               g.mouth_half_angle] for g in (world.rings[i] for i in hosts)],
+                             float).reshape(-1, 5)
+        # Static geometry.
         walls = world.walls
         self.wpt = np.asarray([w.point for w in walls], float).reshape(-1, 2)
         self.wnrm = np.asarray([w.inward_normal for w in walls], float).reshape(-1, 2)
@@ -118,21 +146,31 @@ class EdmdSimulation:
         self.ppos = np.asarray([p.center for p in posts], float).reshape(-1, 2)
         self.prad = np.asarray([p.radius for p in posts], float)
         self.pimp = np.zeros(4*len(posts))
+        # Grid: cells of at least one disc diameter.
         x0, y0, x1, y1 = _box_bounds(walls)
-        side = 2.0*float(np.max(self.rad))
+        discs = self.bh < 0
+        disc_radius = float(np.max(self.rad[discs])) if np.any(discs) else float(np.min(self.rad))
+        side = 2.0*disc_radius
         nx = max(1, int((x1-x0)/side))
         ny = max(1, int((y1-y0)/side))
-        self.fp = np.array([tolerances.geometry, tolerances.velocity, x0, y0,
-                            (x1-x0)/nx, (y1-y0)/ny])
+        reach = disc_radius + 1e-6*max(x1-x0, y1-y0)
+        self.fp = np.zeros(edmd.FP_SIZE)
+        self.fp[:6] = [tolerances.geometry, tolerances.velocity, x0, y0,
+                       (x1-x0)/nx, (y1-y0)/ny]
+        self.fp[edmd.FP_ROUGH] = world.contact_roughness
+        # Hosts re-register after moving two cells: a wider footprint, fewer updates.
+        self.fp[edmd.FP_HMARGIN] = 2.0*max(self.fp[edmd.FP_CX], self.fp[edmd.FP_CY])
+        self.fp[edmd.FP_REACH] = reach
         self.ip = np.array([nx, ny], np.int64)
-        self.cps, self.cpi = edmd.post_cell_lists(
-            self.ppos, self.prad, float(np.max(self.rad)) + 1e-6*max(x1-x0, y1-y0),
-            self.fp, self.ip)
+        self.cps, self.cpi = edmd.post_cell_lists(self.ppos, self.prad, reach, self.fp, self.ip)
         self.cell = np.zeros(n, np.int64)
         self.head = np.full(nx*ny, -1, np.int64)
         self.nxt = np.full(n, -1, np.int64)
         self.prv = np.full(n, -1, np.int64)
-        capacity = 32*n + 4*(n + len(walls) + len(posts) + 2) + 1024
+        self.reg = np.zeros((nx*ny, len(hosts)), np.int8)
+        self.hregc = np.zeros((len(hosts), 2))
+        self.hregb = np.full((len(hosts), 4), -1, np.int64)
+        capacity = 32*n + 4*(n + len(walls) + len(posts) + len(hosts) + 4) + 1024
         self.ht = np.zeros(capacity)
         self.hk = np.zeros((capacity, 5), np.int64)
         self.si = np.zeros(edmd.SI_SIZE, np.int64)
@@ -153,14 +191,15 @@ class EdmdSimulation:
         self.cycle_markers: list = []
         self.failure_checkpoint: EdmdCheckpoint | None = None
         self.failure_diagnostic: dict[str, Any] | None = None
-        bad = edmd.build_grid(self._bodies(), self._grid(), 0.0)
+        bad = edmd.build_grid(self._bodies(), self._grid(), self._hosts(), 0.0)
         if bad >= 0:
             raise ValueError(f"body {bad} lies outside the wall box")
+        edmd.register_all(self._bodies(), self._grid(), self._hosts(), 0.0)
         gap, *_ = self._min_gap(0.0)
         if gap < -tolerances.geometry:
             raise ValueError(f"invalid overlapping initial state, gap={gap}")
-        self.sf[edmd.SF_KE] = s.kinetic_energy()
-        self._initial_energy = s.kinetic_energy()
+        self.sf[edmd.SF_KE] = self.energy()
+        self._initial_energy = self.energy()
         self._rebuild()
 
     # -- kernel plumbing --------------------------------------------------
@@ -168,7 +207,8 @@ class EdmdSimulation:
     # Tuples are rebuilt on every call because restore() and heap growth
     # replace the arrays.
     def _bodies(self):
-        return (self.pos, self.vel, self.tl, self.rad, self.mass, self.cnt)
+        return (self.pos, self.vel, self.tl, self.rad, self.mass, self.cnt,
+                self.ang, self.om, self.inr)
 
     def _grid(self):
         return (self.cell, self.head, self.nxt, self.prv, self.fp, self.ip)
@@ -177,6 +217,9 @@ class EdmdSimulation:
         return (self.wpt, self.wnrm, self.wkind, self.wtemp,
                 self.ppos, self.prad, self.cps, self.cpi)
 
+    def _hosts(self):
+        return (self.hb, self.bh, self.hg, self.reg, self.hregc, self.hregb)
+
     def _calendar(self):
         return (self.ht, self.hk, self.si, self.sf)
 
@@ -184,11 +227,12 @@ class EdmdSimulation:
         return (self.rand, self.lt, self.lk, self.lf, self.pimp)
 
     def _rebuild(self) -> None:
-        if not edmd.rebuild(self._bodies(), self._grid(), self._static(), self._calendar()):
-            self._overlap_failure("overlap while predicting events")
+        if not edmd.rebuild(self._bodies(), self._grid(), self._static(), self._hosts(),
+                            self._calendar()):
+            self._kernel_failure(edmd.ERR_OVERLAP, "while predicting events")
 
     def _min_gap(self, t: float):
-        return edmd.min_gap(t, self._bodies(), self._grid(), self._static())
+        return edmd.min_gap(t, self._bodies(), self._grid(), self._static(), self._hosts())
 
     def _run(self, t_end: float, max_events: int) -> int:
         """Run the kernel, servicing buffer, log and heap requests."""
@@ -196,8 +240,8 @@ class EdmdSimulation:
         while True:
             before = int(self.si[edmd.SI_EVENTS])
             status = edmd.advance(t_end, max_events - processed, self._bodies(),
-                                  self._grid(), self._static(), self._calendar(),
-                                  self._io())
+                                  self._grid(), self._static(), self._hosts(),
+                                  self._calendar(), self._io())
             processed += int(self.si[edmd.SI_EVENTS]) - before
             if status == edmd.NEED_RANDOM:
                 self.rand = self.rng.random(self.random_block)
@@ -209,11 +253,9 @@ class EdmdSimulation:
                 self.ht = np.zeros(capacity)
                 self.hk = np.zeros((capacity, 5), np.int64)
                 self._rebuild()
-            elif status in (edmd.ERR_OVERLAP, edmd.ERR_CELL):
+            elif status < 0:
                 self._flush_log()
-                self._overlap_failure("overlap during event prediction"
-                                      if status == edmd.ERR_OVERLAP else
-                                      "body left the cell grid")
+                self._kernel_failure(status, "during event prediction")
             else:
                 self._flush_log()
                 return processed
@@ -227,29 +269,36 @@ class EdmdSimulation:
 
     def _materialize_events(self) -> None:
         for lt, lk, lf in self._log_chunks:
-            for t, (kind, a, b, wall), f in zip(lt.tolist(), lk.tolist(), lf.tolist()):
+            for t, (kind, a, b, other), f in zip(lt.tolist(), lk.tolist(), lf.tolist()):
                 name = _LOG_KINDS[kind]
                 if kind == edmd.LOG_ELASTIC:
-                    self._events.append(InteractionRecord(
-                        t, name, (a, b), (f[0], f[1]), f[3], f[4]))
-                    continue
-                if kind == edmd.LOG_POST:
-                    self._events.append(InteractionRecord(
-                        t, name, (a,), (f[0], f[1]), f[3], f[4], 0.0, 0.0,
-                        {"post": wall}))
-                    continue
-                metadata: dict[str, Any] = {"boundary": wall}
-                if kind != edmd.LOG_SPECULAR:
-                    metadata.update(reservoir_temperature=float(self.wtemp[wall]),
-                                    incoming_normal_mode_energy=f[5],
-                                    outgoing_normal_mode_energy=f[6])
-                self._events.append(InteractionRecord(
-                    t, name, (a,), (f[0], f[1]), f[3], f[4], f[2], 0.0, metadata))
+                    record = InteractionRecord(t, name, (a, b), (f[0], f[1]), f[3], f[4])
+                elif kind == edmd.LOG_POST:
+                    record = InteractionRecord(t, name, (a,), (f[0], f[1]), f[3], f[4],
+                                               0.0, 0.0, {"post": other, "rough": f[5] > 0})
+                elif kind == edmd.LOG_HOST:
+                    record = InteractionRecord(t, name, (a, b), (f[0], f[1]), f[3], f[4],
+                                               0.0, 0.0, {"feature": _FEATURES[other],
+                                                          "rough": f[5] > 0})
+                elif kind == edmd.LOG_HOST_HOST:
+                    record = InteractionRecord(t, name, (a, b), (f[0], f[1]), f[3], f[4],
+                                               0.0, 0.0, {"rough": f[5] > 0})
+                else:
+                    metadata: dict[str, Any] = {"boundary": other}
+                    if kind != edmd.LOG_SPECULAR:
+                        metadata.update(reservoir_temperature=float(self.wtemp[other]),
+                                        incoming_normal_mode_energy=f[5],
+                                        outgoing_normal_mode_energy=f[6])
+                    record = InteractionRecord(t, name, (a,), (f[0], f[1]), f[3], f[4],
+                                               f[2], 0.0, metadata)
+                self._events.append(record)
         self._log_chunks.clear()
 
     def _sync_world(self) -> None:
-        edmd.positions_at(self.time, self.pos, self.vel, self.tl, self.world.bodies.pos)
-        self.world.bodies.vel[:] = self.vel
+        s = self.world.bodies
+        edmd.state_at(self.time, self._bodies(), s.pos, s.angle)
+        s.vel[:] = self.vel
+        s.omega[:] = np.where(self.inr > 0, self.om, s.omega)
 
     def _check_gap(self, reason: str) -> None:
         gap, kind, a, b = self._min_gap(self.time)
@@ -258,10 +307,12 @@ class EdmdSimulation:
         if gap < -self.tol.geometry:
             self._fail(reason, gap=gap, participants=(_GAP_KINDS[kind], int(a), int(b)))
 
-    def _overlap_failure(self, reason: str) -> None:
+    def _kernel_failure(self, status: int, when: str) -> None:
         si = self.si
-        self._fail(reason, gap=float(self.sf[edmd.SF_ERR_GAP]),
-                   participants=(_GAP_KINDS[int(si[edmd.SI_ERR_KIND])],
+        reason = {edmd.ERR_OVERLAP: "overlap", edmd.ERR_CELL: "body left the cell grid",
+                  edmd.ERR_CCD: "unresolved mouth-cap contact search"}[status]
+        self._fail(f"{reason} {when}", gap=float(self.sf[edmd.SF_ERR_GAP]),
+                   participants=(_GAP_KINDS.get(int(si[edmd.SI_ERR_KIND]), "?"),
                                  int(si[edmd.SI_ERR_A]), int(si[edmd.SI_ERR_B])))
 
     def _fail(self, reason: str, **details: Any) -> None:
@@ -313,7 +364,10 @@ class EdmdSimulation:
         return self.pimp.reshape(-1, 4)[:, [0, 2]].copy()
 
     def energy(self) -> float:
-        return float(0.5*np.sum(self.mass*np.sum(self.vel*self.vel, axis=1)))
+        linear = 0.5*np.sum(self.mass*np.sum(self.vel*self.vel, axis=1))
+        spin = 0.5*np.sum(np.where(self.inr > 0, self.om**2/np.where(self.inr > 0, self.inr, 1.),
+                                   0.0))
+        return float(linear + spin)
 
     def advance_to(self, physical_time: float) -> Snapshot:
         if physical_time < self.time - self.tol.time:
@@ -368,10 +422,13 @@ class EdmdSimulation:
         destination.mkdir(parents=True, exist_ok=True)
         cp = self.failure_checkpoint
         np.savez_compressed(destination/"state.npz", **cp.arrays, radius=self.rad,
-                            mass=self.mass, wall_points=self.wpt, wall_normals=self.wnrm,
-                            wall_kinds=self.wkind, wall_temperatures=self.wtemp,
-                            post_centers=self.ppos, post_radii=self.prad)
+                            mass=self.mass, inverse_inertia=self.inr, host_bodies=self.hb,
+                            host_geometry=self.hg, wall_points=self.wpt,
+                            wall_normals=self.wnrm, wall_kinds=self.wkind,
+                            wall_temperatures=self.wtemp, post_centers=self.ppos,
+                            post_radii=self.prad)
         payload = {**self.failure_diagnostic, "engine": "edmd", "rng_state": cp.rng_state,
+                   "contact_roughness": self.world.contact_roughness,
                    "world_metadata": self.world.metadata}
         (destination/"diagnostic.json").write_text(json.dumps(
             payload, indent=2, default=lambda x: x.tolist() if isinstance(x, np.ndarray)
@@ -379,8 +436,8 @@ class EdmdSimulation:
         return destination
 
     def _bring_to_now(self) -> None:
-        """Make every stored position current; call before changing velocities."""
-        edmd.positions_at(self.time, self.pos, self.vel, self.tl, self.pos)
+        """Make every stored position and angle current; call before changing velocities."""
+        edmd.state_at(self.time, self._bodies(), self.pos, self.ang)
         self.tl[:] = self.time
 
     def _changed_velocities(self) -> None:
@@ -401,6 +458,7 @@ class EdmdSimulation:
         if name == "reverse_particle_velocities":
             self._bring_to_now()
             self.vel *= -1
+            self.om *= -1
             self._changed_velocities()
             return {"ok": True, "time": self.time, "intervention": True}
         if name == "checkpoint":

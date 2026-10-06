@@ -393,6 +393,14 @@ cross a membrane and spread out evenly; discs larger than the gap stay on
 their side over 200 s while hitting the posts. Throughput is now about
 0.19 M events/s (ADR 0004).
 
+M3 done 2026-10-06: rotating rough ring hosts (ADR 0004). One change from
+§2.1: hosts meet walls, posts and other hosts as their full outer circle
+(a "lid" that only discs pass), because a ring's end could otherwise hook
+into another ring's mouth. Gate results: per-contact conservation of energy,
+momentum and angular momentum; equipartition of all four modes within 3 %
+at roughness 1 and 0.3; discs enter and leave cavities; host registration
+agrees with a single-cell grid.
+
 ## 9. Risks
 
 - **Π is small next to the disc pressure.** Mitigated by the low-density E4

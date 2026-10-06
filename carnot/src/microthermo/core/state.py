@@ -126,6 +126,43 @@ class BodyArrays:
 
 
 @dataclass(frozen=True)
+class RingGeometry:
+    """Ring host: an annular wall with one mouth and rounded mouth ends.
+
+    The solid is every point within ``cap`` of an arc of radius ``mid``;
+    the arc leaves out the mouth, centred on body angle 0. ``mouth_width``
+    is the clear chord between the two rounded ends.
+    """
+
+    inner_radius: float
+    outer_radius: float
+    mouth_width: float
+
+    def __post_init__(self) -> None:
+        if not (0 < self.inner_radius < self.outer_radius and self.mouth_width > 0):
+            raise ValueError("ring needs 0 < inner radius < outer radius and a positive mouth")
+        if self.mouth_width + 2*self.cap >= 2*self.mid:
+            raise ValueError("ring mouth is wider than the ring")
+
+    @property
+    def mid(self) -> float:
+        return 0.5*(self.inner_radius + self.outer_radius)
+
+    @property
+    def cap(self) -> float:
+        return 0.5*(self.outer_radius - self.inner_radius)
+
+    @property
+    def mouth_half_angle(self) -> float:
+        """Angle of each rounded end's centre from the mouth axis."""
+        return float(np.arcsin((self.mouth_width + 2*self.cap)/(2*self.mid)))
+
+    def uniform_inertia(self, mass: float) -> float:
+        """Moment of inertia of a full uniform annulus (the declared balanced mass)."""
+        return 0.5*mass*(self.inner_radius**2 + self.outer_radius**2)
+
+
+@dataclass(frozen=True)
 class Tolerances:
     geometry: float = 1e-10
     time: float = 1e-12
