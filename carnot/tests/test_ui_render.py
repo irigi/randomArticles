@@ -204,6 +204,32 @@ class UiRenderTests(unittest.TestCase):
         finally:
             window.close()
 
+    def test_worker_drives_the_edmd_engine(self):
+        from microthermo.core.edmd import numba_available
+        from microthermo.ui.main_window import MainWindow
+
+        if not numba_available():
+            self.skipTest("Numba optional dependency not installed")
+        app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        window=MainWindow("gas_box",autoplay=False,
+                          config=RunConfig(preset="gas_box",particles=48,engine="edmd"))
+        try:
+            window.show()
+            self.wait_until(app,lambda: window.thread.isRunning())
+            window.play_requested.emit(True)
+            self.wait_until(app,lambda: window.view.snapshot.time>=.5)
+            window.play_requested.emit(False)
+            self.wait_until(app,lambda:
+                window.readout.diagnostic_values["Achieved playback"].text()
+                == "Paused")
+            paused=window.view.snapshot.time
+            window.advance_requested.emit(.01)
+            self.wait_until(app,lambda: window.view.snapshot.time>paused)
+            self.assertAlmostEqual(window.view.snapshot.time,paused+.01,places=12)
+            self.assertGreater(window.view.snapshot.event_count,0)
+        finally:
+            window.close()
+
     def test_desktop_duration_rate_reset_and_physical_speed_are_distinct(self):
         from microthermo.ui.main_window import MainWindow
 

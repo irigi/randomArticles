@@ -37,6 +37,9 @@ class RunConfig:
     initial_temperature: float | None = None
     # Carnot only: T_hot/T_cold. The cam adiabats are recalibrated to it.
     temperature_ratio: float = 2.0
+    # "reference" (bounded-horizon scheduler) or "edmd" (compiled
+    # event-driven kernel for smooth discs in a wall box).
+    engine: str = "reference"
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "cam_fractions", tuple(self.cam_fractions))
@@ -92,12 +95,15 @@ class RunConfig:
             raise ValueError("pair_kernel must be auto or scalar")
         if self.cam_kernel not in ("auto", "python"):
             raise ValueError("cam_kernel must be auto or python")
+        if self.engine not in ("reference", "edmd"):
+            raise ValueError("engine must be reference or edmd")
 
     def digest(self) -> str:
         data = asdict(self)
         # Fields added later are omitted at their defaults so older run
         # hashes, archives, and checkpoints remain valid.
-        for key, default in (("initial_temperature", None), ("temperature_ratio", 2.0)):
+        for key, default in (("initial_temperature", None), ("temperature_ratio", 2.0),
+                             ("engine", "reference")):
             if data[key] == default:
                 del data[key]
         return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()

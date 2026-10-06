@@ -37,6 +37,8 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--sample-interval", type=float)
     run.add_argument("--max-horizon", type=float)
     run.add_argument("--pair-search", choices=("grid", "sweep", "all"))
+    run.add_argument("--engine", choices=("reference", "edmd"),
+                     help="edmd: compiled event-driven kernel (smooth discs in a wall box)")
     run.add_argument("--numeric-backend", choices=("auto", "python", "numba"))
     run.add_argument("--wall-search", choices=("bounded", "all"))
     run.add_argument("--wall-kernel", choices=("auto", "python"))
@@ -86,6 +88,7 @@ def parser() -> argparse.ArgumentParser:
     replay = sub.add_parser("precalculate", help="write chunked replay frames offline")
     replay.add_argument("--preset", choices=preset_names(), default="carnot_discs")
     replay.add_argument("--seed", type=int, default=123)
+    replay.add_argument("--engine", choices=("reference", "edmd"), default="reference")
     replay.add_argument("--particles", type=int, default=32)
     length = replay.add_mutually_exclusive_group(required=True)
     length.add_argument("--duration", type=float)
@@ -118,6 +121,7 @@ def parser() -> argparse.ArgumentParser:
     gui.add_argument("--shaft-speed", type=float, default=.15)
     gui.add_argument("--shaft-mode", choices=("controlled", "free"), default="controlled")
     gui.add_argument("--seed", type=int, default=123)
+    gui.add_argument("--engine", choices=("reference", "edmd"), default="reference")
     gui.add_argument("--particles", type=int,
                      help="default: 96 for carnot_triangles, otherwise 48")
     gui.add_argument("--cold-jacket", action="store_true")
@@ -140,7 +144,7 @@ def _run(args) -> int:
             "wall_search":"bounded","wall_kernel":"auto",
             "penetration_kernel":"auto","pair_kernel":"auto",
             "cam_kernel":"auto","initial_temperature":None,
-            "temperature_ratio":2.0}
+            "temperature_ratio":2.0,"engine":"reference"}
     if args.config:
         with open(args.config,"rb") as f:
             loaded=tomllib.load(f)
@@ -153,7 +157,7 @@ def _run(args) -> int:
                 "efficiency_min_cycles","pair_search","numeric_backend",
                 "wall_search","wall_kernel","penetration_kernel","pair_kernel",
                 "cam_kernel","cold_jacket","hot_jacket","cam_fractions",
-                "initial_temperature","temperature_ratio"):
+                "initial_temperature","temperature_ratio","engine"):
         value=getattr(args,key)
         if value is not None: values[key]=tuple(value) if key=="cam_fractions" else value
     if args.reversed: values["reversed_cycle"]=True
@@ -243,7 +247,7 @@ def main(argv=None) -> int:
                       initial_temperature=args.initial_temperature,
                       temperature_ratio=(2.0 if args.temperature_ratio is None
                                          else args.temperature_ratio),
-                      pair_search=args.pair_search)
+                      pair_search=args.pair_search,engine=args.engine)
         started=time.perf_counter()
         def progress(physical,duration,events):
             elapsed=time.perf_counter()-started
@@ -282,7 +286,8 @@ def main(argv=None) -> int:
                          initial_temperature=args.initial_temperature,
                          temperature_ratio=args.temperature_ratio,
                          transient_cycles=args.transient_cycles,
-                         efficiency_min_cycles=args.efficiency_min_cycles)
+                         efficiency_min_cycles=args.efficiency_min_cycles,
+                         engine=args.engine)
         try:
             config.validate()
         except ValueError as exc:

@@ -1,0 +1,139 @@
+{
+  "date": "2026-10-06",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-11850H @ 2.50GHz",
+  "python": "3.12.3",
+  "numpy": "2.4.6",
+  "area_fraction": 0.05,
+  "radius": 0.02,
+  "budget_seconds": 20.0,
+  "results": [
+    {
+      "particles": 200,
+      "engine": "edmd",
+      "sample_step": 0.05,
+      "wall_seconds": 20.000068495999585,
+      "events": 3189894,
+      "physical_seconds": 4055.450000005988,
+      "events_per_second": 159494.1537644255,
+      "physical_per_wall_second": 202.77180554742395,
+      "energy_residual": -2.3234747459355276e-11,
+      "speedup_vs_reference": 358.3123775600581
+    },
+    {
+      "particles": 200,
+      "engine": "edmd_no_event_log",
+      "sample_step": 0.05,
+      "wall_seconds": 20.000142724999023,
+      "events": 3669759,
+      "physical_seconds": 4654.450000008167,
+      "events_per_second": 183486.64059347002,
+      "physical_per_wall_second": 232.72083924633066,
+      "energy_residual": -2.7334579044691054e-11,
+      "speedup_vs_reference": 412.2128171460187
+    },
+    {
+      "particles": 200,
+      "engine": "edmd_kernel_only",
+      "sample_step": 2.0,
+      "wall_seconds": 20.00515369200002,
+      "events": 5515347,
+      "physical_seconds": 7012.0,
+      "events_per_second": 275696.3073073297,
+      "physical_per_wall_second": 350.50967905355657,
+      "energy_residual": -3.9743763835531354e-11,
+      "speedup_vs_reference": 619.3668985618419
+    },
+    {
+      "particles": 200,
+      "engine": "reference",
+      "sample_step": 0.05,
+      "wall_seconds": 20.039269981998586,
+      "events": 8920,
+      "physical_seconds": 11.55000000000003,
+      "events_per_second": 445.125995508464,
+      "physical_per_wall_second": 0.5763683013590551,
+      "energy_residual": -8.526512829121202e-14
+    },
+    {
+      "particles": 1000,
+      "engine": "edmd",
+      "sample_step": 0.05,
+      "wall_seconds": 20.000216090998947,
+      "events": 3570592,
+      "physical_seconds": 1031.9999999996091,
+      "events_per_second": 178527.67108886075,
+      "physical_per_wall_second": 51.5994424912268,
+      "energy_residual": -3.182343277785549e-11,
+      "speedup_vs_reference": 1964.2376804758444
+    },
+    {
+      "particles": 1000,
+      "engine": "edmd_no_event_log",
+      "sample_step": 0.05,
+      "wall_seconds": 20.000212143999306,
+      "events": 4079394,
+      "physical_seconds": 1179.7999999994747,
+      "events_per_second": 203967.53647555417,
+      "physical_per_wall_second": 58.989374287884836,
+      "energy_residual": -3.6983749396313215e-11,
+      "speedup_vs_reference": 2244.1379439700354
+    },
+    {
+      "particles": 1000,
+      "engine": "edmd_kernel_only",
+      "sample_step": 2.0,
+      "wall_seconds": 20.003732125998795,
+      "events": 4882557,
+      "physical_seconds": 1412.0,
+      "events_per_second": 244082.30270461153,
+      "physical_per_wall_second": 70.5868280531925,
+      "energy_residual": -4.320099833421409e-11,
+      "speedup_vs_reference": 2685.4977336878706
+    },
+    {
+      "particles": 1000,
+      "engine": "reference",
+      "sample_step": 0.05,
+      "wall_seconds": 21.3997206439999,
+      "events": 1945,
+      "physical_seconds": 0.5499999999999999,
+      "events_per_second": 90.88903693447715,
+      "physical_per_wall_second": 0.025701270084299448,
+      "energy_residual": 4.547473508864641e-13
+    },
+    {
+      "particles": 5000,
+      "engine": "edmd",
+      "sample_step": 0.05,
+      "wall_seconds": 20.000449672001196,
+      "events": 3143855,
+      "physical_seconds": 194.95000000001008,
+      "events_per_second": 157189.2158205378,
+      "physical_per_wall_second": 9.747280846036292,
+      "energy_residual": -2.6361135496699717e-11
+    },
+    {
+      "particles": 5000,
+      "engine": "edmd_no_event_log",
+      "sample_step": 0.05,
+      "wall_seconds": 20.004246874999808,
+      "events": 3717625,
+      "physical_seconds": 230.60000000001818,
+      "events_per_second": 185841.7876579038,
+      "physical_per_wall_second": 11.527552196339329,
+      "energy_residual": -3.185718355780409e-11
+    },
+    {
+      "particles": 5000,
+      "engine": "edmd_kernel_only",
+      "sample_step": 2.0,
+      "wall_seconds": 20.02354655599993,
+      "events": 4160739,
+      "physical_seconds": 258.0,
+      "events_per_second": 207792.31033641545,
+      "physical_per_wall_second": 12.884830331053013,
+      "energy_residual": -3.4443559115970857e-11
+    }
+  ]
+}

@@ -108,6 +108,13 @@ python -m microthermo run \
   --output runs/gas_box
 ```
 
+Add `--engine edmd` (to `run`, `precalculate` or `gui`) to use the compiled
+event-driven kernel instead of the reference scheduler. It needs the `accel`
+extra (numba) and supports smooth discs in a box of stationary walls, which
+today means `gas_box`; other presets are rejected with a message. See
+`docs/adr/0004-edmd-kernel.md` and, for throughput,
+`python -m microthermo.measurements.edmd_benchmark`.
+
 Rotating triangles relaxing toward translational and rotational
 equipartition:
 

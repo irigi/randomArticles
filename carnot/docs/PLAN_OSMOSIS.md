@@ -379,6 +379,14 @@ closed form, so it comes after the fixed-membrane results.
 | 7 | Mouth-width variants; replay v3; video | E5; recorded replay of E3 |
 | 8 | Optional: osmotic piston; second inner ring | own gates |
 
+**Progress.** M1 done 2026-10-06 (ADR 0004). Kernel-only throughput is
+0.21–0.28 M events/s, nearly flat from N = 200 to 5000; that is 600× the
+reference engine at N = 200 and 2700× at N = 1000. Sampling every 0.05 s
+with event records costs about 30–40 %. Details are in
+`docs/results/edmd_benchmark_2026-10-06.json`. The heap keeps every
+prediction, so there is room to optimise (e.g. one event per body) if the
+osmosis scenes need it.
+
 ## 9. Risks
 
 - **Π is small next to the disc pressure.** Mitigated by the low-density E4
