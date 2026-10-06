@@ -401,6 +401,19 @@ momentum and angular momentum; equipartition of all four modes within 3 %
 at roughness 1 and 0.3; discs enter and leave cavities; host registration
 agrees with a single-cell grid.
 
+M4 done 2026-10-06: binding wells with recoil (ADR 0004). Gate results:
+- **Step law:** entering, leaving and refused exits match the law exactly,
+  conserving energy, momentum and angular momentum.
+- **First law:** closure, potential energy included, at about 1e-11 over
+  tens of thousands of crossings.
+- **E0a:** a frozen smooth host traps a disc indefinitely, while a mobile
+  rough host in a thermal box releases it.
+- **E0c:** hard-only occupancy is 0.83–0.87 per well at T = 0.4–2,
+  against 0.85 ideal, so independent of T.
+- **E0b:** with ε = 1.5, occupancy is 3–7 % below the ideal-point
+  reference, with sub-binomial variance. Both come from crowding of
+  finite discs in a small well; that is the E2 lesson.
+
 ## 9. Risks
 
 - **Π is small next to the disc pressure.** Mitigated by the low-density E4

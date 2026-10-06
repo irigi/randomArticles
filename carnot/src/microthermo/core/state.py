@@ -132,15 +132,25 @@ class RingGeometry:
     The solid is every point within ``cap`` of an arc of radius ``mid``;
     the arc leaves out the mouth, centred on body angle 0. ``mouth_width``
     is the clear chord between the two rounded ends.
+
+    An optional binding well: a disc whose centre lies within ``well_radius``
+    of the ring centre has potential energy ``-well_depth``. With depth 0 the
+    well circle only counts occupancy.
     """
 
     inner_radius: float
     outer_radius: float
     mouth_width: float
+    well_radius: float | None = None
+    well_depth: float = 0.0
 
     def __post_init__(self) -> None:
         if not (0 < self.inner_radius < self.outer_radius and self.mouth_width > 0):
             raise ValueError("ring needs 0 < inner radius < outer radius and a positive mouth")
+        if self.well_radius is not None and not 0 < self.well_radius < self.inner_radius:
+            raise ValueError("well radius must lie inside the cavity")
+        if self.well_radius is None and self.well_depth != 0:
+            raise ValueError("a binding well needs a well radius")
         if self.mouth_width + 2*self.cap >= 2*self.mid:
             raise ValueError("ring mouth is wider than the ring")
 

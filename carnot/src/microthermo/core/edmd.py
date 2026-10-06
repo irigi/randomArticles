@@ -29,6 +29,14 @@ it enters the cell or changes velocity; a host tests the discs in its cells
 when its velocity changes. Any disc touching a host or post therefore sits in
 one of its cells, and no contact is missed.
 
+A host may carry a binding well: inside a concentric step circle of radius
+Rstep (within the cavity) a disc has potential energy -eps. Crossing it is
+an event with the reversible step law of the brief (section 8.3): the radial
+relative speed g becomes sign(g)*sqrt(g^2 - 2*D*dU) with D = 1/m + 1/M,
+or reverses if the uphill step cannot be climbed. The impulse is radial
+through both centres, so it exerts no torque. With eps = 0 the circle only
+counts occupancy.
+
 Python supplies uniform random numbers in a buffer drawn from the run's
 NumPy ``Generator``. The kernel returns when it reaches the requested time,
 the event budget, the end of the random buffer or the event log, or an error.
@@ -41,7 +49,9 @@ Arrays travel in six tuples:
 - ``S`` static geometry: wpt, wnrm, wkind, wtemp, ppos, prad, cps, cpi
 - ``H`` hosts: hb (body of host k), bh (host of body i or -1), hg (geometry
   rows Rin, Rout, Rmid, cap, beta), reg (cell x host flags), hregc
-  (registration centres), hregb (registered cell bounds x0, x1, y0, y1)
+  (registration centres), hregb (registered cell bounds x0, x1, y0, y1),
+  memb (host whose well holds disc i, or -1), hstat (per host: entries,
+  exits, refused exits)
 - ``C`` calendar and scalars: ht, hk, si, sf
 - ``IO`` buffers and accumulators: rand, lt, lk, lf, pimp
 """
@@ -56,11 +66,14 @@ except ImportError:  # pragma: no cover - exercised only without numba
     njit = None
 
 # Event types in the calendar.
-EV_PAIR, EV_WALL, EV_CELL, EV_POST, EV_DH, EV_HH, EV_REG = 0, 1, 2, 3, 4, 5, 6
+EV_PAIR, EV_WALL, EV_CELL, EV_POST, EV_DH, EV_HH, EV_REG, EV_STEP = range(8)
 # Wall kinds.
 WALL_SPECULAR, WALL_HOT, WALL_COLD = 0, 1, 2
 # Kinds in the event log.
-LOG_ELASTIC, LOG_SPECULAR, LOG_HOT, LOG_COLD, LOG_POST, LOG_HOST, LOG_HOST_HOST = range(7)
+(LOG_ELASTIC, LOG_SPECULAR, LOG_HOT, LOG_COLD, LOG_POST, LOG_HOST, LOG_HOST_HOST,
+ LOG_STEP) = range(8)
+# Binding-step outcomes (log column "other") and per-host counters (hstat).
+STEP_IN, STEP_OUT, STEP_REFUSED = 0, 1, 2
 # Disc-host contact features (log column "other").
 FEAT_OUTER, FEAT_INNER, FEAT_CAP_PLUS, FEAT_CAP_MINUS = 0, 1, 2, 3
 # Return status.
@@ -71,7 +84,8 @@ SF_TIME, SF_KE = 0, 1
 SF_HEAT_HOT, SF_HEAT_COLD, SF_HEAT_OTHER = 2, 4, 6   # value, correction
 SF_SUPPORT_X, SF_SUPPORT_Y = 8, 10
 SF_ERR_GAP = 12
-SF_SIZE = 13
+SF_PE = 13          # potential energy of the binding wells
+SF_SIZE = 14
 # Integer scalars (si).
 SI_HEAP, SI_EVENTS, SI_RAND, SI_LOG, SI_LOG_ON = 0, 1, 2, 3, 4
 SI_ERR_A, SI_ERR_B, SI_ERR_KIND = 5, 6, 7
@@ -82,7 +96,10 @@ FP_ROUGH, FP_HMARGIN, FP_REACH = 6, 7, 8
 FP_SIZE = 9
 IP_NX, IP_NY = 0, 1
 # Host geometry columns.
-HG_RIN, HG_ROUT, HG_RMID, HG_CAP, HG_BETA = 0, 1, 2, 3, 4
+HG_RIN, HG_ROUT, HG_RMID, HG_CAP, HG_BETA, HG_RSTEP, HG_EPS = range(7)
+HG_SIZE = 7
+# Threshold below which an uphill step is refused (as resolve_energy_step).
+STEP_THRESHOLD = 1e-12
 # Cap search iteration limit before reporting an unresolved contact.
 CAP_ITERATIONS = 200000
 
@@ -530,6 +547,21 @@ if njit is not None:
 
     # -- prediction ----------------------------------------------------------
 
+    @inline
+    def _step_dt(i, h, k, t, B, H):
+        """Time from t until disc i crosses host k's step circle (inf if none)."""
+        vel = B[1]
+        hg, memb = H[2], H[6]
+        rs = hg[k, HG_RSTEP]
+        if rs <= 0.0:
+            return math.inf
+        xi, yi, _ = _lazy(i, t, B)
+        xh, yh, _ = _lazy(h, t, B)
+        t1, t2 = _roots(xi - xh, yi - yh, vel[i, 0] - vel[h, 0], vel[i, 1] - vel[h, 1], rs)
+        if memb[i] == k:
+            return t2 if t2 > 0.0 else math.inf     # leaving; false for nan
+        return t1 if t1 > 0.0 else math.inf         # entering
+
     @jit
     def _push_dh(i, h, k, t, B, H, C, fp):
         cnt = B[5]
@@ -540,6 +572,9 @@ if njit is not None:
             return _fail(C, EV_DH, i, h, math.nan)
         if dt < math.inf:
             _heap_push(C, t + dt, EV_DH, i, h, cnt[i], cnt[h])
+        dt = _step_dt(i, h, k, t, B, H)
+        if dt < math.inf:
+            _heap_push(C, t + dt, EV_STEP, i, h, cnt[i], cnt[h])
         return True
 
     @jit
@@ -792,7 +827,7 @@ if njit is not None:
         norm = math.sqrt(dx*dx + dy*dy)
         nxv, nyv = dx/norm, dy/norm
         g = (vel[b, 0] - vel[a, 0])*nxv + (vel[b, 1] - vel[a, 1])*nyv
-        e0 = sf[SF_KE]
+        e0 = sf[SF_KE] + sf[SF_PE]
         ix = iy = 0.0
         if g < 0.0:
             d = 1.0/mass[a] + 1.0/mass[b]
@@ -807,7 +842,7 @@ if njit is not None:
         cnt[a] += 1
         cnt[b] += 1
         if si[SI_LOG_ON] != 0:
-            _log(IO, si, t, LOG_ELASTIC, a, b, -1, ix, iy, 0.0, e0, sf[SF_KE], 0.0, 0.0)
+            _log(IO, si, t, LOG_ELASTIC, a, b, -1, ix, iy, 0.0, e0, sf[SF_KE] + sf[SF_PE], 0.0, 0.0)
 
     @inline
     def _resolve_wall(a, w, t, B, S, C, IO):
@@ -818,7 +853,7 @@ if njit is not None:
         _move_to(a, t, B)
         nxw, nyw = wnrm[w, 0], wnrm[w, 1]
         vn = vel[a, 0]*nxw + vel[a, 1]*nyw   # along the inward normal
-        e0 = sf[SF_KE]
+        e0 = sf[SF_KE] + sf[SF_PE]
         ix = iy = heat = 0.0
         mode_in = 0.5*mass[a]*vn*vn
         mode_out = mode_in
@@ -852,7 +887,7 @@ if njit is not None:
         if si[SI_LOG_ON] != 0:
             lkind = (LOG_SPECULAR if wk == WALL_SPECULAR else
                      LOG_HOT if wk == WALL_HOT else LOG_COLD)
-            _log(IO, si, t, lkind, a, -1, w, ix, iy, heat, e0, sf[SF_KE], mode_in, mode_out)
+            _log(IO, si, t, lkind, a, -1, w, ix, iy, heat, e0, sf[SF_KE] + sf[SF_PE], mode_in, mode_out)
 
     @inline
     def _resolve_post(a, k, t, rough, B, S, C, IO):
@@ -865,7 +900,7 @@ if njit is not None:
         dx, dy = ppos[k, 0] - pos[a, 0], ppos[k, 1] - pos[a, 1]
         norm = math.sqrt(dx*dx + dy*dy)
         nxv, nyv = dx/norm, dy/norm          # from the body toward the post
-        e0 = sf[SF_KE]
+        e0 = sf[SF_KE] + sf[SF_PE]
         ke0 = _ke(a, B)
         # J acts on the post (b = -1), -J on the body.
         ix, iy, applied = _contact_impulse(a, -1, pos[a, 0] + rad[a]*nxv,
@@ -878,7 +913,7 @@ if njit is not None:
             _kadd(sf, SF_SUPPORT_Y, -iy)
         cnt[a] += 1
         if si[SI_LOG_ON] != 0:
-            _log(IO, si, t, LOG_POST, a, -1, k, ix, iy, 0.0, e0, sf[SF_KE],
+            _log(IO, si, t, LOG_POST, a, -1, k, ix, iy, 0.0, e0, sf[SF_KE] + sf[SF_PE],
                  1.0 if rough else 0.0, 0.0)
 
     @jit
@@ -895,7 +930,7 @@ if njit is not None:
         if feat == FEAT_OUTER and qx*qx + qy*qy < hg[k, HG_RMID]**2:
             feat = FEAT_INNER
         nxv, nyv = (px - qx)/dist, (py - qy)/dist     # from the disc toward the arc
-        e0 = sf[SF_KE]
+        e0 = sf[SF_KE] + sf[SF_PE]
         ke0 = _ke(i, B) + _ke(h, B)
         jx, jy, applied = _contact_impulse(i, h, pos[i, 0] + rad[i]*nxv,
                                            pos[i, 1] + rad[i]*nyv, nxv, nyv, rough, B)
@@ -904,7 +939,7 @@ if njit is not None:
         cnt[i] += 1
         cnt[h] += 1
         if si[SI_LOG_ON] != 0:
-            _log(IO, si, t, LOG_HOST, i, h, feat, jx, jy, 0.0, e0, sf[SF_KE],
+            _log(IO, si, t, LOG_HOST, i, h, feat, jx, jy, 0.0, e0, sf[SF_KE] + sf[SF_PE],
                  1.0 if rough else 0.0, 0.0)
 
     @jit
@@ -917,7 +952,7 @@ if njit is not None:
         dx, dy = pos[b, 0] - pos[a, 0], pos[b, 1] - pos[a, 1]
         norm = math.sqrt(dx*dx + dy*dy)
         nxv, nyv = dx/norm, dy/norm
-        e0 = sf[SF_KE]
+        e0 = sf[SF_KE] + sf[SF_PE]
         ke0 = _ke(a, B) + _ke(b, B)
         jx, jy, applied = _contact_impulse(a, b, pos[a, 0] + rad[a]*nxv,
                                            pos[a, 1] + rad[a]*nyv, nxv, nyv, rough, B)
@@ -926,8 +961,48 @@ if njit is not None:
         cnt[a] += 1
         cnt[b] += 1
         if si[SI_LOG_ON] != 0:
-            _log(IO, si, t, LOG_HOST_HOST, a, b, -1, jx, jy, 0.0, e0, sf[SF_KE],
+            _log(IO, si, t, LOG_HOST_HOST, a, b, -1, jx, jy, 0.0, e0, sf[SF_KE] + sf[SF_PE],
                  1.0 if rough else 0.0, 0.0)
+
+    @jit
+    def _resolve_step(i, h, t, B, H, C, IO):
+        """Disc i crosses, or is refused at, host body h's step circle."""
+        pos, vel, mass, cnt = B[0], B[1], B[4], B[5]
+        bh, hg, memb, hstat = H[1], H[2], H[6], H[7]
+        si, sf = C[2], C[3]
+        k = bh[h]
+        _move_to(i, t, B)
+        _move_to(h, t, B)
+        dx, dy = pos[i, 0] - pos[h, 0], pos[i, 1] - pos[h, 1]
+        norm = math.sqrt(dx*dx + dy*dy)
+        nxv, nyv = dx/norm, dy/norm                  # outward
+        g = (vel[i, 0] - vel[h, 0])*nxv + (vel[i, 1] - vel[h, 1])*nyv
+        inside = memb[i] == k
+        du = hg[k, HG_EPS] if inside else -hg[k, HG_EPS]
+        d = 1.0/mass[i] + 1.0/mass[h]
+        radicand = g*g - 2.0*d*du
+        e0 = sf[SF_KE] + sf[SF_PE]
+        crossed = radicand >= -STEP_THRESHOLD
+        gp = math.copysign(math.sqrt(max(0.0, radicand)), g) if crossed else -g
+        j = (gp - g)/d                               # impulse on the disc along n
+        ke0 = _ke(i, B) + _ke(h, B)
+        vel[i, 0] += j*nxv/mass[i]
+        vel[i, 1] += j*nyv/mass[i]
+        vel[h, 0] -= j*nxv/mass[h]
+        vel[h, 1] -= j*nyv/mass[h]
+        sf[SF_KE] += _ke(i, B) + _ke(h, B) - ke0
+        if crossed:
+            memb[i] = -1 if inside else k
+            sf[SF_PE] += du
+            code = STEP_OUT if inside else STEP_IN
+        else:
+            code = STEP_REFUSED
+        hstat[k, code] += 1
+        cnt[i] += 1
+        cnt[h] += 1
+        if si[SI_LOG_ON] != 0:
+            _log(IO, si, t, LOG_STEP, i, h, code, -j*nxv, -j*nyv, 0.0, e0,
+                 sf[SF_KE] + sf[SF_PE], du if crossed else 0.0, 0.0)
 
     # -- main loop -----------------------------------------------------------
 
@@ -962,7 +1037,7 @@ if njit is not None:
             kind = hk[0, 0]
             a = hk[0, 1]
             b = hk[0, 2]
-            if kind == EV_PAIR or kind == EV_DH or kind == EV_HH:
+            if kind == EV_PAIR or kind == EV_DH or kind == EV_HH or kind == EV_STEP:
                 valid = hk[0, 3] == cnt[a] and hk[0, 4] == cnt[b]
             else:
                 valid = hk[0, 3] == cnt[a]
@@ -1017,13 +1092,15 @@ if njit is not None:
                 _resolve_post(a, b, t, bh[a] >= 0 and _rough_draw(C, IO, fp), B, S, C, IO)
             elif kind == EV_DH:
                 _resolve_dh(a, b, t, _rough_draw(C, IO, fp), B, H, C, IO)
+            elif kind == EV_STEP:
+                _resolve_step(a, b, t, B, H, C, IO)
             else:
                 _resolve_hh(a, b, t, _rough_draw(C, IO, fp), B, C, IO)
             si[SI_EVENTS] += 1
             done += 1
             if not _predict(a, t, B, G, S, H, C):
                 return ERR_CCD if math.isnan(sf[SF_ERR_GAP]) else ERR_OVERLAP
-            if kind == EV_PAIR or kind == EV_DH or kind == EV_HH:
+            if kind == EV_PAIR or kind == EV_DH or kind == EV_HH or kind == EV_STEP:
                 if not _predict(b, t, B, G, S, H, C):
                     return ERR_CCD if math.isnan(sf[SF_ERR_GAP]) else ERR_OVERLAP
 

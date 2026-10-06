@@ -81,6 +81,15 @@ unresolved search is a strict failure).
   The cost is the larger compiled loop; per-function inlining did not
   recover it. The structural fix, if needed, is one pending event per body.
 
-Scope: discs (spinless or spinning) and rotating rough ring hosts in an
-axis-aligned box of stationary specular or thermal walls, with fixed posts.
-The binding step follows in milestone 4 of `docs/PLAN_OSMOSIS.md`.
+**Binding wells** (milestone 4). A ring may carry a concentric step circle
+(`RingGeometry.well_radius`, `well_depth`). Crossing it is a quadratic event
+resolved by the brief's reversible step law (section 8.3) with host recoil:
+D = 1/m + 1/M, an uphill step below the 1e-12 threshold of
+`resolve_energy_step` reflects. The impulse is radial through both centres,
+so it exerts no torque. The kernel tracks well membership, entries, exits and
+refused exits, and the potential energy, which the first-law residual
+includes. With depth 0 the circle only counts occupancy.
+
+Scope: discs (spinless or spinning) and rotating rough ring hosts with
+optional binding wells, in an axis-aligned box of stationary specular or
+thermal walls, with fixed posts.

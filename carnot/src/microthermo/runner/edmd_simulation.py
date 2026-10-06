@@ -25,12 +25,13 @@ from ..measurements.ledger import CompensatedCounter, EnergyLedger
 from ..measurements.observables import rotational_temperature, translational_temperature
 from .simulation import NumericalFailure, Snapshot, World
 
-_LOG_KINDS = ("elastic", "specular", "hot", "cold", "post", "host", "host_host")
+_LOG_KINDS = ("elastic", "specular", "hot", "cold", "post", "host", "host_host", "step")
+_STEPS = ("in", "out", "refused")
 _FEATURES = ("outer", "inner", "cap_plus", "cap_minus")
 _WALL_KINDS = {BoundaryKind.SPECULAR: edmd.WALL_SPECULAR,
                BoundaryKind.HOT: edmd.WALL_HOT, BoundaryKind.COLD: edmd.WALL_COLD}
 _ARRAYS = ("pos", "vel", "tl", "cnt", "ang", "om", "cell", "head", "nxt", "prv",
-           "reg", "hregc", "hregb", "ht", "hk", "si", "sf", "rand", "pimp")
+           "reg", "hregc", "hregb", "memb", "hstat", "ht", "hk", "si", "sf", "rand", "pimp")
 _GAP_KINDS = {edmd.EV_PAIR: "pair", edmd.EV_WALL: "wall", edmd.EV_POST: "post",
               edmd.EV_CELL: "cell", edmd.EV_DH: "disc_host", edmd.EV_HH: "host_host"}
 
@@ -61,6 +62,11 @@ def edmd_unsupported_reason(world: World) -> str | None:
                 return f"host {i} needs a finite moment of inertia"
             if not math.isclose(s.radius[i], world.rings[i].outer_radius):
                 return f"host {i} radius must equal the ring's outer radius"
+            ring = world.rings[i]
+            discs = [j for j in range(s.n) if j not in hosts]
+            if ring.well_radius is not None and discs and (
+                    ring.well_radius >= ring.inner_radius - float(np.max(s.radius[discs]))):
+                return f"host {i}: a disc on the well circle must be clear of the wall"
         elif s.shape[i] != Shape.DISC:
             return "only discs and ring hosts are supported"
     if not np.all(s.dynamic):
@@ -134,8 +140,16 @@ class EdmdSimulation:
         self.bh = np.full(n, -1, np.int64)
         self.bh[self.hb] = np.arange(len(hosts))
         self.hg = np.asarray([[g.inner_radius, g.outer_radius, g.mid, g.cap,
-                               g.mouth_half_angle] for g in (world.rings[i] for i in hosts)],
-                             float).reshape(-1, 5)
+                               g.mouth_half_angle, g.well_radius or -1.0, g.well_depth]
+                              for g in (world.rings[i] for i in hosts)],
+                             float).reshape(-1, edmd.HG_SIZE)
+        self.memb = np.full(n, -1, np.int64)
+        for k, h in enumerate(hosts):
+            g = world.rings[h]
+            if g.well_radius is not None:
+                inside = (np.linalg.norm(s.pos - s.pos[h], axis=1) < g.well_radius) & (self.bh < 0)
+                self.memb[inside] = k
+        self.hstat = np.zeros((len(hosts), 3), np.int64)
         # Static geometry.
         walls = world.walls
         self.wpt = np.asarray([w.point for w in walls], float).reshape(-1, 2)
@@ -184,7 +198,6 @@ class EdmdSimulation:
         self._events: list[InteractionRecord] = []
         self._event_history_start = 0
         self.samples: list[Snapshot] = []
-        self.memberships = np.zeros(n, dtype=np.int16)
         self.max_penetration = 0.0
         self.ccd_refinements = self.ccd_failures = self.cluster_count = 0
         self.max_cluster_residual = 0.0
@@ -198,7 +211,8 @@ class EdmdSimulation:
         gap, *_ = self._min_gap(0.0)
         if gap < -tolerances.geometry:
             raise ValueError(f"invalid overlapping initial state, gap={gap}")
-        self.sf[edmd.SF_KE] = self.energy()
+        self.sf[edmd.SF_PE] = self._potential()
+        self.sf[edmd.SF_KE] = self.energy() - self.sf[edmd.SF_PE]
         self._initial_energy = self.energy()
         self._rebuild()
 
@@ -218,7 +232,8 @@ class EdmdSimulation:
                 self.ppos, self.prad, self.cps, self.cpi)
 
     def _hosts(self):
-        return (self.hb, self.bh, self.hg, self.reg, self.hregc, self.hregb)
+        return (self.hb, self.bh, self.hg, self.reg, self.hregc, self.hregb,
+                self.memb, self.hstat)
 
     def _calendar(self):
         return (self.ht, self.hk, self.si, self.sf)
@@ -280,6 +295,11 @@ class EdmdSimulation:
                     record = InteractionRecord(t, name, (a, b), (f[0], f[1]), f[3], f[4],
                                                0.0, 0.0, {"feature": _FEATURES[other],
                                                           "rough": f[5] > 0})
+                elif kind == edmd.LOG_STEP:
+                    record = InteractionRecord(t, name, (a, b), (f[0], f[1]), f[3], f[4],
+                                               0.0, 0.0, {"host": int(self.bh[b]),
+                                                          "step": _STEPS[other],
+                                                          "delta_u": f[5]})
                 elif kind == edmd.LOG_HOST_HOST:
                     record = InteractionRecord(t, name, (a, b), (f[0], f[1]), f[3], f[4],
                                                0.0, 0.0, {"rough": f[5] > 0})
@@ -363,11 +383,29 @@ class EdmdSimulation:
         """Total impulse delivered to each post so far, shape (posts, 2)."""
         return self.pimp.reshape(-1, 4)[:, [0, 2]].copy()
 
+    def _potential(self) -> float:
+        bound = self.memb >= 0
+        return float(-np.sum(self.hg[self.memb[bound], edmd.HG_EPS]))
+
     def energy(self) -> float:
+        """Kinetic energy (translation and spin) plus the wells' potential energy."""
         linear = 0.5*np.sum(self.mass*np.sum(self.vel*self.vel, axis=1))
         spin = 0.5*np.sum(np.where(self.inr > 0, self.om**2/np.where(self.inr > 0, self.inr, 1.),
                                    0.0))
-        return float(linear + spin)
+        return float(linear + spin) + self._potential()
+
+    @property
+    def memberships(self) -> np.ndarray:
+        """0 for a free disc or a host, k+1 for a disc in host k's well."""
+        return (self.memb + 1).astype(np.int16)
+
+    def occupancy(self) -> np.ndarray:
+        """Number of discs in each host's well, in host order."""
+        return np.bincount(self.memb[self.memb >= 0], minlength=len(self.hb))
+
+    def host_statistics(self) -> np.ndarray:
+        """Per host: well entries, exits and refused exits so far."""
+        return self.hstat.copy()
 
     def advance_to(self, physical_time: float) -> Snapshot:
         if physical_time < self.time - self.tol.time:
@@ -443,7 +481,7 @@ class EdmdSimulation:
     def _changed_velocities(self) -> None:
         """Replan after an intervention changed velocities at the current time."""
         self.cnt += 1
-        self.sf[edmd.SF_KE] = self.energy()
+        self.sf[edmd.SF_KE] = self.energy() - self.sf[edmd.SF_PE]
         self._rebuild()
         self._sync_world()
 
