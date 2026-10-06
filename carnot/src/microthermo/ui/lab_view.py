@@ -1,7 +1,8 @@
 """The laboratory layout shared by the live window and the replay window.
 
-Left: the cylinder with a cycle dial, then the p–V and T–S diagrams and the
-cycle scoreboard (Carnot scenes only). Right: the readout column.
+Left: the apparatus, then the p–V and T–S diagrams and the cycle scoreboard
+(Carnot scenes, with a cycle dial) or the osmosis plots (osmosis scenes).
+Right: the readout column.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from .instruments import (BRANCH_COLORS, BRANCH_LABELS, CycleDiagrams,
                           InstrumentSeries, ReadoutPanel)
 from .main_window import ApparatusView
+from .osmosis_panel import OsmosisPanel
 
 
 class CycleDial(QtWidgets.QWidget):
@@ -102,9 +104,11 @@ class LabView(QtWidgets.QSplitter):
         self.top_layout.setContentsMargins(0, 0, 0, 0)
         self.top_layout.setSpacing(0)
         self.diagrams = CycleDiagrams()
+        self.osmosis = OsmosisPanel()
         self.readout = ReadoutPanel()
         self.left.addWidget(self.top)
         self.left.addWidget(self.diagrams)
+        self.left.addWidget(self.osmosis)
         self.left.setStretchFactor(0, 2)
         self.left.setStretchFactor(1, 3)
         self.addWidget(self.left)
@@ -131,17 +135,36 @@ class LabView(QtWidgets.QSplitter):
             self.top_layout.addWidget(self.dial)
         self.diagrams.setVisible(carnot)
         self.diagrams.set_reference(None)
+        osmosis = bool(sim.world.rings) and "membrane_x" in sim.world.metadata
+        self.osmosis.setVisible(osmosis)
+        self.osmosis.clear()
+        self._discs = int(sum(1 for i in range(sim.world.bodies.n) if i not in sim.world.rings))
+        # Cycle, efficiency and mechanism readouts belong to Carnot scenes.
+        for section in self.readout.sections[2:] + [self.readout.mechanism]:
+            section.setVisible(not osmosis)
+        state, cumulative = self.readout.sections[:2]
+        for name in ("Branch / phase", "Area", "Pressure (window)", "Reservoirs T_H / T_C"):
+            state.set_row(name, not osmosis)
+        for name in ("Heat in from cold Q_C", "Motor work / load output"):
+            cumulative.set_row(name, not osmosis)
+        cumulative.set_row("Heat in from hot Q_H", label="Heat in from the walls"
+                           if osmosis else None)
+        state.set_row("Gas energy", label="Kinetic energy" if osmosis else None)
         self.readout.show_inspection("")
         if carnot:
             self.left.setSizes([260, 520])
+        elif osmosis:
+            self.left.setSizes([520, 0, 380])
 
     def plots_due(self, force=False):
         """Whether the next frame should redraw the plots."""
         return force or time.perf_counter()-self._plotted_at >= self.PLOT_INTERVAL
 
     def show_frame(self, snapshot, frame, series: InstrumentSeries | None,
-                   rates=None, replay=False):
+                   rates=None, replay=False, osmosis=None):
         """Update everything; ``series`` None skips the plots this frame."""
+        if self.osmosis.isVisible() or osmosis is not None:
+            self.osmosis.update_frame(osmosis, self._discs, plots=series is not None)
         current = frame.current
         self.view.set_snapshot(snapshot)
         fraction = None

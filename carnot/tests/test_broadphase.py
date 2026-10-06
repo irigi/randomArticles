@@ -407,10 +407,14 @@ class BroadphaseTests(unittest.TestCase):
 
     @unittest.skipUnless(numba_available(), "Numba optional dependency not installed")
     def test_fixed_disc_wall_batch_excludes_finite_segments(self):
-        config = RunConfig(preset="selective_membrane", particles=10,
-                           duration=.2, max_horizon=.01, numeric_backend="numba")
-        compiled = load_preset(config)
-        reference = load_preset(config)
+        try:
+            from segment_world import segment_partition_world
+        except ImportError:          # run as tests.<module>
+            from tests.segment_world import segment_partition_world
+        compiled = Simulation(segment_partition_world(10), max_horizon=.01,
+                              numeric_backend="numba")
+        reference = Simulation(segment_partition_world(10), max_horizon=.01,
+                               numeric_backend="numba")
         reference.wall_kernel = "python"
         a = compiled.advance_to(.2)
         b = reference.advance_to(.2)

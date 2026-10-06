@@ -15,10 +15,12 @@ import numpy as np
 from PySide6 import QtCore
 
 from ..api import load_preset
+from ..runner.edmd_simulation import EdmdCheckpoint
 from ..runner.simulation import Checkpoint, NumericalFailure, Snapshot
 from ..config import RunConfig
 from ..io.exports import export_run
 from ..measurements.live import InstrumentFrame, LiveInstruments
+from ..measurements.osmosis import OsmosisFrame, OsmosisInstruments
 
 
 @dataclass(frozen=True)
@@ -27,6 +29,7 @@ class RenderFrame:
     instruments: InstrumentFrame
     rates: PlaybackRates | None = None
     generation: int = 0
+    osmosis: OsmosisFrame | None = None
 
 
 @dataclass(frozen=True)
@@ -36,13 +39,21 @@ class PlaybackRates:
     wall_window: float
 
 
+def osmosis_instruments(simulation) -> OsmosisInstruments | None:
+    """Osmosis instruments for worlds with ring hosts behind a membrane."""
+    metadata = simulation.world.metadata
+    return OsmosisInstruments() if "membrane_x" in metadata and simulation.world.rings else None
+
+
 def immutable_snapshot(snapshot: Snapshot) -> Snapshot:
     """Detach arrays into bytes-backed, genuinely read-only render buffers."""
     def frozen(array):
         return np.frombuffer(array.tobytes(),dtype=array.dtype).reshape(array.shape)
     return replace(snapshot, position=frozen(snapshot.position),
                    velocity=frozen(snapshot.velocity),angle=frozen(snapshot.angle),
-                   omega=frozen(snapshot.omega))
+                   omega=frozen(snapshot.omega),
+                   membership=(None if snapshot.membership is None
+                               else frozen(snapshot.membership)))
 
 
 class SimulationWorker(QtCore.QObject):
@@ -65,6 +76,7 @@ class SimulationWorker(QtCore.QObject):
         self._transient_cycles=transient_cycles
         self._efficiency_min_cycles=efficiency_min_cycles
         self._timer=None
+        self._osmosis=osmosis_instruments(simulation)
         self._instruments=LiveInstruments(
             history_limit=3000,history_spacing=.05,
             transient_cycles=transient_cycles,
@@ -113,8 +125,10 @@ class SimulationWorker(QtCore.QObject):
         self._dirty_frame=False
         snapshot=self._simulation.snapshot()
         instruments=self._instruments.observe(self._simulation,snapshot)
+        osmosis=(self._osmosis.observe(self._simulation,snapshot)
+                 if self._osmosis is not None else None)
         self.snapshot_ready.emit(RenderFrame(immutable_snapshot(snapshot),instruments,
-                                             self._rates,self._generation))
+                                             self._rates,self._generation,osmosis))
 
     @QtCore.Slot()
     def frame_received(self):
@@ -175,7 +189,7 @@ class SimulationWorker(QtCore.QObject):
                 payload=pickle.load(stream)
             config=payload["config"]
             checkpoint=payload["checkpoint"]
-            if not isinstance(config,RunConfig) or not isinstance(checkpoint,Checkpoint):
+            if not isinstance(config,RunConfig) or not isinstance(checkpoint,(Checkpoint,EdmdCheckpoint)):
                 raise ValueError("unrecognized checkpoint")
             simulation=load_preset(config)
             simulation.restore(checkpoint)
@@ -184,6 +198,7 @@ class SimulationWorker(QtCore.QObject):
             self._simulation=simulation
             self._config=config
             self._rates=None
+            self._osmosis=osmosis_instruments(simulation)
             self._instruments=LiveInstruments(
                 history_limit=3000,history_spacing=.05,
                 transient_cycles=self._transient_cycles,
@@ -287,6 +302,7 @@ class SimulationWorker(QtCore.QObject):
             simulation=load_preset(config)
             self._config=config
             self._simulation=simulation
+            self._osmosis=osmosis_instruments(simulation)
             self._instruments=LiveInstruments(
                 history_limit=3000,history_spacing=.05,
                 transient_cycles=self._transient_cycles,

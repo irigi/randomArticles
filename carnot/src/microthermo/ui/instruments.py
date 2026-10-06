@@ -300,6 +300,7 @@ class _Section(QtWidgets.QWidget):
         grid.setContentsMargins(6 if collapsible else 0, 0, 0, 0)
         grid.setVerticalSpacing(1)
         self.values = {}
+        self.labels = {}
         for row, name in enumerate(rows):
             label = QtWidgets.QLabel(name)
             value = QtWidgets.QLabel("—")
@@ -312,10 +313,17 @@ class _Section(QtWidgets.QWidget):
             grid.addWidget(label, row, 0)
             grid.addWidget(value, row, 1)
             self.values[name] = value
+            self.labels[name] = label
         layout.addWidget(self.body)
         if collapsible:
             self.body.setVisible(False)
             self.toggle.toggled.connect(self._expand)
+
+    def set_row(self, name, visible=True, label=None):
+        """Show or hide one row; optionally relabel it (the key stays the same)."""
+        self.labels[name].setVisible(visible)
+        self.values[name].setVisible(visible)
+        self.labels[name].setText(label or name)
 
     def _expand(self, expanded):
         self.body.setVisible(expanded)

@@ -38,7 +38,8 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--max-horizon", type=float)
     run.add_argument("--pair-search", choices=("grid", "sweep", "all"))
     run.add_argument("--engine", choices=("reference", "edmd"),
-                     help="edmd: compiled event-driven kernel (smooth discs in a wall box)")
+                     help="edmd: compiled event-driven kernel (default for osmosis presets)")
+    _osmosis_arguments(run)
     run.add_argument("--numeric-backend", choices=("auto", "python", "numba"))
     run.add_argument("--wall-search", choices=("bounded", "all"))
     run.add_argument("--wall-kernel", choices=("auto", "python"))
@@ -88,7 +89,8 @@ def parser() -> argparse.ArgumentParser:
     replay = sub.add_parser("precalculate", help="write chunked replay frames offline")
     replay.add_argument("--preset", choices=preset_names(), default="carnot_discs")
     replay.add_argument("--seed", type=int, default=123)
-    replay.add_argument("--engine", choices=("reference", "edmd"), default="reference")
+    replay.add_argument("--engine", choices=("reference", "edmd"))
+    _osmosis_arguments(replay)
     replay.add_argument("--particles", type=int, default=32)
     length = replay.add_mutually_exclusive_group(required=True)
     length.add_argument("--duration", type=float)
@@ -121,7 +123,8 @@ def parser() -> argparse.ArgumentParser:
     gui.add_argument("--shaft-speed", type=float, default=.15)
     gui.add_argument("--shaft-mode", choices=("controlled", "free"), default="controlled")
     gui.add_argument("--seed", type=int, default=123)
-    gui.add_argument("--engine", choices=("reference", "edmd"), default="reference")
+    gui.add_argument("--engine", choices=("reference", "edmd"))
+    _osmosis_arguments(gui)
     gui.add_argument("--particles", type=int,
                      help="default: 96 for carnot_triangles, otherwise 48")
     gui.add_argument("--cold-jacket", action="store_true")
@@ -131,6 +134,32 @@ def parser() -> argparse.ArgumentParser:
     gui.add_argument("--temperature-ratio", type=float, default=2.0,
                      help="Carnot: T_hot/T_cold with T_hot = 1.5*temperature (default 2.0)")
     return p
+
+
+_OSMOSIS_KEYS = {"hosts": 8, "binding_energy": None, "host_mass": 25.0,
+                 "host_area_fraction": 0.2, "mouth_width": None, "rough_fraction": 1.0,
+                 "discs_start": "right"}
+
+
+def _osmosis_arguments(sub) -> None:
+    group = sub.add_argument_group("osmosis presets")
+    group.add_argument("--hosts", type=int, help="number of ring hosts (default 8)")
+    group.add_argument("--binding-energy", type=float,
+                       help="well depth epsilon (default 1.5; 0 for osmosis_hard)")
+    group.add_argument("--host-mass", type=float, help="host mass (default 25)")
+    group.add_argument("--host-area-fraction", type=float,
+                       help="fraction of the left chamber covered by hosts (default 0.2)")
+    group.add_argument("--mouth-width", type=float,
+                       help="clear mouth chord (default three disc diameters)")
+    group.add_argument("--rough-fraction", type=float,
+                       help="probability that a host contact is rough (default 1)")
+    group.add_argument("--discs-start", choices=("right", "mixed"),
+                       help="where the discs start (default right of the membrane)")
+
+
+def _osmosis_values(args) -> dict:
+    return {key: getattr(args, key) for key in _OSMOSIS_KEYS
+            if getattr(args, key) is not None}
 
 
 def _run(args) -> int:
@@ -144,7 +173,7 @@ def _run(args) -> int:
             "wall_search":"bounded","wall_kernel":"auto",
             "penetration_kernel":"auto","pair_kernel":"auto",
             "cam_kernel":"auto","initial_temperature":None,
-            "temperature_ratio":2.0,"engine":"reference"}
+            "temperature_ratio":2.0,"engine":None,**_OSMOSIS_KEYS}
     if args.config:
         with open(args.config,"rb") as f:
             loaded=tomllib.load(f)
@@ -157,7 +186,7 @@ def _run(args) -> int:
                 "efficiency_min_cycles","pair_search","numeric_backend",
                 "wall_search","wall_kernel","penetration_kernel","pair_kernel",
                 "cam_kernel","cold_jacket","hot_jacket","cam_fractions",
-                "initial_temperature","temperature_ratio","engine"):
+                "initial_temperature","temperature_ratio","engine",*_OSMOSIS_KEYS):
         value=getattr(args,key)
         if value is not None: values[key]=tuple(value) if key=="cam_fractions" else value
     if args.reversed: values["reversed_cycle"]=True
@@ -247,7 +276,8 @@ def main(argv=None) -> int:
                       initial_temperature=args.initial_temperature,
                       temperature_ratio=(2.0 if args.temperature_ratio is None
                                          else args.temperature_ratio),
-                      pair_search=args.pair_search,engine=args.engine)
+                      pair_search=args.pair_search,engine=args.engine,
+                      **_osmosis_values(args))
         started=time.perf_counter()
         def progress(physical,duration,events):
             elapsed=time.perf_counter()-started
@@ -278,7 +308,8 @@ def main(argv=None) -> int:
             return 3
         config=RunConfig(preset=args.preset,seed=args.seed,
                          particles=(args.particles if args.particles is not None else
-                                    96 if args.preset=="carnot_triangles" else 48),
+                                    96 if args.preset=="carnot_triangles" else
+                                    200 if args.preset.startswith("osmosis") else 48),
                          max_horizon=.02,shaft_speed=args.shaft_speed,
                          pair_search="sweep",
                          shaft_mode=args.shaft_mode,cold_jacket=args.cold_jacket,
@@ -287,7 +318,7 @@ def main(argv=None) -> int:
                          temperature_ratio=args.temperature_ratio,
                          transient_cycles=args.transient_cycles,
                          efficiency_min_cycles=args.efficiency_min_cycles,
-                         engine=args.engine)
+                         engine=args.engine,**_osmosis_values(args))
         try:
             config.validate()
         except ValueError as exc:

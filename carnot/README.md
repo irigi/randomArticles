@@ -2,7 +2,7 @@
 
 This repository contains a deterministic, event-driven reference model for the
 two experiments in `microscopic_thermodynamics_implementation.md`: a
-particle-driven Carnot apparatus and a labyrinth association laboratory.
+particle-driven Carnot apparatus and an osmosis laboratory with ring hosts.
 
 The model uses normalized two-dimensional units (`k_B = 1`).  Hard contacts
 are resolved from impulses, thermal walls refresh the contact-normal mode, and
@@ -110,8 +110,9 @@ python -m microthermo run \
 
 Add `--engine edmd` (to `run`, `precalculate` or `gui`) to use the compiled
 event-driven kernel instead of the reference scheduler. It needs the `accel`
-extra (numba) and supports smooth discs in a box of stationary walls, which
-today means `gas_box`; other presets are rejected with a message. See
+extra (numba) and supports discs, ring hosts and posts in a box of stationary
+walls: `gas_box` and the osmosis presets (where it is the default); other
+presets are rejected with a message. See
 `docs/adr/0004-edmd-kernel.md` and, for throughput,
 `python -m microthermo.measurements.edmd_benchmark`.
 
@@ -347,43 +348,27 @@ To repeat the longer, three-seed slow triangle jacket study:
 This took about 38 minutes on an i7-11850H. It improved positive-hot-heat
 readiness but did not establish stationarity.
 
-### Chemical-potential and permeability demonstrations
+### Osmosis lab: chemical potential across a membrane
 
-Hard-wall labyrinth with geometric association:
-
-```bash
-python -m microthermo run \
-  --preset labyrinth \
-  --duration 10 \
-  --particles 32 \
-  --temperature 1.0 \
-  --seed 123 \
-  --output runs/labyrinth_hard
-```
-
-Labyrinth with a reversible interior binding-energy step:
+Eight rotating ring hosts with binding wells sit left of a membrane of fixed
+posts; 200 small spinning discs start on the right and cross through the
+gaps. The right chamber holds only discs, so its density gives their
+chemical potential. At equilibrium the free-disc density is the same on both
+sides, while the total counts and the pressure are not. All walls are thermal
+at `--temperature`. See `docs/PLAN_OSMOSIS.md` for the experiments and
+`docs/adr/0004-edmd-kernel.md` for the physics model. These presets run on
+the compiled `edmd` engine (needs the `accel` extra).
 
 ```bash
-python -m microthermo run \
-  --preset labyrinth_energetic \
-  --duration 10 \
-  --particles 32 \
-  --temperature 1.0 \
-  --seed 123 \
-  --output runs/labyrinth_energetic
+python -m microthermo gui --preset osmosis          # wells of depth 1.5
+python -m microthermo gui --preset osmosis_hard     # same rings, no binding
+python -m microthermo run --preset osmosis --duration 400 --output runs/osmosis
 ```
 
-Repeated-gap membrane that passes small discs and rejects large mobile hosts:
-
-```bash
-python -m microthermo run \
-  --preset selective_membrane \
-  --duration 10 \
-  --particles 32 \
-  --temperature 1.0 \
-  --seed 123 \
-  --output runs/selective_membrane
-```
+Options for these presets: `--hosts` (default 8; hosts shrink as their number
+grows), `--binding-energy` (1.5), `--host-mass` (25), `--host-area-fraction`
+(0.2), `--mouth-width` (three disc diameters), `--rough-fraction` (1: every
+host contact is perfectly rough) and `--discs-start right|mixed`.
 
 ### Configuration file
 
@@ -424,9 +409,8 @@ python -m microthermo gui --preset gas_box
 python -m microthermo gui --preset triangle_equipartition
 python -m microthermo gui --preset carnot_discs
 python -m microthermo gui --preset carnot_triangles
-python -m microthermo gui --preset labyrinth
-python -m microthermo gui --preset labyrinth_energetic
-python -m microthermo gui --preset selective_membrane
+python -m microthermo gui --preset osmosis
+python -m microthermo gui --preset osmosis_hard
 ```
 
 In the instrument pane, open **Numerical diagnostics** to see maximum
@@ -736,10 +720,12 @@ shaft_mode = "free"
   reversed operation, disc and triangle gases. Carnot snapshots include named
   apparatus component paths and energy state; the Qt preview draws the named
   apparatus with a fitted, aspect-preserving camera.
-- Hard and energetic nested labyrinths with physical apertures, trajectory
-  portal events, occupancy labels, and reversible square-well impulses.
-- A repeated-gap selective membrane with mobile large host particles and small
-  permeating discs.
+- Osmosis lab on the compiled `edmd` engine: rotating ring hosts with real
+  mouths, perfectly rough host contacts, binding wells crossed by the
+  reversible step law with host recoil, a fixed-post membrane that passes
+  discs and blocks hosts, and live counts, chemical potentials, well
+  occupancy and membrane force against an ideal-point reference. The
+  reference engine keeps its portal (square-well) and segment-wall events.
 - Deterministic checkpoints, JSON/CSV event exports, scientific validation,
   benchmarks, and an optional Qt view that receives read-only snapshots from
   a simulation worker thread. The Qt view includes a fitted apparatus,
@@ -756,9 +742,9 @@ shaft_mode = "free"
   for rotating triangles. The label gives the theoretical `ηC = 1 − Tc/Th`;
   it is not an efficiency measured from the run.
 
-The current labyrinth walls are fixed finite segments.  Mobile compound hosts,
-per-host BVHs, general mixed-policy contact clusters, spring-supported
-porous partitions, finite particle reservoirs, further compiled Numba kernels, and the
+Ring hosts meet walls, posts and each other as their outer circles (the mouth
+acts as a lid that only discs pass). General mixed-policy contact clusters,
+spring-supported or moving porous partitions, finite particle reservoirs, further compiled Numba kernels, and the
 full polished plotting/recording interface remain extension work.  The engine
 stops on ambiguous event chronology; it does not claim validated dense or
 jammed multi-contact dynamics.

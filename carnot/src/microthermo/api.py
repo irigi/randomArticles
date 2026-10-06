@@ -10,7 +10,7 @@ from .runner.simulation import Simulation, Snapshot
 def load_preset(config: RunConfig) -> Simulation | EdmdSimulation:
     config.validate()
     world = build_preset(config, np.random.default_rng(config.seed))
-    if config.engine == "edmd":
+    if config.resolved_engine == "edmd":
         return EdmdSimulation(world, config.seed)
     return Simulation(world, config.seed, config.max_horizon,
                       pair_search=config.pair_search,

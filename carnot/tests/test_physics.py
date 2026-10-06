@@ -358,9 +358,12 @@ class PhysicsTests(unittest.TestCase):
         self.assertEqual(result.occupancy[1],1)
         self.assertAlmostEqual(sim.energy(),before,places=13)
 
-    def test_selective_membrane_runs(self):
-        sim=load_preset(RunConfig(preset="selective_membrane",particles=10,
-                                  duration=.2,max_horizon=.01))
+    def test_segment_partition_runs(self):
+        try:
+            from segment_world import segment_partition_world
+        except ImportError:          # run as tests.<module>
+            from tests.segment_world import segment_partition_world
+        sim=Simulation(segment_partition_world(10),max_horizon=.01)
         self.assertAlmostEqual(sim.advance_to(.2).energy_residual,0.,places=12)
 
     def test_triangle_wall_uses_vertex_not_circumcircle(self):

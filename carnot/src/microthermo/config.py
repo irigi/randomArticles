@@ -6,6 +6,11 @@ import json
 import math
 
 
+_OSMOSIS_DEFAULTS = {"hosts": 8, "binding_energy": None, "host_mass": 25.0,
+                     "host_area_fraction": 0.2, "mouth_width": None,
+                     "rough_fraction": 1.0, "discs_start": "right"}
+
+
 @dataclass(frozen=True)
 class RunConfig:
     preset: str = "gas_box"
@@ -38,14 +43,27 @@ class RunConfig:
     # Carnot only: T_hot/T_cold. The cam adiabats are recalibrated to it.
     temperature_ratio: float = 2.0
     # "reference" (bounded-horizon scheduler) or "edmd" (compiled
-    # event-driven kernel for smooth discs in a wall box).
-    engine: str = "reference"
+    # event-driven kernel for circle worlds). None: edmd for osmosis presets,
+    # reference otherwise.
+    engine: str | None = None
+    # Osmosis presets only (docs/PLAN_OSMOSIS.md). binding_energy None: 1.5
+    # for "osmosis", 0 for "osmosis_hard"; mouth_width None: three disc
+    # diameters. discs_start: "right" (all discs start beyond the membrane)
+    # or "mixed".
+    hosts: int = 8
+    binding_energy: float | None = None
+    host_mass: float = 25.0
+    host_area_fraction: float = 0.2
+    mouth_width: float | None = None
+    rough_fraction: float = 1.0
+    discs_start: str = "right"
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "cam_fractions", tuple(self.cam_fractions))
         if self.particles is None:
             object.__setattr__(self, "particles",
-                               96 if self.preset == "carnot_triangles" else 32)
+                               96 if self.preset == "carnot_triangles" else
+                               200 if self.osmosis else 32)
 
     def validate(self) -> None:
         if self.duration <= 0 or self.particles <= 0 or self.temperature <= 0:
@@ -95,15 +113,44 @@ class RunConfig:
             raise ValueError("pair_kernel must be auto or scalar")
         if self.cam_kernel not in ("auto", "python"):
             raise ValueError("cam_kernel must be auto or python")
-        if self.engine not in ("reference", "edmd"):
+        if self.engine not in (None, "reference", "edmd"):
             raise ValueError("engine must be reference or edmd")
+        if self.osmosis and self.engine == "reference":
+            raise ValueError("osmosis presets need the edmd engine")
+        osmosis_defaults = {name: default for name, default in _OSMOSIS_DEFAULTS.items()
+                            if getattr(self, name) != default}
+        if osmosis_defaults and not self.osmosis:
+            raise ValueError(f"{', '.join(sorted(osmosis_defaults))} apply only to osmosis presets")
+        if self.hosts < 1 or self.host_mass <= 0 or not 0 < self.host_area_fraction < .6:
+            raise ValueError("osmosis needs hosts >= 1, positive host mass and an area "
+                             "fraction in (0, 0.6)")
+        if self.binding_energy is not None and not math.isfinite(self.binding_energy):
+            raise ValueError("binding_energy must be finite")
+        if self.preset == "osmosis_hard" and self.binding_energy not in (None, 0.0):
+            raise ValueError("osmosis_hard has no binding energy; use the osmosis preset")
+        if self.mouth_width is not None and not self.mouth_width > 0:
+            raise ValueError("mouth_width must be positive")
+        if not 0 <= self.rough_fraction <= 1:
+            raise ValueError("rough_fraction must lie in [0, 1]")
+        if self.discs_start not in ("right", "mixed"):
+            raise ValueError("discs_start must be right or mixed")
+
+    @property
+    def osmosis(self) -> bool:
+        return self.preset.startswith("osmosis")
+
+    @property
+    def resolved_engine(self) -> str:
+        return self.engine or ("edmd" if self.osmosis else "reference")
 
     def digest(self) -> str:
         data = asdict(self)
         # Fields added later are omitted at their defaults so older run
         # hashes, archives, and checkpoints remain valid.
         for key, default in (("initial_temperature", None), ("temperature_ratio", 2.0),
-                             ("engine", "reference")):
+                             *_OSMOSIS_DEFAULTS.items()):
             if data[key] == default:
                 del data[key]
+        if data.get("engine") in (None, "reference"):
+            del data["engine"]
         return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()

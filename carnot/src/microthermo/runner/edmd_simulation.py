@@ -427,8 +427,9 @@ class EdmdSimulation:
         return Snapshot(self.time, s.pos.copy(), s.vel.copy(), s.angle.copy(),
                         s.omega.copy(), energy, translational_temperature(s),
                         rotational_temperature(s), None,
-                        tuple(np.bincount(self.memberships, minlength=4)),
-                        self.event_count, self.ledger.residual(energy))
+                        tuple(np.bincount(self.memberships, minlength=max(4, len(self.hb) + 1))),
+                        self.event_count, self.ledger.residual(energy),
+                        membership=self.memberships)
 
     def checkpoint(self, include_history: bool = True) -> EdmdCheckpoint:
         return EdmdCheckpoint(

@@ -230,6 +230,37 @@ class UiRenderTests(unittest.TestCase):
         finally:
             window.close()
 
+    def test_osmosis_window_draws_rings_and_updates_its_panel(self):
+        from microthermo.core.edmd import numba_available
+        from microthermo.ui.main_window import MainWindow
+
+        if not numba_available():
+            self.skipTest("Numba optional dependency not installed")
+        app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        window=MainWindow("osmosis",autoplay=False,
+                          config=RunConfig(preset="osmosis",max_horizon=.02))
+        try:
+            window.show()
+            self.wait_until(app,lambda: window.thread.isRunning())
+            self.assertTrue(window.lab.osmosis.isVisible())
+            self.assertFalse(window.diagrams.isVisible())
+            self.assertEqual(len(window.view.rings),8)
+            self.assertEqual(len(window.view.posts),8)
+            window.play_requested.emit(True)
+            self.wait_until(app,lambda: window.view.snapshot.time>=2.)
+            window.play_requested.emit(False)
+            self.wait_until(app,lambda:
+                window.readout.diagnostic_values["Achieved playback"].text()
+                == "Paused")
+            self.assertIsNotNone(window.view.snapshot.membership)
+            self.assertIn("left : right",window.lab.osmosis.summary.text())
+            self.assertGreater(len(window.lab.osmosis.left_line.getData()[0]),2)
+            self.assertFalse(window.grab().isNull())
+            state=window.readout.sections[0]
+            self.assertFalse(state.labels["Area"].isVisibleTo(window))
+        finally:
+            window.close()
+
     def test_desktop_duration_rate_reset_and_physical_speed_are_distinct(self):
         from microthermo.ui.main_window import MainWindow
 

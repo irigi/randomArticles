@@ -414,6 +414,25 @@ M4 done 2026-10-06: binding wells with recoil (ADR 0004). Gate results:
   reference, with sub-binomial variance. Both come from crowding of
   finite discs in a small well; that is the E2 lesson.
 
+M5 done 2026-10-06: presets `osmosis` and `osmosis_hard`
+(`experiments/osmosis.py`, edmd engine by default) with the sizing rule.
+More than about 10 hosts make the well smaller than two disc diameters,
+which is refused. Also added: `measurements/osmosis.py`, the osmosis panel
+in the lab window (`docs/osmosis-lab-1480x900.png`), and removal of the
+three stub presets. Gate results:
+- **E1:** μ/T on the right equals μ/T of the free left discs within
+  0.01–0.05. The hard-only side counts and bound count match the reference
+  within 2 %, with fewer discs on the host side. Binding pulls about 9
+  more discs onto it.
+- **E2:** ⟨n⟩/c_R falls with occupancy (0.138, 0.119, 0.100 at 100, 200,
+  400 discs). Extrapolated to empty wells it gives 0.156, against the
+  ideal a·e^{ε/T} = 0.166.
+- **First look at E4:** the osmotic pressure averaged over 2000 s is 3.5–4.4
+  with or without binding, between the ideal n·T = 3.1 and the hard-disc
+  virial 5.0.
+- **Deferred to M7:** replays of osmosis runs show the rings but not yet
+  the membership colours or the osmosis plots (replay v3).
+
 ## 9. Risks
 
 - **Π is small next to the disc pressure.** Mitigated by the low-density E4

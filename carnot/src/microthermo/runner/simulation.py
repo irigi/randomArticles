@@ -82,6 +82,8 @@ class Snapshot:
     energy_residual: float
     apparatus: tuple[ApparatusComponent, ...] = ()
     shaft_phase: float | None = None
+    # Per body: 0 free, k+1 bound in host k's well (edmd worlds with wells).
+    membership: np.ndarray | None = None
 
 
 @dataclass

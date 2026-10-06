@@ -36,6 +36,12 @@ class ApparatusView(QtWidgets.QWidget):
             self.jackets = {"hot": bool(metadata.get("hot_jacket")),
                             "cold": bool(metadata.get("cold_jacket"))}
         state=sim.world.bodies
+        # Ring hosts: (inner, outer, mid, cap, mouth half-angle, well radius).
+        self.rings={i:(g.inner_radius,g.outer_radius,g.mid,g.cap,g.mouth_half_angle,
+                       g.well_radius)
+                    for i,g in sim.world.rings.items()}
+        self.posts=[(tuple(float(v) for v in p.center),float(p.radius))
+                    for p in sim.world.posts]
         self.shape=tuple(int(value) for value in state.shape)
         self.radius=tuple(float(value) for value in state.radius)
         self.polygons={i:tuple(tuple(float(v) for v in vertex)
@@ -221,6 +227,36 @@ class ApparatusView(QtWidgets.QWidget):
         elif len(points) >= 2:
             painter.drawPolyline(QtGui.QPolygonF(points))
 
+    def _ring(self, painter, camera, center, angle, ring):
+        """Outline of a thick-arc ring with rounded mouth ends; well dashed."""
+        inner,outer,mid,cap,beta,well=ring
+        x,y=center
+        start,end=angle+beta,angle+2*math.pi-beta
+        steps=72
+        points=[]
+        for k in range(steps+1):                       # outer arc
+            a=start+(end-start)*k/steps
+            points.append((x+outer*math.cos(a),y+outer*math.sin(a)))
+        cx,cy=x+mid*math.cos(end),y+mid*math.sin(end)
+        for k in range(1,12):                          # rounded end, away from the arc
+            a=end+math.pi*k/12
+            points.append((cx+cap*math.cos(a),cy+cap*math.sin(a)))
+        for k in range(steps+1):                       # inner arc, back
+            a=end-(end-start)*k/steps
+            points.append((x+inner*math.cos(a),y+inner*math.sin(a)))
+        cx,cy=x+mid*math.cos(start),y+mid*math.sin(start)
+        for k in range(1,12):
+            a=start+math.pi+math.pi*k/12
+            points.append((cx+cap*math.cos(a),cy+cap*math.sin(a)))
+        painter.setPen(QtGui.QPen(QtGui.QColor("#aab8c6"),1))
+        painter.setBrush(QtGui.QColor("#5f7387"))
+        painter.drawPolygon(QtGui.QPolygonF([self._point(camera,p) for p in points]))
+        if well is not None:
+            painter.setPen(QtGui.QPen(QtGui.QColor("#4f8f86"),1,QtCore.Qt.PenStyle.DashLine))
+            painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
+            radius=well*camera.scale
+            painter.drawEllipse(self._point(camera,center),radius,radius)
+
     def _wall(self, painter, camera, wall):
         start,end,kind=wall
         color={"hot":"#f2a65a","cold":"#76bce3"}.get(kind,"#8997a7")
@@ -261,10 +297,24 @@ class ApparatusView(QtWidgets.QWidget):
         else:
             for wall in self.walls:
                 self._wall(painter,camera,wall)
-        painter.setBrush(QtGui.QColor("#e8b44d"))
+        painter.setPen(QtGui.QPen(QtGui.QColor("#aab8c6"),1))
+        painter.setBrush(QtGui.QColor("#4a5562"))
+        for center,radius in self.posts:
+            painter.drawEllipse(self._point(camera,center),radius*camera.scale,
+                                radius*camera.scale)
+        for i,ring in self.rings.items():
+            self._ring(painter,camera,tuple(snap.position[i]),float(snap.angle[i]),ring)
+        free=QtGui.QColor("#e8b44d")
+        bound=QtGui.QColor("#76d6c4")
+        membership=snap.membership
+        painter.setBrush(free)
         painter.setPen(QtGui.QPen(QtGui.QColor("#f3e7c3"),1))
         for i,(x,y) in enumerate(snap.position):
             center=self._point(camera,(x,y))
+            if i in self.rings:
+                continue
+            if membership is not None:
+                painter.setBrush(bound if membership[i] else free)
             if self.shape[i]==0:
                 radius=self.radius[i]*camera.scale
                 painter.drawEllipse(center,radius,radius)
@@ -341,7 +391,8 @@ class MainWindow(QtWidgets.QMainWindow):
         from .lab_view import LabView
         if config is None:
             config=RunConfig(preset=preset,
-                             particles=96 if preset=="carnot_triangles" else 48,
+                             particles=(96 if preset=="carnot_triangles" else
+                                        200 if preset.startswith("osmosis") else 48),
                              max_horizon=.02,shaft_speed=shaft_speed,
                              shaft_mode=shaft_mode)
         config.validate()
@@ -483,7 +534,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Paused or stepped frames (no playback rates) always redraw plots.
         series=(InstrumentSeries.from_history(frame.instruments.history)
                 if self.lab.plots_due(force=frame.rates is None) else None)
-        self.lab.show_frame(snapshot,frame.instruments,series,frame.rates)
+        self.lab.show_frame(snapshot,frame.instruments,series,frame.rates,
+                            osmosis=frame.osmosis)
         self.status.showMessage(
             f"{'PAUSED' if self.play.isChecked() else 'RUNNING'}  "
             f"t={snapshot.time:.3f}  events={snapshot.event_count}  "
@@ -554,7 +606,8 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         self.play.setChecked(True)
         config=RunConfig(preset=preset,seed=self.seed.value(),
-                         particles=96 if preset=="carnot_triangles" else 48,
+                         particles=(96 if preset=="carnot_triangles" else
+                                    200 if preset.startswith("osmosis") else 48),
                          max_horizon=.02,shaft_speed=self.shaft_speed.value(),
                          shaft_mode=self.config.shaft_mode)
         self._install_config(config)
