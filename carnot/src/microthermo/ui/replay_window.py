@@ -35,6 +35,8 @@ class ReplayWindow(QtWidgets.QMainWindow):
             # and the one-line ledger only.
             self.lab.diagrams.setVisible(False)
             self.lab.readout.setVisible(False)
+        self.osmosis = self.reader.has_osmosis
+        self._osmosis_frame = None
         self._shown_index = None
         self._plotted_index = None
         self.duration = self.reader.manifest["duration"]
@@ -47,7 +49,9 @@ class ReplayWindow(QtWidgets.QMainWindow):
         root = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout(root)
         layout.addWidget(self.lab, stretch=1)
-        controls = QtWidgets.QHBoxLayout()
+        self.controls = QtWidgets.QWidget()
+        controls = QtWidgets.QHBoxLayout(self.controls)
+        controls.setContentsMargins(0, 0, 0, 0)
         self.play = QtWidgets.QPushButton("Play")
         self.play.setCheckable(True)
         self.play.toggled.connect(self._set_playing)
@@ -63,7 +67,7 @@ class ReplayWindow(QtWidgets.QMainWindow):
         self.slider.sliderPressed.connect(self._pause_for_seek)
         self.slider.valueChanged.connect(self._seek_slider)
         controls.addWidget(self.slider, stretch=1)
-        layout.addLayout(controls)
+        layout.addWidget(self.controls)
         self.status_line = QtWidgets.QLabel()
         self.status_line.setWordWrap(True)
         layout.addWidget(self.status_line)
@@ -144,6 +148,8 @@ class ReplayWindow(QtWidgets.QMainWindow):
             if index != self._shown_index:
                 self._shown_index = index
                 self._frame = self._instrument_frame(index)
+                if self.osmosis:
+                    self._osmosis_frame = self.reader.osmosis_frame(index)
                 self._plotted_index = None
             series = None
             if (self._plotted_index != index and
@@ -151,21 +157,26 @@ class ReplayWindow(QtWidgets.QMainWindow):
                 self._plotted_index = index
                 series = InstrumentSeries.from_columns(self._columns, index+1,
                                                        max_points=3000)
-            self.lab.show_frame(snapshot, self._frame, series, replay=True)
+            self.lab.show_frame(snapshot, self._frame, series, replay=True,
+                                osmosis=self._osmosis_frame)
         else:
             self.lab.view.set_snapshot(snapshot)
             if self.lab.dial is not None:
                 self.lab.dial.set_snapshot(snapshot)
         ledger = self.reader.ledger(index)
         recorded = self.reader.frame(index)
+        if self._osmosis_frame is not None:
+            energy = (f"wall T={self._osmosis_frame.current.temperature:.3f} · "
+                      f"heat in from the walls={ledger['heat_hot']:.3f} · ")
+        else:
+            energy = (f"QH={ledger['heat_hot']:.3f} · QC={ledger['heat_cold']:.3f} · "
+                      f"motor work={ledger['work_on']:.3f} · "
+                      f"load={ledger['load_output']:.3f} · ")
         self.status_line.setText(
             f"t={snapshot.time:.3f}/{self.duration:.3f} s · "
             f"recorded statistics at t={recorded.time:.3f} s · "
             f"events={recorded.event_count} · "
-            f"T={recorded.translational_temperature:.3f} · "
-            f"QH={ledger['heat_hot']:.3f} · QC={ledger['heat_cold']:.3f} · "
-            f"motor work={ledger['work_on']:.3f} · "
-            f"load={ledger['load_output']:.3f} · "
+            f"T={recorded.translational_temperature:.3f} · {energy}"
             f"R_E={recorded.energy_residual:.2e}")
         self._seeking = True
         self.slider.setValue(round(10000*self.physical_time/self.duration))

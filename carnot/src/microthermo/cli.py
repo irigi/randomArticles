@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import platform
 from pathlib import Path
 import sys
@@ -91,7 +92,8 @@ def parser() -> argparse.ArgumentParser:
     replay.add_argument("--seed", type=int, default=123)
     replay.add_argument("--engine", choices=("reference", "edmd"))
     _osmosis_arguments(replay)
-    replay.add_argument("--particles", type=int, default=32)
+    replay.add_argument("--particles", type=int,
+                        help="default 32, or the preset's own count for osmosis")
     length = replay.add_mutually_exclusive_group(required=True)
     length.add_argument("--duration", type=float)
     length.add_argument("--cycles", type=int, help="Carnot: whole shaft revolutions")
@@ -101,6 +103,8 @@ def parser() -> argparse.ArgumentParser:
     replay.add_argument("--cam-fractions", type=float, nargs=4,
                         metavar=("HOT", "EXPANSION", "COLD", "COMPRESSION"),
                         default=(.25,.25,.25,.25))
+    replay.add_argument("--temperature", type=float,
+                        help="wall temperature (osmosis) or the Carnot reference temperature")
     replay.add_argument("--initial-temperature", type=float,
                      help="Carnot: starting gas temperature (default: --temperature)")
     replay.add_argument("--temperature-ratio", type=float,
@@ -112,6 +116,16 @@ def parser() -> argparse.ArgumentParser:
     replay.add_argument("--output", required=True)
     replay_view = sub.add_parser("replay", help="play a precalculated archive")
     replay_view.add_argument("path")
+    video = sub.add_parser("video", help="render a precalculated archive to MP4 (needs ffmpeg)")
+    video.add_argument("path")
+    video.add_argument("--output", required=True)
+    video.add_argument("--fps", type=float, default=30.)
+    video.add_argument("--speed", type=float, default=1.,
+                       help="physical seconds per video second")
+    video.add_argument("--start", type=float, default=0.)
+    video.add_argument("--end", type=float, help="physical end time (default: archive end)")
+    video.add_argument("--size", default="1480x900", help="WIDTHxHEIGHT, both even")
+    video.add_argument("--crf", type=int, default=20, help="x264 quality (lower is better)")
     val = sub.add_parser("validate", help="run physics validation gates")
     val.add_argument("--suite", default="scientific", choices=("scientific", "quick"))
     bench = sub.add_parser("benchmark", help="measure reference engine throughput")
@@ -281,7 +295,10 @@ def main(argv=None) -> int:
             if args.cycles <= 0 or not args.preset.startswith("carnot_"):
                 raise SystemExit("--cycles needs a Carnot preset and a positive count")
             duration=args.cycles*2*math.pi/args.shaft_speed
-        cfg=RunConfig(preset=args.preset,seed=args.seed,particles=args.particles,
+        particles=args.particles
+        if particles is None and not args.preset.startswith("osmosis"):
+            particles=32
+        cfg=RunConfig(preset=args.preset,seed=args.seed,particles=particles,
                       duration=duration,shaft_speed=args.shaft_speed,
                       cold_jacket=args.cold_jacket,hot_jacket=args.hot_jacket,
                       cam_fractions=tuple(args.cam_fractions),
@@ -289,6 +306,7 @@ def main(argv=None) -> int:
                       temperature_ratio=(2.0 if args.temperature_ratio is None
                                          else args.temperature_ratio),
                       pair_search=args.pair_search,engine=args.engine,
+                      **({} if args.temperature is None else {"temperature": args.temperature}),
                       **_osmosis_values(args))
         started=time.perf_counter()
         def progress(physical,duration,events):
@@ -308,6 +326,27 @@ def main(argv=None) -> int:
             print("GUI dependencies are missing; install with: pip install -e '.[gui]'", file=sys.stderr)
             return 3
         return launch_replay(args.path)
+    if args.command == "video":
+        try:
+            width, height = (int(v) for v in args.size.lower().split("x"))
+        except ValueError:
+            raise SystemExit("--size must look like 1480x900")
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        try:
+            from .ui.video import export_video
+        except ImportError as exc:
+            print("GUI dependencies are missing; install with: pip install -e '.[gui]'", file=sys.stderr)
+            return 3
+        started=time.perf_counter()
+        def report(frame, frames):
+            if frame % 100 == 0 or frame == frames:
+                elapsed=time.perf_counter()-started
+                print(f"frame {frame}/{frames} elapsed={elapsed:.0f} s",file=sys.stderr,flush=True)
+        output=export_video(args.path, args.output, fps=args.fps, speed=args.speed,
+                            start=args.start, end=args.end, size=(width, height),
+                            crf=args.crf, progress=report)
+        print(json.dumps({"output":str(output)},indent=2))
+        return 0
     if args.command == "gui":
         if args.transient_cycles < 0 or args.efficiency_min_cycles < 4:
             raise SystemExit("require nonnegative transients and at least four efficiency cycles")

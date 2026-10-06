@@ -60,6 +60,9 @@ class OsmosisPanel(QtWidgets.QWidget):
         self.histogram_ref = self.histogram.plot(
             pen=pg.mkPen(TEXT, **dash), symbol="o", symbolSize=5, symbolBrush=TEXT)
 
+        # Wall-temperature changes, marked on the time plots.
+        self._steps: list[tuple[float, list]] = []
+
         for i, plot in enumerate((self.counts, self.potentials, self.bound, self.histogram)):
             plot.setMinimumHeight(150)
             grid.addWidget(plot, i // 2, i % 2)
@@ -67,7 +70,7 @@ class OsmosisPanel(QtWidgets.QWidget):
             f"<span style='color:{LEFT_COLOR}'>━</span> host side (left)  "
             f"<span style='color:{RIGHT_COLOR}'>━</span> discs only (right)  "
             f"<span style='color:{BOUND_COLOR}'>━</span> bound (μ: ideal-well estimate)  "
-            "┄ ideal-point reference")
+            "┄ ideal-point reference  ┆ wall temperature change")
         legend.setStyleSheet(f"color:{MUTED}")
         layout.addWidget(legend)
 
@@ -77,7 +80,27 @@ class OsmosisPanel(QtWidgets.QWidget):
                      self.bound_ref, self.histogram_ref):
             line.setData([], [])
         self.bars.setOpts(x=[], height=[])
+        self._set_steps([])
         self.summary.setText("—")
+
+    def _set_steps(self, steps: list[tuple[float, float]]):
+        """Show a labelled vertical line at each (time, new temperature)."""
+        if [t for t, _ in self._steps] == [t for t, _ in steps]:
+            return
+        for _, lines in self._steps:
+            for plot, line in lines:
+                plot.removeItem(line)
+        self._steps = []
+        for t, temperature in steps:
+            lines = []
+            for plot in (self.counts, self.potentials, self.bound):
+                line = pg.InfiniteLine(t, angle=90, pen=pg.mkPen(MUTED, width=1,
+                                                                 style=QtCore.Qt.PenStyle.DotLine),
+                                       label=f"T={temperature:g}" if plot is self.counts else None,
+                                       labelOpts={"position": .92, "color": MUTED})
+                plot.addItem(line)
+                lines.append((plot, line))
+            self._steps.append((t, lines))
 
     def update_frame(self, frame: OsmosisFrame | None, discs: int, plots: bool = True):
         if frame is None:
@@ -85,7 +108,8 @@ class OsmosisPanel(QtWidgets.QWidget):
             return
         current, reference, averages = frame.current, frame.reference, frame.averages
         pressure = averages.get("osmotic_pressure")
-        mean = (f"mean L:R {averages['left']:.1f} : {averages['right']:.1f}, "
+        mean = (f"mean since t = {averages['since']:.0f}: "
+                f"L:R {averages['left']:.1f} : {averages['right']:.1f}, "
                 f"bound {averages['bound']:.1f}" if averages else "averaging…")
         self.summary.setText(
             f"t = {current.time:.1f}   left : right = {current.left} : {current.right}   "
@@ -111,6 +135,8 @@ class OsmosisPanel(QtWidgets.QWidget):
         self.mu_bound.setData(t, [s.mu_bound for s in history], connect="finite")
         self.bound_line.setData(t, [s.bound for s in history])
         self.bound_ref.setData(span, np.full(len(span), reference["bound"]))
+        self._set_steps([(b.time, b.temperature) for a, b in zip(history[:-1], history[1:])
+                         if b.temperature != a.temperature])
         counts = frame.occupancy_histogram
         if counts.sum():
             n = np.arange(len(counts))

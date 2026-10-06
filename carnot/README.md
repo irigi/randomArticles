@@ -368,7 +368,32 @@ python -m microthermo run --preset osmosis --duration 400 --output runs/osmosis
 Options for these presets: `--hosts` (default 8; hosts shrink as their number
 grows), `--binding-energy` (1.5), `--host-mass` (25), `--host-area-fraction`
 (0.2), `--mouth-width` (three disc diameters), `--rough-fraction` (1: every
-host contact is perfectly rough) and `--discs-start right|mixed`.
+host contact is perfectly rough) and `--discs-start right|mixed`. Change the
+wall temperature with the GUI's Wall T box or a schedule such as
+`--temperature-steps 300:2,600:0.75` (time:temperature). The panel's
+averages start again 20 s after every change, so they describe one
+temperature.
+
+Record a temperature-step run (E3) and turn it into a video. Recording 900 s
+takes about a minute, the archive is about 400 MB, and rendering at 10×
+takes about four minutes (needs `ffmpeg` on PATH):
+
+```bash
+.venv/bin/microthermo precalculate --preset osmosis --temperature 0.75 \
+  --temperature-steps 300:2,600:0.75 --discs-start mixed --duration 900 \
+  --fps 15 --output runs/replays/osmosis_e3
+.venv/bin/microthermo replay runs/replays/osmosis_e3
+.venv/bin/microthermo video runs/replays/osmosis_e3 \
+  --output runs/replays/osmosis_e3.mp4 --speed 10 --fps 30
+```
+
+![Osmosis replay after cooling back to T = 0.75](docs/osmosis-e3-replay-1480x900.png)
+
+Replays of osmosis runs (archive version 3) keep each disc's well membership
+per frame and the osmosis instrument columns, so they show bound discs and
+the same plots as the live window. `video` works for every archive, Carnot
+included: it draws the replay window offscreen (`--size`, default 1480x900)
+with `--speed` physical seconds per video second, from `--start` to `--end`.
 
 ### Configuration file
 

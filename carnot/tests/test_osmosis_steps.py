@@ -1,4 +1,4 @@
-"""Temperature steps and the osmotic pressure (osmosis plan, milestone 6)."""
+"""Temperature steps, osmotic pressure (milestone 6) and mouth kinetics (milestone 7)."""
 
 import unittest
 
@@ -44,6 +44,34 @@ def osmotic_pressure(preset, discs=100, hosts=8, temperature=1., duration=2100.,
     ideal = hosts*temperature/sim.world.metadata["host_accessible_area"]
     return {"total": (host1 - host0 + disc1 - disc0)/span, "hosts": (host1 - host0)/span,
             "discs": (disc1 - disc0)/span, "ideal": ideal, "sim": sim}
+
+
+def occupancy_statistics(mouth, seed=1, settle=100., duration=700., dt=.1):
+    """Mean discs per well and the integrated autocorrelation time of a
+    well's count, integrated up to the first zero of the correlation."""
+    sim = load_preset(RunConfig(preset="osmosis", mouth_width=mouth, temperature=.75,
+                                seed=seed, discs_start="mixed"))
+    sim.advance_to(settle)
+    counts = []
+    for k in range(1, int(duration/dt) + 1):
+        sim.advance_to(settle + dt*k)
+        counts.append(sim.occupancy().copy())
+    counts = np.array(counts, float)
+    x = counts - counts.mean(axis=0)
+    spectrum = np.fft.rfft(x, 2*len(x), axis=0)
+    c = np.fft.irfft(spectrum*np.conj(spectrum), axis=0)[:len(x)//2].mean(axis=1)
+    c /= c[0]
+    zero = int(np.argmax(c < 0)) or len(c)
+    return counts.mean(), dt*(c[:zero].sum() - .5)
+
+
+@unittest.skipUnless(edmd.numba_available(), "Numba optional dependency not installed")
+class MouthKineticsTests(unittest.TestCase):
+    def test_e5_mouth_width_sets_the_rate_not_the_equilibrium(self):
+        # Openings (mouth minus a disc diameter) of 0.01 and 0.08.
+        narrow, wide = occupancy_statistics(.05), occupancy_statistics(.12)
+        self.assertAlmostEqual(narrow[0], wide[0], delta=.1*wide[0])
+        self.assertGreater(narrow[1], 2*wide[1])
 
 
 @unittest.skipUnless(edmd.numba_available(), "Numba optional dependency not installed")

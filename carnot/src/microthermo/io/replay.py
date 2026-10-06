@@ -1,4 +1,4 @@
-"""Lossless, chunked snapshot archive for offline Carnot playback."""
+"""Lossless, chunked snapshot archive for offline playback (Carnot and osmosis)."""
 
 from __future__ import annotations
 
@@ -18,16 +18,20 @@ from ..config import RunConfig
 from ..core.apparatus import ApparatusComponent
 from ..measurements.cycles import CycleMarker, assess_efficiency, summarize_cycle
 from ..measurements.live import InstrumentSample, LiveInstruments
+from ..measurements.osmosis import OsmosisRecorder, RecordedOsmosis
 from ..measurements.pressure_area import PressureAreaComparison
 from ..runner.simulation import Snapshot
 from .exports import _json
 
 
-FORMAT_VERSION = 2
-SUPPORTED_VERSIONS = (1, 2)
+FORMAT_VERSION = 3
+SUPPORTED_VERSIONS = (1, 2, 3)
 # Version 2 adds per-frame instrument columns (prefixed "i_") and the cycle
 # markers with their pressure-area comparisons in the manifest, so a replay
-# can show the same instruments as the live window.
+# can show the same instruments as the live window. Version 3 adds, for
+# osmosis worlds, the well membership of every body per frame and the
+# osmosis instrument columns (prefixed "o_", see measurements.osmosis);
+# Carnot archives only change their version number.
 INSTRUMENT_COLUMNS = {
     "area": np.float64, "pressure": np.float64, "gas_energy": np.float64,
     "entropy": np.float64, "motor_work": np.float64,
@@ -83,7 +87,13 @@ def _frame_arrays(frames: list[Snapshot]) -> dict[str, np.ndarray]:
         "apparatus": np.array([json.dumps([asdict(x) for x in s.apparatus])
                                for s in frames], dtype="U"),
     }
+    if frames[0].membership is not None:
+        columns["membership"] = np.stack([s.membership for s in frames]).astype(np.int32)
     return columns
+
+
+def _is_osmosis(simulation) -> bool:
+    return bool(simulation.world.rings) and "membrane_x" in simulation.world.metadata
 
 
 def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
@@ -122,6 +132,7 @@ def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
     instruments = LiveInstruments(history_limit=2,
                                   transient_cycles=config.transient_cycles,
                                   efficiency_min_cycles=config.efficiency_min_cycles)
+    osmosis = OsmosisRecorder() if _is_osmosis(simulation) else None
     chunks = []
     frame_count = 0
 
@@ -136,6 +147,8 @@ def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
             values = [getattr(sample, column) for sample in samples]
             columns["i_"+column] = np.array(
                 [math.nan if value is None else value for value in values], dtype=dtype)
+        if osmosis is not None:
+            columns.update(osmosis.take_columns())
         np.savez_compressed(path/name, **columns)
         chunks.append({"file": name, "first_frame": frame_count,
                        "count": len(frames), "first_time": frames[0].time,
@@ -150,6 +163,8 @@ def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
     def append_frame(snapshot: Snapshot, events) -> None:
         frames.append(snapshot)
         samples.append(instruments.observe(simulation, snapshot, events=events).current)
+        if osmosis is not None:
+            osmosis.observe(simulation, snapshot)
         ledger = simulation.ledger
         ledgers.append((ledger.heat_hot.value, ledger.heat_cold.value,
                         ledger.work_on.value, ledger.load_output.value))
@@ -230,6 +245,8 @@ def precalculate_replay(config, output: str | Path, *, fps: float = 60.,
                                     for c in instruments.cycle_pressure_area],
         },
     }
+    if osmosis is not None:
+        manifest["osmosis"] = osmosis.settings(simulation)
     (path/"manifest.json").write_text(json.dumps(manifest, indent=2,
                                                  default=_json)+"\n")
     return path
@@ -247,6 +264,7 @@ class ReplayReader:
                 self.manifest.get("version") not in SUPPORTED_VERSIONS):
             raise ValueError("unsupported replay format or version")
         self._series = None
+        self._osmosis = None
         self._cycles = None
         self._efficiency = {}
         self.chunks = self.manifest["chunks"]
@@ -347,6 +365,7 @@ class ReplayReader:
         row = self._load(index)
         data = self._data
         phase = float(data["shaft_phase"][row])
+        membership = data["membership"][row].copy() if "membership" in data else None
         return Snapshot(
             float(data["time"][row]), data["position"][row].copy(),
             data["velocity"][row].copy(), data["angle"][row].copy(),
@@ -361,7 +380,7 @@ class ReplayReader:
                   "points": tuple(tuple(p) for p in x["points"]),
                   "velocity": tuple(x["velocity"])}) for x in
                   json.loads(str(data["apparatus"][row]))),
-            None if math.isnan(phase) else phase)
+            None if math.isnan(phase) else phase, membership=membership)
 
     def seek(self, time: float) -> Snapshot:
         """Return the latest recorded frame at or before a physical time."""
@@ -410,6 +429,28 @@ class ReplayReader:
             self._series = {name.removeprefix("i_"): np.concatenate(values)
                             for name, values in parts.items()}
         return self._series
+
+    @property
+    def has_osmosis(self) -> bool:
+        return "osmosis" in self.manifest
+
+    def osmosis_frame(self, index: int):
+        """The osmosis instruments' frame as the live window showed it (v3)."""
+        if not self.has_osmosis:
+            raise ValueError("this archive holds no osmosis instruments")
+        if not 0 <= index < len(self):
+            raise IndexError(index)
+        if self._osmosis is None:
+            parts = {}
+            for chunk in self.chunks:
+                with np.load(self.path/chunk["file"], allow_pickle=False) as archive:
+                    for name in archive.files:
+                        if name.startswith("o_"):
+                            parts.setdefault(name[2:], []).append(archive[name])
+            columns = {name: np.concatenate(values) for name, values in parts.items()}
+            self._osmosis = RecordedOsmosis(columns, self.manifest["osmosis"],
+                                            self.manifest["world_metadata"])
+        return self._osmosis.frame(index)
 
     def cycles(self):
         """Completed-cycle summaries and pressure-area comparisons (v2)."""
@@ -606,6 +647,17 @@ class ReplayReader:
             if len(transitions) and time >= transitions[0]:
                 branch = right.branch
         branch_switched = branch != left.branch
+        membership = left.membership
+        if membership is not None and right.event_count > left.event_count:
+            # Discs enter and leave wells at logged step events.
+            self._times()
+            start = left.event_count
+            stop = bisect.bisect_right(self._event_times, time, start, right.event_count)
+            steps = np.flatnonzero(self._event_kinds[start:stop] == "step")
+            if len(steps):
+                membership = membership.copy()
+                discs = self._event_a[start + steps]
+                membership[discs] = right.membership[discs]
         apparatus = _interpolate_apparatus(left, right, alpha, branch_switched)
         # Earlier archives lack angular contact points. Keep their visual
         # approximation until they are regenerated with this information.
@@ -627,4 +679,4 @@ class ReplayReader:
             omega = left.omega
         return replace(left,time=time,position=position,velocity=velocity,
                        angle=angle,omega=omega,shaft_phase=phase,
-                       branch=branch,apparatus=apparatus), index
+                       branch=branch,apparatus=apparatus,membership=membership), index

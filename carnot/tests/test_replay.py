@@ -89,7 +89,11 @@ class ReplayTests(unittest.TestCase):
                                      chunk_frames=2)
             reader=ReplayReader(path)
             manifest=reader.manifest
-            self.assertEqual(manifest["version"],2)
+            self.assertEqual(manifest["version"],3)
+            # Carnot archives carry no osmosis columns or membership.
+            self.assertNotIn("osmosis",manifest)
+            self.assertFalse(reader.has_osmosis)
+            self.assertIsNone(reader.frame(0).membership)
             self.assertEqual(manifest["config_hash"],config.digest())
             self.assertEqual(len(reader),6)
             self.assertEqual(len(manifest["chunks"]),3)

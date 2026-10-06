@@ -430,8 +430,8 @@ three stub presets. Gate results:
 - **First look at E4:** the osmotic pressure averaged over 2000 s is 3.5–4.4
   with or without binding, between the ideal n·T = 3.1 and the hard-disc
   virial 5.0.
-- **Deferred to M7:** replays of osmosis runs show the rings but not yet
-  the membership colours or the osmosis plots (replay v3).
+- **Deferred to M7 (done there):** replays of osmosis runs show the rings
+  but not yet the membership colours or the osmosis plots (replay v3).
 
 M6 done 2026-10-06. Wall-temperature changes: a `set_wall_temperature`
 command (GUI "Wall T"), a schedule (`--temperature-steps 400:2,800:0.75`),
@@ -464,6 +464,42 @@ split by contacting body, but that split is not a pressure of its own:
 discs push hosts onto the membrane (fewer fit between a host and the
 posts), so the host part grows with disc number (4.08 → 4.46 for 50 → 200
 discs) while the total stays.
+
+M7 done 2026-10-06.
+- **Replay version 3.** For osmosis worlds, archives store each body's
+  well membership per frame (updated between frames at step events) and
+  the osmosis instrument columns (`o_*`), from which the replay rebuilds
+  the live panel exactly (tested frame by frame). Carnot archives change
+  only their version number; v1 and v2 still load.
+- **Video.** `microthermo video ARCHIVE --output X.mp4` draws the replay
+  window offscreen and pipes the frames to ffmpeg. The recorded E3 replay
+  is `runs/replays/osmosis_e3` (900 s, 0.75 → 2 → 0.75 at 300 and 600 s;
+  still at `docs/osmosis-e3-replay-1480x900.png`).
+- **Two panel changes.** Averages restart 20 s after every wall-temperature
+  change (earlier they pooled all temperatures), and the time plots mark
+  each change.
+- **Mouth-width variants** use `--mouth-width`; no extra presets. The
+  widest mouth the membrane allows is just under one post diameter (0.14).
+
+**E5:** T = 0.75, ε = 1.5, 200 discs, 4 seeds × 1500 s after 100 s.
+τ is the integrated autocorrelation time of one well's count, averaged
+over the 8 wells.
+
+| mouth | opening (mouth − 2r) | ⟨n⟩ per well | τ (s) |
+|---:|---:|---:|---:|
+| 0.05 | 0.01 | 4.30 ± 0.05 | 53 ± 4 |
+| 0.06 | 0.02 | 4.27 ± 0.10 | 35 ± 4 |
+| 0.08 | 0.04 | 4.24 ± 0.09 | 31 ± 3 |
+| 0.12 | 0.08 | 4.25 ± 0.02 | 15 ± 0.5 |
+
+The equilibrium does not depend on the mouth. The exchange time does,
+though more weakly than the opening: an eightfold wider opening is about
+3.5 times faster, probably because the cavity, the step and the slow
+exchange through the membrane add their own times. Change from §6: the
+relaxation after a temperature step does not separate the widths. It is
+dominated by the gas heating and by the flow through the membrane
+(pilot: τ ≈ 20–50 s for every width), so E5 uses the equilibrium
+autocorrelation instead.
 
 ## 9. Risks
 
