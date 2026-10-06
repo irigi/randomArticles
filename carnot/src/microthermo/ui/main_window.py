@@ -375,6 +375,7 @@ class MainWindow(QtWidgets.QMainWindow):
     branch_requested=QtCore.Signal()
     playback_rate_requested=QtCore.Signal(float)
     shaft_speed_requested=QtCore.Signal(float)
+    wall_temperature_requested=QtCore.Signal(float)
     reset_requested=QtCore.Signal(int)
     configuration_requested=QtCore.Signal(object)
     frame_received=QtCore.Signal()
@@ -456,6 +457,18 @@ class MainWindow(QtWidgets.QMainWindow):
             "Changes the physical experiment; recorded as a motor intervention.")
         self.shaft_speed.editingFinished.connect(self.change_shaft_speed)
         bar.addWidget(self.shaft_speed)
+        bar.addWidget(QtWidgets.QLabel(" Wall T "))
+        self.wall_temperature=QtWidgets.QDoubleSpinBox()
+        self.wall_temperature.setRange(.05,10.)
+        self.wall_temperature.setDecimals(3)
+        self.wall_temperature.setSingleStep(.25)
+        self.wall_temperature.setValue(config.temperature)
+        self.wall_temperature.setEnabled(preset.startswith("osmosis"))
+        self.wall_temperature.setToolTip(
+            "Changes the temperature of every thermal wall; recorded as an intervention.")
+        self.wall_temperature.editingFinished.connect(
+            lambda: self.wall_temperature_requested.emit(self.wall_temperature.value()))
+        bar.addWidget(self.wall_temperature)
         bar.addWidget(QtWidgets.QLabel(" Seed "))
         self.seed=QtWidgets.QSpinBox()
         self.seed.setRange(0,999999999)
@@ -504,6 +517,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.branch_requested.connect(self.worker.step_branch)
         self.playback_rate_requested.connect(self.worker.set_playback_rate)
         self.shaft_speed_requested.connect(self.worker.set_shaft_speed)
+        self.wall_temperature_requested.connect(self.worker.set_wall_temperature)
         self.reset_requested.connect(self.worker.reset_seed)
         self.configuration_requested.connect(self.worker.reset_configuration)
         self.save_checkpoint_requested.connect(self.worker.save_checkpoint)
@@ -625,6 +639,10 @@ class MainWindow(QtWidgets.QMainWindow):
         can_drive=config.preset.startswith("carnot_") and config.shaft_mode=="controlled"
         self.branch_action.setEnabled(can_drive)
         self.shaft_speed.setEnabled(can_drive)
+        self.wall_temperature.blockSignals(True)
+        self.wall_temperature.setValue(config.temperature)
+        self.wall_temperature.blockSignals(False)
+        self.wall_temperature.setEnabled(config.preset.startswith("osmosis"))
         self.setWindowTitle("Microscopic Thermodynamics Laboratory"+
             (" — experimental triangle CCD" if config.preset=="carnot_triangles" else ""))
         self._generation = self._generation+1 if generation is None else generation

@@ -8,7 +8,8 @@ import math
 
 _OSMOSIS_DEFAULTS = {"hosts": 8, "binding_energy": None, "host_mass": 25.0,
                      "host_area_fraction": 0.2, "mouth_width": None,
-                     "rough_fraction": 1.0, "discs_start": "right"}
+                     "rough_fraction": 1.0, "discs_start": "right",
+                     "temperature_schedule": ()}
 
 
 @dataclass(frozen=True)
@@ -57,9 +58,14 @@ class RunConfig:
     mouth_width: float | None = None
     rough_fraction: float = 1.0
     discs_start: str = "right"
+    # Osmosis only: ((time, wall temperature), ...) changes applied during
+    # the run, each recorded as an intervention.
+    temperature_schedule: tuple = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "cam_fractions", tuple(self.cam_fractions))
+        object.__setattr__(self, "temperature_schedule",
+                           tuple((float(t), float(value)) for t, value in self.temperature_schedule))
         if self.particles is None:
             object.__setattr__(self, "particles",
                                96 if self.preset == "carnot_triangles" else
@@ -134,6 +140,11 @@ class RunConfig:
             raise ValueError("rough_fraction must lie in [0, 1]")
         if self.discs_start not in ("right", "mixed"):
             raise ValueError("discs_start must be right or mixed")
+        times = [t for t, _ in self.temperature_schedule]
+        if any(not (math.isfinite(t) and t > 0) for t in times) or times != sorted(set(times)):
+            raise ValueError("temperature_schedule times must be positive and increasing")
+        if any(not (math.isfinite(v) and v > 0) for _, v in self.temperature_schedule):
+            raise ValueError("temperature_schedule temperatures must be positive")
 
     @property
     def osmosis(self) -> bool:

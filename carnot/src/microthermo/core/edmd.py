@@ -53,7 +53,9 @@ Arrays travel in six tuples:
   memb (host whose well holds disc i, or -1), hstat (per host: entries,
   exits, refused exits)
 - ``C`` calendar and scalars: ht, hk, si, sf
-- ``IO`` buffers and accumulators: rand, lt, lk, lf, pimp
+- ``IO`` buffers and accumulators: rand, lt, lk, lf, pimp (Kahan-summed
+  impulse on each post, 8 per post: x and y with corrections, from discs
+  then from hosts)
 """
 from __future__ import annotations
 
@@ -890,7 +892,7 @@ if njit is not None:
             _log(IO, si, t, lkind, a, -1, w, ix, iy, heat, e0, sf[SF_KE] + sf[SF_PE], mode_in, mode_out)
 
     @inline
-    def _resolve_post(a, k, t, rough, B, S, C, IO):
+    def _resolve_post(a, k, t, rough, H_host, B, S, C, IO):
         """Body a meets post k: smooth for discs, rough with probability for hosts."""
         pos, rad, cnt = B[0], B[3], B[5]
         ppos = S[4]
@@ -907,8 +909,9 @@ if njit is not None:
                                            pos[a, 1] + rad[a]*nyv, nxv, nyv, rough, B)
         if applied:
             sf[SF_KE] += _ke(a, B) - ke0
-            _kadd(pimp, 4*k, ix)
-            _kadd(pimp, 4*k + 2, iy)
+            base = 8*k + (4 if H_host else 0)
+            _kadd(pimp, base, ix)
+            _kadd(pimp, base + 2, iy)
             _kadd(sf, SF_SUPPORT_X, -ix)
             _kadd(sf, SF_SUPPORT_Y, -iy)
         cnt[a] += 1
@@ -1089,7 +1092,8 @@ if njit is not None:
             elif kind == EV_WALL:
                 _resolve_wall(a, b, t, B, S, C, IO)
             elif kind == EV_POST:
-                _resolve_post(a, b, t, bh[a] >= 0 and _rough_draw(C, IO, fp), B, S, C, IO)
+                _resolve_post(a, b, t, bh[a] >= 0 and _rough_draw(C, IO, fp), bh[a] >= 0,
+                              B, S, C, IO)
             elif kind == EV_DH:
                 _resolve_dh(a, b, t, _rough_draw(C, IO, fp), B, H, C, IO)
             elif kind == EV_STEP:

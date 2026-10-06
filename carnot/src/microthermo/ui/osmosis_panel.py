@@ -92,8 +92,9 @@ class OsmosisPanel(QtWidgets.QWidget):
             f"bound {current.bound}   μ/T right {fmt(current.mu_right, 3)}, "
             f"free left {fmt(current.mu_free_left, 3)}<br>"
             f"<span style='color:{MUTED}'>{mean}; osmotic pressure "
-            f"{fmt(pressure, 3)} (ideal {fmt(reference['osmotic_pressure_ideal'], 3)}, "
-            f"hard-disc virial {fmt(reference['osmotic_pressure_virial'], 3)}); "
+            f"{fmt(pressure, 3)} (host contacts {fmt(averages.get('host_contact_part'), 3)}, "
+            f"disc contacts {fmt(averages.get('disc_contact_part'), 2)}; ideal hosts "
+            f"{fmt(reference['osmotic_pressure_ideal'], 3)}); "
             f"reference L:R {reference['left']:.1f} : {reference['right']:.1f}, "
             f"bound {reference['bound']:.1f}</span>")
         if not plots:

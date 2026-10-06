@@ -31,7 +31,8 @@ _FEATURES = ("outer", "inner", "cap_plus", "cap_minus")
 _WALL_KINDS = {BoundaryKind.SPECULAR: edmd.WALL_SPECULAR,
                BoundaryKind.HOT: edmd.WALL_HOT, BoundaryKind.COLD: edmd.WALL_COLD}
 _ARRAYS = ("pos", "vel", "tl", "cnt", "ang", "om", "cell", "head", "nxt", "prv",
-           "reg", "hregc", "hregb", "memb", "hstat", "ht", "hk", "si", "sf", "rand", "pimp")
+           "reg", "hregc", "hregb", "memb", "hstat", "ht", "hk", "si", "sf", "rand", "pimp",
+           "wtemp", "sched")
 _GAP_KINDS = {edmd.EV_PAIR: "pair", edmd.EV_WALL: "wall", edmd.EV_POST: "post",
               edmd.EV_CELL: "cell", edmd.EV_DH: "disc_host", edmd.EV_HH: "host_host"}
 
@@ -156,10 +157,15 @@ class EdmdSimulation:
         self.wnrm = np.asarray([w.inward_normal for w in walls], float).reshape(-1, 2)
         self.wkind = np.asarray([_WALL_KINDS[w.kind] for w in walls], np.int64)
         self.wtemp = np.asarray([w.temperature or 0.0 for w in walls], float)
+        # Scheduled wall-temperature changes, applied by _run; sched[0] is
+        # the index of the next one.
+        self.schedule = tuple((float(t), float(v)) for t, v in
+                              world.metadata.get("temperature_schedule", ()))
+        self.sched = np.zeros(1, np.int64)
         posts = world.posts
         self.ppos = np.asarray([p.center for p in posts], float).reshape(-1, 2)
         self.prad = np.asarray([p.radius for p in posts], float)
-        self.pimp = np.zeros(4*len(posts))
+        self.pimp = np.zeros(8*len(posts))
         # Grid: cells of at least one disc diameter.
         x0, y0, x1, y1 = _box_bounds(walls)
         discs = self.bh < 0
@@ -250,11 +256,15 @@ class EdmdSimulation:
         return edmd.min_gap(t, self._bodies(), self._grid(), self._static(), self._hosts())
 
     def _run(self, t_end: float, max_events: int) -> int:
-        """Run the kernel, servicing buffer, log and heap requests."""
+        """Run the kernel, servicing buffer, log and heap requests, and apply
+        scheduled wall-temperature changes at their times."""
         processed = 0
         while True:
+            index = int(self.sched[0])
+            change = self.schedule[index] if index < len(self.schedule) else None
+            stop = t_end if change is None else min(t_end, change[0])
             before = int(self.si[edmd.SI_EVENTS])
-            status = edmd.advance(t_end, max_events - processed, self._bodies(),
+            status = edmd.advance(stop, max_events - processed, self._bodies(),
                                   self._grid(), self._static(), self._hosts(),
                                   self._calendar(), self._io())
             processed += int(self.si[edmd.SI_EVENTS]) - before
@@ -273,6 +283,13 @@ class EdmdSimulation:
                 self._kernel_failure(status, "during event prediction")
             else:
                 self._flush_log()
+                if (status == edmd.DONE and change is not None and change[0] <= t_end
+                        and self.time >= change[0]):
+                    self.sched[0] = index + 1
+                    self.set_wall_temperature(change[1], scheduled=True)
+                    if processed >= max_events:
+                        return processed
+                    continue
                 return processed
 
     def _flush_log(self) -> None:
@@ -379,9 +396,14 @@ class EdmdSimulation:
                             support_impulse_x=counter(edmd.SF_SUPPORT_X),
                             support_impulse_y=counter(edmd.SF_SUPPORT_Y))
 
-    def post_impulses(self) -> np.ndarray:
-        """Total impulse delivered to each post so far, shape (posts, 2)."""
-        return self.pimp.reshape(-1, 4)[:, [0, 2]].copy()
+    def post_impulses(self, source: str = "all") -> np.ndarray:
+        """Impulse delivered to each post so far, shape (posts, 2).
+
+        source: "all", "discs" or "hosts" (the contacts' moving body).
+        """
+        parts = self.pimp.reshape(-1, 8)
+        discs, hosts = parts[:, [0, 2]], parts[:, [4, 6]]
+        return {"all": discs + hosts, "discs": discs.copy(), "hosts": hosts.copy()}[source]
 
     def _potential(self) -> float:
         bound = self.memb >= 0
@@ -441,6 +463,12 @@ class EdmdSimulation:
     def restore(self, cp: EdmdCheckpoint) -> None:
         for name, value in cp.arrays.items():
             setattr(self, name, value.copy())
+        thermal = self.wkind != edmd.WALL_SPECULAR
+        for wall, is_thermal, value in zip(self.world.walls, thermal, self.wtemp):
+            if is_thermal:
+                wall.temperature = float(value)
+        if "temperature" in self.world.metadata and np.any(thermal):
+            self.world.metadata["temperature"] = float(self.wtemp[thermal][0])
         self.rng.bit_generator.state = copy.deepcopy(cp.rng_state)
         self._initial_energy = cp.initial_energy
         self._log_chunks.clear()
@@ -486,8 +514,41 @@ class EdmdSimulation:
         self._rebuild()
         self._sync_world()
 
+    def set_wall_temperature(self, temperature: float, scheduled: bool = False) -> bool:
+        """Set every thermal wall to ``temperature``; record it as an intervention.
+
+        No energy changes at the switch itself; later wall contacts exchange
+        heat with the new temperature. Returns whether anything changed.
+        """
+        temperature = float(temperature)
+        if not (math.isfinite(temperature) and temperature > 0):
+            raise ValueError("wall temperature must be positive and finite")
+        thermal = self.wkind != edmd.WALL_SPECULAR
+        if not np.any(thermal):
+            raise ValueError("this world has no thermal walls")
+        old = float(self.wtemp[thermal][0])
+        if np.all(self.wtemp[thermal] == temperature):
+            return False
+        self.wtemp[thermal] = temperature
+        for wall, is_thermal in zip(self.world.walls, thermal):
+            if is_thermal:
+                wall.temperature = temperature
+        if "temperature" in self.world.metadata:
+            self.world.metadata["temperature"] = temperature
+        energy = self.energy()
+        self._materialize_events()
+        self._events.append(InteractionRecord(
+            self.time, "temperature_change", (), energy_before=energy, energy_after=energy,
+            metadata={"old_temperature": old, "new_temperature": temperature,
+                      "scheduled": scheduled}))
+        self.si[edmd.SI_EVENTS] += 1
+        return True
+
     def apply_command(self, command: dict[str, Any]) -> dict[str, Any]:
         name = command.get("name")
+        if name == "set_wall_temperature":
+            changed = self.set_wall_temperature(command["temperature"])
+            return {"ok": True, "time": self.time, "intervention": changed}
         if name == "set_velocity":
             i = int(command["body"])
             self._bring_to_now()

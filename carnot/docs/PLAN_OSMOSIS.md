@@ -433,6 +433,38 @@ three stub presets. Gate results:
 - **Deferred to M7:** replays of osmosis runs show the rings but not yet
   the membership colours or the osmosis plots (replay v3).
 
+M6 done 2026-10-06. Wall-temperature changes: a `set_wall_temperature`
+command (GUI "Wall T"), a schedule (`--temperature-steps 400:2,800:0.75`),
+each recorded as a `temperature_change` intervention and restored with
+checkpoints.
+
+**E3:** T = 0.75 → 2 → 0.75, 200 discs, two seeds, 300 s windows.
+
+| | excess on host side | bound discs |
+|---|---|---|
+| ε = 1.5 | +16 to +19 → −4 to −6 → +14 to +18 | 34 → 15 → 34 |
+| ε = 0 | −10 to −14 throughout | 8–9 |
+
+**E4:** total net force on the membrane per height, 100 discs, T = 1,
+3000 s, block errors ±0.15–0.28.
+
+| hosts | discs | ε | Π | ideal n·T/A |
+|---:|---:|---:|---:|---:|
+| 8 | 100 | 0 | 3.62, 3.79 | 3.10 |
+| 8 | 100 | 1.5 | 3.85, 3.73 | 3.10 |
+| 8 | 50 / 200 | 0 | 3.89 / 3.88 | 3.10 |
+| 4 | 100 | 0 | 2.21 | 1.88 |
+| 2 | 100 | 0 | 1.46 | 1.28 |
+
+Π scales with T and does not depend on the number of discs or on binding.
+It sits 15–25 % above the ideal estimate because the hosts exclude each
+other. Change from §6: the plan's bulk hard-disc virial reference does not
+fit two to eight large hosts in a box and was dropped. The force is also
+split by contacting body, but that split is not a pressure of its own:
+discs push hosts onto the membrane (fewer fit between a host and the
+posts), so the host part grows with disc number (4.08 → 4.46 for 50 → 200
+discs) while the total stays.
+
 ## 9. Risks
 
 - **Π is small next to the disc pressure.** Mitigated by the low-density E4

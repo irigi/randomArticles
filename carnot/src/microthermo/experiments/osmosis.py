@@ -65,19 +65,22 @@ class OsmosisDesign:
         return self.left_area - self.hosts*per_host
 
     def reference(self, discs: int, temperature: float | None = None) -> dict[str, float]:
-        """Ideal non-interacting discs, total number fixed (canonical)."""
-        t = self.temperature if temperature is None else temperature
-        weight = self.well_area*math.exp(self.binding_energy/t)
-        c = discs/(self.right_area + self.free_left_area + self.hosts*weight)
-        density = self.hosts/self.host_area
-        # Hard-disc second virial coefficient for the hosts' outer circles.
-        b2 = math.pi*(2*self.ring.outer_radius)**2/2
-        return {"concentration": c, "right": c*self.right_area,
-                "left": discs - c*self.right_area,
-                "free_left": c*self.free_left_area,
-                "bound": c*self.hosts*weight, "per_host": c*weight,
-                "osmotic_pressure_ideal": density*t,
-                "osmotic_pressure_virial": density*t*(1 + b2*density)}
+        return ideal_reference(self.right_area, self.free_left_area, self.well_area,
+                               self.binding_energy, self.hosts, self.host_area, discs,
+                               self.temperature if temperature is None else temperature)
+
+
+def ideal_reference(right_area: float, free_left_area: float, well_area: float,
+                    depth: float, hosts: int, host_area: float, discs: int,
+                    temperature: float) -> dict[str, float]:
+    """Ideal non-interacting discs, total number fixed (canonical), and the
+    ideal osmotic pressure of hosts spread over the area open to their
+    centres. Host-host exclusion raises the measured pressure above it."""
+    weight = well_area*math.exp(depth/temperature)
+    c = discs/(right_area + free_left_area + hosts*weight)
+    return {"concentration": c, "right": c*right_area, "left": discs - c*right_area,
+            "free_left": c*free_left_area, "bound": c*hosts*weight, "per_host": c*weight,
+            "osmotic_pressure_ideal": hosts*temperature/host_area}
 
 
 def _accessible_areas(membrane: Membrane, radius: float, samples: int = 400000,
@@ -167,6 +170,7 @@ class OsmosisExperiment:
         for wall in walls:
             wall.kind, wall.temperature = BoundaryKind.HOT, t
         reference = design.reference(config.particles)
+        schedule = [[float(t_), float(value)] for t_, value in config.temperature_schedule]
         metadata = {
             "name": config.preset, "membrane_x": membrane.x, "membrane_gap": membrane.gap,
             "post_radius": membrane.post_radius, "hosts": design.hosts,
@@ -179,6 +183,7 @@ class OsmosisExperiment:
             "accessible_area_left": design.left_area,
             "free_left_area": design.free_left_area, "well_area": design.well_area,
             "host_accessible_area": design.host_area, "reference": reference,
+            "temperature_schedule": schedule,
             "interpretation": "geometric and energetic association behind a "
                               "disc-permeable membrane; hosts meet walls, posts and "
                               "each other as their outer circles",

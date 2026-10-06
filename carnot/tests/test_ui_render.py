@@ -258,6 +258,10 @@ class UiRenderTests(unittest.TestCase):
             self.assertFalse(window.grab().isNull())
             state=window.readout.sections[0]
             self.assertFalse(state.labels["Area"].isVisibleTo(window))
+            self.assertTrue(window.wall_temperature.isEnabled())
+            window.wall_temperature_requested.emit(2.)
+            self.wait_until(app,lambda: window.worker._simulation.wtemp[0]==2.)
+            self.assertEqual(window.worker._simulation.events[-1].kind,"temperature_change")
         finally:
             window.close()
 
@@ -279,7 +283,10 @@ class UiRenderTests(unittest.TestCase):
             self.assertAlmostEqual(window.view.snapshot.time,.05,places=12)
             window.shaft_speed.setValue(.3)
             window.change_shaft_speed()
-            self.wait_until(app,lambda: window.view.snapshot.event_count>=1)
+            # The 0.05 s step may already have produced collisions, so wait
+            # for the speed change itself rather than for any event.
+            self.wait_until(app,lambda: any(
+                e.kind=="shaft_speed_change" for e in window.worker._simulation.events))
             self.assertEqual(window.worker._simulation.events[-1].kind,
                              "shaft_speed_change")
             self.assertLess(abs(window.view.snapshot.energy_residual),1e-10)

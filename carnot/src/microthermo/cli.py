@@ -138,7 +138,16 @@ def parser() -> argparse.ArgumentParser:
 
 _OSMOSIS_KEYS = {"hosts": 8, "binding_energy": None, "host_mass": 25.0,
                  "host_area_fraction": 0.2, "mouth_width": None, "rough_fraction": 1.0,
-                 "discs_start": "right"}
+                 "discs_start": "right", "temperature_schedule": ()}
+
+
+def _temperature_steps(text: str) -> tuple[tuple[float, float], ...]:
+    """Parse "100:2,300:0.75" into ((100., 2.), (300., .75))."""
+    try:
+        return tuple((float(t), float(v)) for t, v in
+                     (item.split(":") for item in text.split(",") if item.strip()))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("use time:temperature pairs, e.g. 100:2,300:0.75") from exc
 
 
 def _osmosis_arguments(sub) -> None:
@@ -155,6 +164,9 @@ def _osmosis_arguments(sub) -> None:
                        help="probability that a host contact is rough (default 1)")
     group.add_argument("--discs-start", choices=("right", "mixed"),
                        help="where the discs start (default right of the membrane)")
+    group.add_argument("--temperature-steps", dest="temperature_schedule",
+                       type=_temperature_steps,
+                       help="wall temperature changes as time:T pairs, e.g. 300:2,600:0.75")
 
 
 def _osmosis_values(args) -> dict:

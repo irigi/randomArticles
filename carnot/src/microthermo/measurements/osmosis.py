@@ -5,6 +5,13 @@ membership and the impulse delivered to the membrane posts. The ideal-point
 reference (experiments.osmosis.OsmosisDesign.reference) is shown beside the
 measurements and is never fed back into the dynamics.
 
+The osmotic pressure is the total net x-force on the membrane posts per
+membrane height. It is also split by the body in each post contact. That
+split is a diagnostic, not a pressure of its own: discs push hosts against
+the membrane (fewer discs fit between a host and the posts), so with more
+discs the hosts' part grows and the discs' part turns negative while the
+total stays put.
+
 Chemical potentials are reported as mu/T = ln(c) relative to unit density:
 c_R on the right, c_free on the left, and n_bound/(a e^{eps/T}) per well.
 At equilibrium of ideal points all three agree.
@@ -16,6 +23,8 @@ from dataclasses import dataclass
 import math
 
 import numpy as np
+
+from ..experiments.osmosis import ideal_reference
 
 
 @dataclass(frozen=True)
@@ -31,6 +40,8 @@ class OsmosisSample:
     mu_bound: float
     membrane_force: float | None       # net x-force on the posts over the window
     osmotic_pressure: float | None     # that force per membrane height
+    host_contact_part: float | None    # from host contacts, per height
+    disc_contact_part: float | None    # from disc contacts (left minus right), per height
     temperature: float
 
 
@@ -81,26 +92,37 @@ class OsmosisInstruments:
         mu_right = _log(right/float(meta["accessible_area_right"]))
         mu_free = _log(free_left/float(meta["free_left_area"]))
         mu_bound = _log(bound/(hosts*weight))
-        # Net x-impulse on the posts: positive when the left side pushes harder.
-        impulse = float(simulation.post_impulses()[:, 0].sum())
+        # Net x-impulse on the posts (positive when the left side pushes
+        # harder), split by the moving body of each contact.
+        disc_impulse = float(simulation.post_impulses("discs")[:, 0].sum())
+        host_impulse = float(simulation.post_impulses("hosts")[:, 0].sum())
         self._height = simulation.world.walls[0].length
-        self._impulses.append((t, impulse))
+        self._impulses.append((t, disc_impulse, host_impulse))
         while len(self._impulses) > 2 and self._impulses[1][0] <= t - self.force_window:
             self._impulses.popleft()
-        t0, i0 = self._impulses[0]
-        force = (impulse - i0)/(t - t0) if t > t0 else None
+        t0, d0, h0 = self._impulses[0]
+        if t > t0:
+            disc_rate, host_rate = (disc_impulse - d0)/(t - t0), (host_impulse - h0)/(t - t0)
+            force = disc_rate + host_rate
+            pressure, host_part = force/self._height, host_rate/self._height
+            disc_part = disc_rate/self._height
+        else:
+            force = pressure = host_part = disc_part = None
         sample = OsmosisSample(t, left, right, bound, free_left, per_host, mu_right, mu_free,
-                               mu_bound, force, None if force is None else force/self._height,
-                               temperature)
+                               mu_bound, force, pressure, host_part, disc_part, temperature)
         if t >= self.average_after:
             if self._impulse_start is None:
-                self._impulse_start = (t, impulse)
-            self._impulse_now = (t, impulse)
+                self._impulse_start = (t, disc_impulse, host_impulse)
+            self._impulse_now = (t, disc_impulse, host_impulse)
         if not self.history or t - self.history[-1].time >= self.history_spacing:
             self.history.append(sample)
             if t >= self.average_after:
                 self._accumulate(sample)
-        return OsmosisFrame(sample, tuple(self.history), meta["reference"],
+        reference = ideal_reference(
+            float(meta["accessible_area_right"]), float(meta["free_left_area"]),
+            float(meta["well_area"]), eps, hosts, float(meta["host_accessible_area"]),
+            len(x), temperature)
+        return OsmosisFrame(sample, tuple(self.history), reference,
                             self._histogram.copy(), self.averages())
 
     def _reset_averages(self) -> None:
@@ -120,15 +142,19 @@ class OsmosisInstruments:
         self._count += 1
 
     def averages(self) -> dict:
-        """Means over the samples after ``average_after``; the osmotic pressure
-        is the net post impulse over that whole interval per membrane height."""
+        """Means over the samples after ``average_after``. The osmotic pressure
+        is the net post impulse over that whole interval per membrane height,
+        with its split by contacting body."""
         if not self._count:
             return {}
         left, right, bound, free_left = self._sums/self._count
         averages = {"samples": self._count, "left": left, "right": right, "bound": bound,
                     "free_left": free_left}
-        (t0, i0), (t1, i1) = self._impulse_start, self._impulse_now
+        (t0, d0, h0), (t1, d1, h1) = self._impulse_start, self._impulse_now
         if t1 > t0:
-            averages["osmotic_pressure"] = (i1 - i0)/((t1 - t0)*self._height)
+            span = (t1 - t0)*self._height
+            averages["osmotic_pressure"] = (h1 - h0 + d1 - d0)/span
+            averages["host_contact_part"] = (h1 - h0)/span
+            averages["disc_contact_part"] = (d1 - d0)/span
             averages["duration"] = t1 - t0
         return averages

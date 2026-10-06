@@ -282,6 +282,14 @@ class SimulationWorker(QtCore.QObject):
                 self._config=replace(self._config,shaft_speed=speed)
         self._run(change)
 
+    @QtCore.Slot(float)
+    def set_wall_temperature(self, temperature):
+        """Change the thermal walls' temperature now (an intervention)."""
+        def change():
+            self._simulation.apply_command({"name":"set_wall_temperature",
+                                            "temperature":temperature})
+        self._run(change)
+
     @QtCore.Slot(int)
     def reset_seed(self, seed):
         if self._config is None:
