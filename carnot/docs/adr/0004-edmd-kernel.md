@@ -35,7 +35,20 @@ finds wall contacts by conservative advancement to a 1e-10 gap. Chaos then
 amplifies the difference, so event sequences agree for the first few dozen
 events (tested), after which only statistics can be compared.
 
-Scope at milestone 1: smooth spinless discs in an axis-aligned box of
-stationary specular or thermal walls. Fixed circular posts, rotating rough
-ring hosts and the binding step follow in milestones 2–4 of
-`docs/PLAN_OSMOSIS.md`.
+**Fixed circular posts** (milestone 2) are specular static circles
+(`World.posts`, reference engine refuses them). Each post is listed in every
+cell its bounding square, grown by the largest disc radius, overlaps. A disc
+tests the posts of its own cell when it enters the cell and after every
+velocity change; any disc touching a post has its centre in a listed cell,
+so no contact is missed (tested against a single-cell grid). Impulse on each
+post is Kahan-summed for the osmotic-force instrument.
+
+**Arrays travel in five tuples** (bodies, grid, static geometry, calendar,
+I/O) with the helpers inlined. This costs about 15–20 % against the
+milestone-1 kernel's long argument lists (0.19 vs 0.24 M events/s at
+N = 1000, same machine), accepted for readability. The larger lever, if
+needed, is keeping one pending event per body instead of every prediction.
+
+Scope: smooth spinless discs in an axis-aligned box of stationary specular
+or thermal walls, with fixed posts. Rotating rough ring hosts and the
+binding step follow in milestones 3–4 of `docs/PLAN_OSMOSIS.md`.

@@ -52,6 +52,20 @@ class Wall:
         return self.temperature
 
 
+@dataclass
+class CircularPost:
+    """Fixed, specular circular obstacle, e.g. one post of a porous membrane."""
+
+    center: np.ndarray
+    radius: float
+    name: str = "post"
+
+    def __post_init__(self):
+        self.center = np.asarray(self.center, dtype=float).reshape(2)
+        if not (math.isfinite(self.radius) and self.radius > 0):
+            raise ValueError("post radius must be positive")
+
+
 class SegmentWall(Wall):
     """Stationary finite two-sided wall with explicit material thickness."""
 

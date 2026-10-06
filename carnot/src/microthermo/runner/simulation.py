@@ -52,6 +52,8 @@ class World:
     portals: list[Portal] = field(default_factory=list)
     mechanism: Any = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    # Fixed circular posts; only the edmd engine supports them.
+    posts: list = field(default_factory=list)
 
     def energy(self) -> float:
         value = self.bodies.kinetic_energy()
@@ -123,6 +125,8 @@ class Simulation:
             raise ValueError("pair_kernel must be auto or scalar")
         if cam_kernel not in ("auto", "python"):
             raise ValueError("cam_kernel must be auto or python")
+        if world.posts:
+            raise ValueError("fixed circular posts require the edmd engine")
         self.pair_search = pair_search
         self.numeric_backend = numeric_backend
         self.wall_search = wall_search

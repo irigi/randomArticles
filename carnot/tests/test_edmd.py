@@ -215,8 +215,8 @@ class EdmdReproducibilityTests(unittest.TestCase):
         one.ip[:] = 1
         one.fp[edmd.FP_CX], one.fp[edmd.FP_CY] = 2., 1.
         one.head = np.full(1, -1, np.int64)
-        edmd.build_grid(one.pos, one.vel, one.tl, 0., one.fp, one.ip,
-                        one.cell, one.head, one.nxt, one.prv)
+        one.cps, one.cpi = np.zeros(2, np.int64), np.zeros(0, np.int64)
+        edmd.build_grid(one._bodies(), one._grid(), 0.)
         one._rebuild()
         self.assertGreater(big.ip[0]*big.ip[1], 100)
         big.advance_to(.5)

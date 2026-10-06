@@ -3,7 +3,8 @@
 The worker, instruments, exports and replay writer call the same methods and
 attributes as on the reference `Simulation`. Supported worlds: smooth
 spinless discs inside an axis-aligned box of stationary infinite-line walls
-(specular or thermal), with no portals or mechanism.
+(specular or thermal), optionally with fixed circular posts, and with no
+portals or mechanism.
 """
 from __future__ import annotations
 
@@ -17,18 +18,20 @@ from typing import Any
 import numpy as np
 
 from ..core import edmd
-from ..core.boundaries import BoundaryKind, Wall
+from ..core.boundaries import BoundaryKind, CircularPost, Wall
 from ..core.events import InteractionRecord
 from ..core.state import Shape, Tolerances
 from ..measurements.ledger import CompensatedCounter, EnergyLedger
 from ..measurements.observables import rotational_temperature, translational_temperature
 from .simulation import NumericalFailure, Snapshot, World
 
-_LOG_KINDS = ("elastic", "specular", "hot", "cold")
+_LOG_KINDS = ("elastic", "specular", "hot", "cold", "post")
 _WALL_KINDS = {BoundaryKind.SPECULAR: edmd.WALL_SPECULAR,
                BoundaryKind.HOT: edmd.WALL_HOT, BoundaryKind.COLD: edmd.WALL_COLD}
 _ARRAYS = ("pos", "vel", "tl", "cnt", "cell", "head", "nxt", "prv",
-           "ht", "hk", "si", "sf", "rand")
+           "ht", "hk", "si", "sf", "rand", "pimp")
+_GAP_KINDS = {edmd.EV_PAIR: "pair", edmd.EV_WALL: "wall", edmd.EV_POST: "post",
+              edmd.EV_CELL: "cell"}
 
 
 @dataclass
@@ -57,8 +60,15 @@ def edmd_unsupported_reason(world: World) -> str | None:
             return f"wall {wall.name!r} of type {type(wall).__name__} is not supported"
         if np.any(wall.velocity != 0):
             return f"wall {wall.name!r} moves"
-    if _box_bounds(world.walls) is None:
+    box = _box_bounds(world.walls)
+    if box is None:
         return "walls must form an axis-aligned box"
+    for post in world.posts:
+        if not isinstance(post, CircularPost):
+            return f"unsupported post {post!r}"
+        (x, y), r = post.center, post.radius
+        if x + r <= box[0] or x - r >= box[2] or y + r <= box[1] or y - r >= box[3]:
+            return f"post {post.name!r} lies outside the wall box"
     return None
 
 
@@ -104,6 +114,10 @@ class EdmdSimulation:
         self.wnrm = np.asarray([w.inward_normal for w in walls], float).reshape(-1, 2)
         self.wkind = np.asarray([_WALL_KINDS[w.kind] for w in walls], np.int64)
         self.wtemp = np.asarray([w.temperature or 0.0 for w in walls], float)
+        posts = world.posts
+        self.ppos = np.asarray([p.center for p in posts], float).reshape(-1, 2)
+        self.prad = np.asarray([p.radius for p in posts], float)
+        self.pimp = np.zeros(4*len(posts))
         x0, y0, x1, y1 = _box_bounds(walls)
         side = 2.0*float(np.max(self.rad))
         nx = max(1, int((x1-x0)/side))
@@ -111,11 +125,14 @@ class EdmdSimulation:
         self.fp = np.array([tolerances.geometry, tolerances.velocity, x0, y0,
                             (x1-x0)/nx, (y1-y0)/ny])
         self.ip = np.array([nx, ny], np.int64)
+        self.cps, self.cpi = edmd.post_cell_lists(
+            self.ppos, self.prad, float(np.max(self.rad)) + 1e-6*max(x1-x0, y1-y0),
+            self.fp, self.ip)
         self.cell = np.zeros(n, np.int64)
         self.head = np.full(nx*ny, -1, np.int64)
         self.nxt = np.full(n, -1, np.int64)
         self.prv = np.full(n, -1, np.int64)
-        capacity = 32*n + 4*(n + len(walls) + 2) + 1024
+        capacity = 32*n + 4*(n + len(walls) + len(posts) + 2) + 1024
         self.ht = np.zeros(capacity)
         self.hk = np.zeros((capacity, 5), np.int64)
         self.si = np.zeros(edmd.SI_SIZE, np.int64)
@@ -136,8 +153,7 @@ class EdmdSimulation:
         self.cycle_markers: list = []
         self.failure_checkpoint: EdmdCheckpoint | None = None
         self.failure_diagnostic: dict[str, Any] | None = None
-        bad = edmd.build_grid(self.pos, self.vel, self.tl, 0.0, self.fp, self.ip,
-                              self.cell, self.head, self.nxt, self.prv)
+        bad = edmd.build_grid(self._bodies(), self._grid(), 0.0)
         if bad >= 0:
             raise ValueError(f"body {bad} lies outside the wall box")
         gap, *_ = self._min_gap(0.0)
@@ -149,29 +165,39 @@ class EdmdSimulation:
 
     # -- kernel plumbing --------------------------------------------------
 
-    def _kernel_args(self):
-        return (self.pos, self.vel, self.tl, self.rad, self.mass, self.cnt, self.cell,
-                self.head, self.nxt, self.prv, self.wpt, self.wnrm, self.wkind,
-                self.wtemp, self.fp, self.ip, self.ht, self.hk, self.si, self.sf,
-                self.rand, self.lt, self.lk, self.lf)
+    # Tuples are rebuilt on every call because restore() and heap growth
+    # replace the arrays.
+    def _bodies(self):
+        return (self.pos, self.vel, self.tl, self.rad, self.mass, self.cnt)
+
+    def _grid(self):
+        return (self.cell, self.head, self.nxt, self.prv, self.fp, self.ip)
+
+    def _static(self):
+        return (self.wpt, self.wnrm, self.wkind, self.wtemp,
+                self.ppos, self.prad, self.cps, self.cpi)
+
+    def _calendar(self):
+        return (self.ht, self.hk, self.si, self.sf)
+
+    def _io(self):
+        return (self.rand, self.lt, self.lk, self.lf, self.pimp)
 
     def _rebuild(self) -> None:
-        ok = edmd.rebuild(self.pos, self.vel, self.tl, self.rad, self.cnt, self.cell,
-                          self.head, self.nxt, self.wpt, self.wnrm, self.fp, self.ip,
-                          self.ht, self.hk, self.si, self.sf)
-        if not ok:
+        if not edmd.rebuild(self._bodies(), self._grid(), self._static(), self._calendar()):
             self._overlap_failure("overlap while predicting events")
 
     def _min_gap(self, t: float):
-        return edmd.min_gap(t, self.pos, self.vel, self.tl, self.rad, self.cell,
-                            self.head, self.nxt, self.wpt, self.wnrm, self.fp, self.ip)
+        return edmd.min_gap(t, self._bodies(), self._grid(), self._static())
 
     def _run(self, t_end: float, max_events: int) -> int:
         """Run the kernel, servicing buffer, log and heap requests."""
         processed = 0
         while True:
             before = int(self.si[edmd.SI_EVENTS])
-            status = edmd.advance(t_end, max_events - processed, *self._kernel_args())
+            status = edmd.advance(t_end, max_events - processed, self._bodies(),
+                                  self._grid(), self._static(), self._calendar(),
+                                  self._io())
             processed += int(self.si[edmd.SI_EVENTS]) - before
             if status == edmd.NEED_RANDOM:
                 self.rand = self.rng.random(self.random_block)
@@ -207,6 +233,11 @@ class EdmdSimulation:
                     self._events.append(InteractionRecord(
                         t, name, (a, b), (f[0], f[1]), f[3], f[4]))
                     continue
+                if kind == edmd.LOG_POST:
+                    self._events.append(InteractionRecord(
+                        t, name, (a,), (f[0], f[1]), f[3], f[4], 0.0, 0.0,
+                        {"post": wall}))
+                    continue
                 metadata: dict[str, Any] = {"boundary": wall}
                 if kind != edmd.LOG_SPECULAR:
                     metadata.update(reservoir_temperature=float(self.wtemp[wall]),
@@ -225,14 +256,12 @@ class EdmdSimulation:
         if gap < 0:
             self.max_penetration = max(self.max_penetration, -gap)
         if gap < -self.tol.geometry:
-            self._fail(reason, gap=gap, participants=("pair" if kind == edmd.EV_PAIR
-                                                      else "wall", int(a), int(b)))
+            self._fail(reason, gap=gap, participants=(_GAP_KINDS[kind], int(a), int(b)))
 
     def _overlap_failure(self, reason: str) -> None:
         si = self.si
         self._fail(reason, gap=float(self.sf[edmd.SF_ERR_GAP]),
-                   participants=("pair" if si[edmd.SI_ERR_KIND] == edmd.EV_PAIR else
-                                 "wall" if si[edmd.SI_ERR_KIND] == edmd.EV_WALL else "cell",
+                   participants=(_GAP_KINDS[int(si[edmd.SI_ERR_KIND])],
                                  int(si[edmd.SI_ERR_A]), int(si[edmd.SI_ERR_B])))
 
     def _fail(self, reason: str, **details: Any) -> None:
@@ -278,6 +307,10 @@ class EdmdSimulation:
                             counter(edmd.SF_HEAT_COLD), counter(edmd.SF_HEAT_OTHER),
                             support_impulse_x=counter(edmd.SF_SUPPORT_X),
                             support_impulse_y=counter(edmd.SF_SUPPORT_Y))
+
+    def post_impulses(self) -> np.ndarray:
+        """Total impulse delivered to each post so far, shape (posts, 2)."""
+        return self.pimp.reshape(-1, 4)[:, [0, 2]].copy()
 
     def energy(self) -> float:
         return float(0.5*np.sum(self.mass*np.sum(self.vel*self.vel, axis=1)))
@@ -336,7 +369,8 @@ class EdmdSimulation:
         cp = self.failure_checkpoint
         np.savez_compressed(destination/"state.npz", **cp.arrays, radius=self.rad,
                             mass=self.mass, wall_points=self.wpt, wall_normals=self.wnrm,
-                            wall_kinds=self.wkind, wall_temperatures=self.wtemp)
+                            wall_kinds=self.wkind, wall_temperatures=self.wtemp,
+                            post_centers=self.ppos, post_radii=self.prad)
         payload = {**self.failure_diagnostic, "engine": "edmd", "rng_state": cp.rng_state,
                    "world_metadata": self.world.metadata}
         (destination/"diagnostic.json").write_text(json.dumps(

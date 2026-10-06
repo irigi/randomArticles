@@ -387,6 +387,12 @@ with event records costs about 30–40 %. Details are in
 prediction, so there is room to optimise (e.g. one event per body) if the
 osmosis scenes need it.
 
+M2 done 2026-10-06: fixed circular posts in the kernel and
+`experiments/membrane.py` (even gaps, pass/block/mouth checks). Small discs
+cross a membrane and spread out evenly; discs larger than the gap stay on
+their side over 200 s while hitting the posts. Throughput is now about
+0.19 M events/s (ADR 0004).
+
 ## 9. Risks
 
 - **Π is small next to the disc pressure.** Mitigated by the low-density E4
