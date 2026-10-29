@@ -1,0 +1,19 @@
+{
+  "title": "Reproducibility companion: Slowly Rotating Perfect-Fluid Spheres with an Adiabatic Gas Surface",
+  "upload_type": "software",
+  "description": "Calculation sources, archived numerical results, scientific figures, LaTeX article sources and validation supplement. Draft metadata: author must confirm attribution and choose licensing before deposit.",
+  "creators": [
+    {
+      "name": "Olšina, Jan",
+      "affiliation": "Independent Researcher, Prague, Czech Republic",
+      "orcid": "0009-0003-9816-3958"
+    }
+  ],
+  "keywords": [
+    "general relativity",
+    "slow rotation",
+    "perfect-fluid stars",
+    "Hartle-Thorne"
+  ],
+  "version": "revision-4"
+}

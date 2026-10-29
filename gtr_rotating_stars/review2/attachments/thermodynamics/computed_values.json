@@ -1,0 +1,22 @@
+{
+  "0.1": {
+    "gamma_min": 1.641190177032547,
+    "r_over_R_at_min": 0.9947475694180411,
+    "z_at_min": 0.1023585518503437,
+    "central_theta_kBT_over_mb_c2": 0.05563644875656523,
+    "central_mu_over_mb_c2": 1.1081168575078575,
+    "central_internal_energy_over_mb_c2": 0.05248040974034073,
+    "K_surface_over_K_center": 0.43660479324517737,
+    "temperature_surface_limit": "zero, theta ~ g_b*z^2/5"
+  },
+  "0.3": {
+    "gamma_min": 1.643128917670033,
+    "r_over_R_at_min": 0.9956410423246301,
+    "z_at_min": 0.09326797327445308,
+    "central_theta_kBT_over_mb_c2": 0.15147457060671005,
+    "central_mu_over_mb_c2": 1.3337461942411533,
+    "central_internal_energy_over_mb_c2": 0.18227162611591083,
+    "K_surface_over_K_center": 0.4883554373808539,
+    "temperature_surface_limit": "zero, theta ~ g_b*z^2/5"
+  }
+}

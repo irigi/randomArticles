@@ -1,0 +1,40 @@
+% Use the companion article's IEEE class where installed.
+% The portable fallback preserves an A4, Times, two-column journal layout.
+\IfFileExists{IEEEtran.cls}{%
+  \documentclass[journal,a4paper]{IEEEtran}
+}{%
+  \documentclass[10pt,twocolumn,a4paper]{article}
+  \usepackage[textwidth=181mm,textheight=257mm,top=19mm,columnsep=4.5mm]{geometry}
+  
+  \renewcommand{\thesection}{\Roman{section}}
+  \renewcommand{\thesubsection}{\Alph{subsection}}
+  \date{}
+}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{mathptmx}
+\input{fontsetup.tex}
+\newcommand{\aiplotnote}{Plotting code was developed with ChatGPT/Codex assistance.}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,graphicx,stfloats,placeins,url}
+\usepackage[hidelinks]{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+\newcommand{\R}{\mathbb R}
+\newcommand{\C}{\mathcal C}
+\newcommand{\U}{\mathcal U}
+\newcommand{\D}{\mathcal D}
+\newcommand{\HH}{\mathcal H}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\dd}{\mathrm d}
+\DeclareMathOperator*{\argmin}{\arg\,min}
+\DeclareMathOperator*{\argmax}{\arg\,max}
+
+\hypersetup{pdftitle={Slowly Rotating Perfect-Fluid Spheres with an Adiabatic Gas Surface},pdfauthor={Jan Olsina}}
+\begin{document}
+\title{Slowly Rotating Perfect-Fluid Spheres with an Adiabatic Gas Surface}
+\author{Jan~Ol\v{s}ina\\[1ex] Independent Researcher, Prague, Czech Republic\\
+email: \texttt{jan.olsina@gmail.com}, ORCID: \texttt{0009-0003-9816-3958}.}
+\maketitle
+

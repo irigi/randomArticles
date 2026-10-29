@@ -1,0 +1,408 @@
+[
+  {
+    "doi": "10.1016/0375-9601(82)90873-8",
+    "title": [
+      "The Tolman-Wyman equation in general relativity"
+    ],
+    "authors": [
+      {
+        "given": "Patrick G.",
+        "family": "Whitman",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "role": "author",
+            "vocabulary": "crossref"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "Physics Letters A"
+    ],
+    "volume": "89",
+    "issue": "3",
+    "page": "129-130",
+    "article_number": null,
+    "date": {
+      "date-parts": [
+        [
+          1982,
+          5
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1016/0375-9601(82)90873-8"
+  },
+  {
+    "doi": "10.1103/PhysRevD.27.1722",
+    "title": [
+      "Solutions to the general-relativistic Tolman-Wyman equation"
+    ],
+    "authors": [
+      {
+        "given": "Patrick G.",
+        "family": "Whitman",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "role": "author",
+            "vocabulary": "crossref"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "Physical Review D"
+    ],
+    "volume": "27",
+    "issue": "8",
+    "page": "1722-1727",
+    "article_number": null,
+    "date": {
+      "date-parts": [
+        [
+          1983,
+          4,
+          15
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1103/physrevd.27.1722"
+  },
+  {
+    "doi": "10.1103/PhysRevD.32.1857",
+    "title": [
+      "Interior solutions for rotating fluid spheres"
+    ],
+    "authors": [
+      {
+        "given": "Patrick G.",
+        "family": "Whitman",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "role": "author",
+            "vocabulary": "crossref"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "Physical Review D"
+    ],
+    "volume": "32",
+    "issue": "8",
+    "page": "1857-1862",
+    "article_number": null,
+    "date": {
+      "date-parts": [
+        [
+          1985,
+          10,
+          15
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1103/physrevd.32.1857"
+  },
+  {
+    "doi": "10.1086/150635",
+    "title": [
+      "A Variational Principle for Rotating Stars in General Relativity"
+    ],
+    "authors": [
+      {
+        "given": "James M.",
+        "family": "Bardeen",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "The Astrophysical Journal"
+    ],
+    "volume": "162",
+    "issue": null,
+    "page": "71",
+    "article_number": null,
+    "date": {
+      "date-parts": [
+        [
+          1970,
+          10
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1086/150635"
+  },
+  {
+    "doi": "10.1086/147938",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "doi": "10.1086/148791",
+    "title": [
+      "A Catalogue of Methods for Studying the Normal Modes of Radial Pulsation of General-Relativistic Stellar Models"
+    ],
+    "authors": [
+      {
+        "given": "James M.",
+        "family": "Bardeen",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Kip S.",
+        "family": "Thorne",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "David W.",
+        "family": "Meltzer",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "The Astrophysical Journal"
+    ],
+    "volume": "145",
+    "issue": null,
+    "page": "505",
+    "article_number": null,
+    "date": {
+      "date-parts": [
+        [
+          1966,
+          8
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1086/148791"
+  },
+  {
+    "doi": "10.1088/0004-637X/697/1/964",
+    "title": [
+      "ERRATUM: \u201cTIDAL LOVE NUMBERS OF NEUTRON STARS\u201d (2008, ApJ, 677, 1216)"
+    ],
+    "authors": [
+      {
+        "given": "Tanja",
+        "family": "Hinderer",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "The Astrophysical Journal"
+    ],
+    "volume": "697",
+    "issue": "1",
+    "page": "964-964",
+    "article_number": null,
+    "date": {
+      "date-parts": [
+        [
+          2009,
+          5,
+          5
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1088/0004-637x/697/1/964"
+  },
+  {
+    "doi": "10.1126/science.1236462",
+    "title": [
+      "I-Love-Q: Unexpected Universal Relations for Neutron Stars and Quark Stars"
+    ],
+    "authors": [
+      {
+        "given": "Kent",
+        "family": "Yagi",
+        "sequence": "first",
+        "affiliation": [
+          {
+            "name": "Department of Physics, Montana State University, Bozeman, MT 59717, USA."
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Nicol\u00e1s",
+        "family": "Yunes",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Physics, Montana State University, Bozeman, MT 59717, USA."
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "Science"
+    ],
+    "volume": "341",
+    "issue": "6144",
+    "page": "365-368",
+    "article_number": null,
+    "date": {
+      "date-parts": [
+        [
+          2013,
+          7,
+          26
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1126/science.1236462"
+  },
+  {
+    "doi": "10.1103/PhysRevD.101.124006",
+    "title": [
+      "Analytic I-Love-C relations for realistic neutron stars"
+    ],
+    "authors": [
+      {
+        "ORCID": "https://orcid.org/0000-0001-7179-2576",
+        "authenticated-orcid": true,
+        "given": "Nan",
+        "family": "Jiang",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-0642-5363",
+        "authenticated-orcid": true,
+        "given": "Kent",
+        "family": "Yagi",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "Physical Review D"
+    ],
+    "volume": "101",
+    "issue": "12",
+    "page": null,
+    "article_number": "124006",
+    "date": {
+      "date-parts": [
+        [
+          2020,
+          6,
+          3
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1103/physrevd.101.124006"
+  },
+  {
+    "doi": "10.1093/mnras/167.1.63",
+    "title": [
+      "On Slowly Rotating Homogeneous Masses in General Relativity"
+    ],
+    "authors": [
+      {
+        "given": "S.",
+        "family": "Chandrasekhar",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "J. C.",
+        "family": "Miller",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "journal": [
+      "Monthly Notices of the Royal Astronomical Society"
+    ],
+    "volume": "167",
+    "issue": "1",
+    "page": "63-80",
+    "article_number": null,
+    "date": {
+      "date-parts": [
+        [
+          1974,
+          4,
+          1
+        ]
+      ]
+    },
+    "url": "https://doi.org/10.1093/mnras/167.1.63"
+  }
+]

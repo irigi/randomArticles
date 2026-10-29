@@ -1,0 +1,29 @@
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+FMIDJQ+NimbusRomNo9L-Medi            Type 1            Custom           yes yes yes    183  0
+UJMQHC+NimbusRomNo9L-Regu            Type 1            Custom           yes yes yes    184  0
+PARHMN+CMSY10                        Type 1            Builtin          yes yes yes    185  0
+VBCGMA+NimbusRomNo9L-ReguItal        Type 1            Custom           yes yes yes    186  0
+LKUJWO+StandardSymL                  Type 1            Builtin          yes yes yes    187  0
+VZTUNF+CMMI10                        Type 1            Builtin          yes yes yes    188  0
+SOSTRQ+CMR10                         Type 1            Builtin          yes yes yes    190  0
+FMZLSI+CMEX10                        Type 1            Builtin          yes yes yes    191  0
+QRBTVT+StandardSymL-Slant_167        Type 1            Builtin          yes yes yes    193  0
+VVMBZF+rsfs10                        Type 1            Builtin          yes yes yes    223  0
+BBIBXK+CMSS10                        Type 1            Builtin          yes yes yes    226  0
+HCDTYZ+DejaVuSerif-Italic            CID TrueType      Identity-H       yes yes yes    281  0
+BXGEVL+DejaVuSerif                   CID TrueType      Identity-H       yes yes yes    282  0
+HCDTYZ+DejaVuSerif-Italic            CID TrueType      Identity-H       yes yes yes    313  0
+BXGEVL+DejaVuSerif                   CID TrueType      Identity-H       yes yes yes    314  0
+EUPODS+STIXNonUnicode-Italic         CID TrueType      Identity-H       yes yes yes    315  0
+HCDTYZ+DejaVuSerif-Italic            CID TrueType      Identity-H       yes yes yes    353  0
+BXGEVL+DejaVuSerif                   CID TrueType      Identity-H       yes yes yes    354  0
+EUPODS+STIXNonUnicode-Italic         CID TrueType      Identity-H       yes yes yes    355  0
+HCDTYZ+DejaVuSerif-Italic            CID TrueType      Identity-H       yes yes yes    431  0
+BXGEVL+DejaVuSerif                   CID TrueType      Identity-H       yes yes yes    432  0
+HCDTYZ+DejaVuSerif-Italic            CID TrueType      Identity-H       yes yes yes    459  0
+BXGEVL+DejaVuSerif                   CID TrueType      Identity-H       yes yes yes    460  0
+GJRBJJ+DejaVuSerifDisplay            CID TrueType      Identity-H       yes yes yes    461  0
+EUPODS+STIXNonUnicode-Italic         CID TrueType      Identity-H       yes yes yes    462  0
+HCDTYZ+DejaVuSerif-Italic            CID TrueType      Identity-H       yes yes yes    525  0
+BXGEVL+DejaVuSerif                   CID TrueType      Identity-H       yes yes yes    526  0

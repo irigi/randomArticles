@@ -1,0 +1,136 @@
+[
+  {
+    "alpha": 0.1,
+    "C": 0.08207711405164442,
+    "center": {
+      "r": 0.0,
+      "z": 1.0,
+      "E": 1.6621358144602976,
+      "P": 0.08786418553970243,
+      "rho0": 1.5792558206608083,
+      "cs2": 0.11312631805548193,
+      "Gamma": 2.253148485711939,
+      "theta": 0.05563644875656523,
+      "enthalpy": 1.1081168592861335,
+      "internal": 0.052480410529568214,
+      "K": 1.0
+    },
+    "outer_local_Gamma_min": 1.641190177032552,
+    "r_at_outer_local_min": 0.9947475660300097,
+    "K_surface_over_K_center": 0.43660479324517737,
+    "supplied_theta_c_relative": 0.0,
+    "supplied_outer_dip_absolute": 5.10702591327572e-15,
+    "max_thermodynamic_identity_scaled_residual": 1.6124393537786485e-10,
+    "hydrostatic_checks": [
+      {
+        "z": 1.0,
+        "pressure_relative": 8.999023748401669e-12,
+        "enthalpy_log_absolute": -3.344546861683284e-15,
+        "pressure_check": "independent algebraic vs hydrostatic"
+      },
+      {
+        "z": 0.9,
+        "pressure_relative": 1.7452483902502536e-11,
+        "enthalpy_log_absolute": -6.619704784327496e-15,
+        "pressure_check": "independent algebraic vs hydrostatic"
+      },
+      {
+        "z": 0.5,
+        "pressure_relative": 6.379057282401845e-10,
+        "enthalpy_log_absolute": 6.338679581219253e-15,
+        "pressure_check": "independent algebraic vs hydrostatic"
+      },
+      {
+        "z": 0.1,
+        "pressure_relative": null,
+        "enthalpy_log_absolute": 6.065026952883912e-16,
+        "pressure_check": "hydrostatic integral used directly; no independent pressure comparison"
+      },
+      {
+        "z": 0.01,
+        "pressure_relative": null,
+        "enthalpy_log_absolute": -2.282745322520867e-16,
+        "pressure_check": "hydrostatic integral used directly; no independent pressure comparison"
+      },
+      {
+        "z": 0.001,
+        "pressure_relative": null,
+        "enthalpy_log_absolute": -2.978182268576003e-16,
+        "pressure_check": "hydrostatic integral used directly; no independent pressure comparison"
+      },
+      {
+        "z": 0.0001,
+        "pressure_relative": null,
+        "enthalpy_log_absolute": 1.7533010943348626e-16,
+        "pressure_check": "hydrostatic integral used directly; no independent pressure comparison"
+      }
+    ]
+  },
+  {
+    "alpha": 0.3,
+    "C": 0.15884973903987082,
+    "center": {
+      "r": 0.0,
+      "z": 1.0,
+      "E": 4.653753506589583,
+      "P": 0.596246493410419,
+      "rho0": 3.9362811264111053,
+      "cs2": 0.17378081679284735,
+      "Gamma": 1.5301545556167226,
+      "theta": 0.15147457060671002,
+      "enthalpy": 1.333746201401696,
+      "internal": 0.18227163079498607,
+      "K": 0.9999999999999994
+    },
+    "outer_local_Gamma_min": 1.6431289176700388,
+    "r_at_outer_local_min": 0.995641041232805,
+    "K_surface_over_K_center": 0.4883554373808538,
+    "supplied_theta_c_relative": 2.220446049250313e-16,
+    "supplied_outer_dip_absolute": 5.773159728050814e-15,
+    "max_thermodynamic_identity_scaled_residual": 1.1248746580052118e-10,
+    "hydrostatic_checks": [
+      {
+        "z": 1.0,
+        "pressure_relative": 1.1597389715234385e-12,
+        "enthalpy_log_absolute": -4.163336342344337e-14,
+        "pressure_check": "independent algebraic vs hydrostatic"
+      },
+      {
+        "z": 0.9,
+        "pressure_relative": 2.899458451111059e-12,
+        "enthalpy_log_absolute": -2.928768338961163e-13,
+        "pressure_check": "independent algebraic vs hydrostatic"
+      },
+      {
+        "z": 0.5,
+        "pressure_relative": 2.152957812029399e-10,
+        "enthalpy_log_absolute": 1.9872992140790302e-14,
+        "pressure_check": "independent algebraic vs hydrostatic"
+      },
+      {
+        "z": 0.1,
+        "pressure_relative": null,
+        "enthalpy_log_absolute": -2.173391674964442e-15,
+        "pressure_check": "hydrostatic integral used directly; no independent pressure comparison"
+      },
+      {
+        "z": 0.01,
+        "pressure_relative": null,
+        "enthalpy_log_absolute": 6.784733907506946e-17,
+        "pressure_check": "hydrostatic integral used directly; no independent pressure comparison"
+      },
+      {
+        "z": 0.001,
+        "pressure_relative": null,
+        "enthalpy_log_absolute": -7.372511245430386e-17,
+        "pressure_check": "hydrostatic integral used directly; no independent pressure comparison"
+      },
+      {
+        "z": 0.0001,
+        "pressure_relative": null,
+        "enthalpy_log_absolute": 2.1207582867386176e-17,
+        "pressure_check": "hydrostatic integral used directly; no independent pressure comparison"
+      }
+    ]
+  }
+]
