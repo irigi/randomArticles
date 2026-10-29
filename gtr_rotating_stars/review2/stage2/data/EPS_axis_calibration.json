@@ -1,0 +1,72 @@
+[
+  {
+    "axis": "C",
+    "value": 0.01,
+    "EPS_position": 0.3329,
+    "predicted_position": 0.3328691728878707,
+    "difference": -3.082711212926137e-05
+  },
+  {
+    "axis": "C",
+    "value": 0.1,
+    "EPS_position": 0.7924,
+    "predicted_position": 0.7924087238320493,
+    "difference": 8.723832049306601e-06
+  },
+  {
+    "axis": "C",
+    "value": 0.2,
+    "EPS_position": 0.9307,
+    "predicted_position": 0.9307439128602033,
+    "difference": 4.3912860203332293e-05
+  },
+  {
+    "axis": "C",
+    "value": 0.5,
+    "EPS_position": 1.1136,
+    "predicted_position": 1.1136130857480742,
+    "difference": 1.3085748074237458e-05
+  },
+  {
+    "axis": "I",
+    "value": 10,
+    "EPS_position": 0.2951,
+    "predicted_position": 0.2950783643014779,
+    "difference": -2.163569852209335e-05
+  },
+  {
+    "axis": "I",
+    "value": 100,
+    "EPS_position": 0.5725,
+    "predicted_position": 0.572539182150739,
+    "difference": 3.918215073894782e-05
+  },
+  {
+    "axis": "I",
+    "value": 1000,
+    "EPS_position": 0.85,
+    "predicted_position": 0.85,
+    "difference": 0.0
+  },
+  {
+    "axis": "Q",
+    "value": 1,
+    "EPS_position": 0.1912,
+    "predicted_position": 0.19119696641891382,
+    "difference": -3.0335810861925605e-06
+  },
+  {
+    "axis": "Q",
+    "value": 10,
+    "EPS_position": 0.4572,
+    "predicted_position": 0.4571520674564056,
+    "difference": -4.793254359442001e-05
+  },
+  {
+    "axis": "Q",
+    "value": 100,
+    "EPS_position": 0.7231,
+    "predicted_position": 0.7231071684938973,
+    "difference": 7.168493897369288e-06
+  }
+]

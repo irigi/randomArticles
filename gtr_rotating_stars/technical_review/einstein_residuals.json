@@ -1,0 +1,74 @@
+[
+  {
+    "alpha": 0.1,
+    "r": 0.55,
+    "theta": 1.1,
+    "OmegaR": 0,
+    "diagonal_residual": 6.055362787582563e-09,
+    "tphi_residual": 0.0,
+    "rtheta_residual": 1.212502320768749e-10
+  },
+  {
+    "alpha": 0.1,
+    "r": 0.55,
+    "theta": 1.1,
+    "OmegaR": 0.04,
+    "diagonal_residual": 2.4993259917713284e-06,
+    "tphi_residual": 3.608952124865373e-05,
+    "rtheta_residual": 3.923757005974693e-07
+  },
+  {
+    "alpha": 0.1,
+    "r": 0.55,
+    "theta": 1.1,
+    "OmegaR": 0.02,
+    "diagonal_residual": 1.557678485607228e-07,
+    "tphi_residual": 4.509492465659517e-06,
+    "rtheta_residual": 2.4016028388196276e-08
+  },
+  {
+    "alpha": 0.1,
+    "r": 0.55,
+    "theta": 1.1,
+    "OmegaR": 0.01,
+    "diagonal_residual": 1.1388041940008087e-08,
+    "tphi_residual": 5.63632161271951e-07,
+    "rtheta_residual": 1.4171108730920423e-09
+  },
+  {
+    "alpha": 0.3,
+    "r": 0.55,
+    "theta": 1.1,
+    "OmegaR": 0,
+    "diagonal_residual": 1.3112724212005489e-08,
+    "tphi_residual": 0.0,
+    "rtheta_residual": -2.944777754976258e-11
+  },
+  {
+    "alpha": 0.3,
+    "r": 0.55,
+    "theta": 1.1,
+    "OmegaR": 0.04,
+    "diagonal_residual": 3.060734265036835e-06,
+    "tphi_residual": 3.1918485949315484e-05,
+    "rtheta_residual": 2.0746731410614672e-07
+  },
+  {
+    "alpha": 0.3,
+    "r": 0.55,
+    "theta": 1.1,
+    "OmegaR": 0.02,
+    "diagonal_residual": 1.8806454454844967e-07,
+    "tphi_residual": 3.9884307940307815e-06,
+    "rtheta_residual": 1.3054986203187013e-08
+  },
+  {
+    "alpha": 0.3,
+    "r": 0.55,
+    "theta": 1.1,
+    "OmegaR": 0.01,
+    "diagonal_residual": 7.139419222479404e-09,
+    "tphi_residual": 4.985123203530054e-07,
+    "rtheta_residual": 1.2067410404270618e-09
+  }
+]

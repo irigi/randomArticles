@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "Unpublished reproducibility companion. Replace or extend this metadata after public deposit."
+title: "Reproducibility companion: Slowly Rotating Perfect-Fluid Spheres with an Adiabatic Gas Surface"
+type: software
+version: "revision-4"
+authors:
+  - family-names: "Olšina"
+    given-names: "Jan"
+    orcid: "https://orcid.org/0009-0003-9816-3958"
+abstract: "Background, Hartle-Thorne rotation, tidal response, radial stability, external benchmarks and thermodynamic diagnostics for a continuously stratified relativistic fluid family."
+keywords:
+  - general relativity
+  - slow rotation
+  - perfect-fluid stars
+  - Hartle-Thorne

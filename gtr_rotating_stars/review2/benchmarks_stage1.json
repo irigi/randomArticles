@@ -1,0 +1,32 @@
+{
+  "source": "Chandrasekhar and Miller 1974, MNRAS 167, 63-80, Table I, p.73",
+  "doi": "10.1093/mnras/167.1.63",
+  "status": "transcribed published targets; comparison calculation pending",
+  "units": "G=c=1; RS=2M; I_table=I/RS^3; Q_table=Q_positive/(J^2/RS); Qbar=Q_table/2",
+  "rows": [
+    {
+      "R_over_RS": 2,
+      "C": 0.25,
+      "I_over_RS3": 1.049,
+      "Q_table": 6.525,
+      "Ibar": 8.392,
+      "Qbar": 3.2625
+    },
+    {
+      "R_over_RS": 3,
+      "C": 0.16666666666666666,
+      "I_over_RS3": 2.123,
+      "Q_table": 15.67,
+      "Ibar": 16.984,
+      "Qbar": 7.835
+    },
+    {
+      "R_over_RS": 5,
+      "C": 0.1,
+      "I_over_RS3": 5.487,
+      "Q_table": 37.73,
+      "Ibar": 43.896,
+      "Qbar": 18.865
+    }
+  ]
+}

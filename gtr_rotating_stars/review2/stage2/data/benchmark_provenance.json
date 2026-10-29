@@ -1,0 +1,14 @@
+{
+  "source_hashes": {
+    "review2/papers/yagi_yunes2013_source.tar.gz": "3e4e5119429c3626f40bb6755bf87b622c391bf6f3319f55851c5df9b360097f",
+    "review2/papers/yagi_source/IbarC-PRD.eps": "37a077c5ba74b97cba71ef175c2cc9f2babb82635c457d996990962f1559d884",
+    "review2/papers/yagi_source/QbarC-PRD.eps": "de8104ba0e6ac0ad203aea8ffd5b1098ce8d7a8032e29e091d8cc97076073036",
+    "review2/papers/chandrasekhar_miller1974.pdf": "508027b09f47c92cd646004d401446c7b256866be10632fd7ed193df5bbd0819"
+  },
+  "figure_numbers": "Yagi-Yunes PRD paper: Figs. 6 (I) and 7 (Q), right-hand panels",
+  "uniform_source": "Chandrasekhar & Miller 1974, Table I, p.73; doi:10.1093/mnras/167.1.63",
+  "polytrope_source": "Yagi & Yunes 2013, arXiv:1303.1528, original source IbarC-PRD.eps and QbarC-PRD.eps, Color11 n=1 curves (legend text precedes its line sample)",
+  "polytrope_EOS": "P=K epsilon^2; scaled Pi=E^2, h=2 log(1+E)",
+  "EPS_coordinate_allowance": 0.0001,
+  "caveat": "The digitization allowance is a conservative graphical resolution estimate, not a rigorous interval certificate or an error bound for the published ODE calculation."
+}

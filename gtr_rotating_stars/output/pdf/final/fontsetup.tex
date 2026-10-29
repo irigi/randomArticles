@@ -1,0 +1,19 @@
+% English language rules and explicit embedding for the PSNFSS Times family.
+% Standard TeX Live/MiKTeX distributions provide these URW Type 1 fonts.
+% The overrides also work when a site's pdftex.map omits Base-14 outlines.
+\ifdefined\pdfmapline
+  \pdfmapfile{+rsfs.map}
+  \pdfmapline{=ptmr8r NimbusRomNo9L-Regu "TeXBase1Encoding ReEncodeFont" <8r.enc <utmr8a.pfb}
+  \pdfmapline{=ptmb8r NimbusRomNo9L-Medi "TeXBase1Encoding ReEncodeFont" <8r.enc <utmb8a.pfb}
+  \pdfmapline{=ptmri8r NimbusRomNo9L-ReguItal "TeXBase1Encoding ReEncodeFont" <8r.enc <utmri8a.pfb}
+  \pdfmapline{=ptmbi8r NimbusRomNo9L-MediItal "TeXBase1Encoding ReEncodeFont" <8r.enc <utmbi8a.pfb}
+  \pdfmapline{=psyr StandardSymL <usyr.pfb}
+  \pdfmapline{=rpsyr StandardSymL <usyr.pfb}
+  \pdfmapline{=pzcmi8r URWChanceryL-MediItal "TeXBase1Encoding ReEncodeFont" <8r.enc <uzcmi8a.pfb}
+  \pdfmapline{=pcrr8r NimbusMonL-Regu "TeXBase1Encoding ReEncodeFont" <8r.enc <ucrr8a.pfb}
+\fi
+\renewcommand{\ttdefault}{pcr}
+\ifdefined\pdfgentounicode\pdfgentounicode=1\fi
+\ifdefined\pdfinclusioncopyfonts\pdfinclusioncopyfonts=1\fi
+\AtBeginDocument{\selectlanguage{english}\lefthyphenmin=2\righthyphenmin=3}
+\emergencystretch=1em
