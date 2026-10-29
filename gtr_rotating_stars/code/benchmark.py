@@ -1,4 +1,4 @@
-"""External rotation benchmarks; run from repository root.
+"""External rotation benchmarks.
 
 The archived comparison integrator is used unmodified. Its Love result is
 discarded for incompressible stars (a surface-density jump is required there).
@@ -8,10 +8,8 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import brentq
 
-ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT))
 import rewrite_comparison as rc
-OUT = Path(__file__).resolve().parents[1] / 'data'
+from paths import DATA as OUT, INPUTS
 original_solve_ivp=rc.solve_ivp
 def checked_solve_ivp(*args,**kwargs):
     result=original_solve_ivp(*args,**kwargs)
@@ -53,7 +51,7 @@ def rotation(bg,s0=1e-7):
 def transfer_checks():
     from drag_regular import make
     from technical_family import center_data
-    refs=json.loads((ROOT/'technical_review/family_results.json').read_text());rows=[]
+    refs=json.loads((OUT/'family_results.json').read_text());rows=[]
     for alpha in [.1,.3]:
         F,D,A,N,j,aa,fields,fb,sol,c=make(alpha,False);C=(1-fb)/2
         Ec,Pc,v,*_=center_data(alpha,c)
@@ -98,7 +96,7 @@ def eps_curve(filename):
     return xy,C,val,lo,hi
 
 def main():
-    targets=json.loads((ROOT/'review2/benchmarks_stage1.json').read_text())
+    targets=json.loads((INPUTS/'benchmarks_stage1.json').read_text())
     rows=[]
     for t in targets['rows']:
         r=rotation(uniform(t['C']))
@@ -111,7 +109,7 @@ def main():
         print('CM',json.dumps(row),flush=True);rows.append(row)
     (OUT/'benchmark_uniform.json').write_text(json.dumps(rows,indent=2))
     # Use common source vertices, avoiding interpolation of the published curve.
-    src=ROOT/'review2/papers/yagi_source'
+    src=INPUTS/'yagi_source'
     xi,ci,vi,ilo,ihi=eps_curve(src/'IbarC-PRD.eps')
     xq,cq,vq,qlo,qhi=eps_curve(src/'QbarC-PRD.eps')
     selected=[]

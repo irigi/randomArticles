@@ -1,4 +1,7 @@
-"""Stage 2 vector figures, designed for 181-mm two-column width."""
+"""Vector figures for the article and supplement (181-mm two-column width).
+
+Rotation and stability figures are made by figures_rotation_stability.py.
+"""
 import json,csv
 from pathlib import Path
 import numpy as np
@@ -7,8 +10,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-ROOT=Path(__file__).resolve().parents[1];BASE=ROOT/'review2/stage2'
-DATA=BASE/'data';FIG=ROOT/'output/pdf/final/figures';FIG.mkdir(parents=True,exist_ok=True)
+from paths import DATA, INPUTS, FIG
 plt.rcParams.update({'font.family':'serif','font.size':8,'axes.labelsize':9,
  'legend.fontsize':7,'axes.spines.top':False,'axes.spines.right':False,
  'pdf.fonttype':42,'mathtext.fontset':'dejavuserif','lines.linewidth':1.4})
@@ -95,8 +97,8 @@ def profiles():
     save(fig,'gamma_surface_validation')
 
 def universality():
-    rows=json.loads((ROOT/'technical_review/family_results.json').read_text())
-    refs=json.loads((ROOT/'review2/reference_model_residuals.json').read_text())
+    rows=json.loads((DATA/'family_results.json').read_text())
+    refs=json.loads((INPUTS/'reference_model_residuals.json').read_text())
     for v in refs:
         v['Lambda']=2*v['k2']/(3*v['C']**5)
         fit=np.exp(np.polynomial.polynomial.polyval(np.log(v['Lambda']),[1.47,.0817,.0149,.000287,-.0000364]))
@@ -143,8 +145,8 @@ def benchmarks():
     save(fig,'external_benchmarks')
 
 def family():
-    rows=json.loads((ROOT/'technical_review/family_results.json').read_text())
-    t=json.loads((ROOT/'technical_review/thresholds.json').read_text());ar=t['monotonicity_candidate']['alpha'];ac=t['causality_candidate']['alpha'];ast=.3762858476
+    rows=json.loads((DATA/'family_results.json').read_text())
+    t=json.loads((DATA/'thresholds.json').read_text());ar=t['monotonicity_candidate']['alpha'];ac=t['causality_candidate']['alpha'];ast=.3762858476
     a=[v['alpha'] for v in rows];fig,ax=plt.subplots(1,2,figsize=(7.05,2.5),layout='constrained')
     ax[0].semilogx(a,[v['C'] for v in rows],'o-',ms=3,c=COLORS[.1]);ax[0].set(ylabel=r'$\mathcal{C}=M/R$')
     ax[1].semilogx(a,[v['cs2_max'] for v in rows],'o-',ms=3,c=COLORS[.1],label='Maximum')
