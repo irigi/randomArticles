@@ -1,0 +1,11 @@
+# LaTeX build files
+*.aux
+*.log
+*.out
+*Notes.bib
+
+# Python
+__pycache__/
+
+# Optional third-party source for the benchmark extraction (not redistributed)
+data/inputs/yagi_source/

@@ -11,7 +11,7 @@ from scipy.optimize import minimize_scalar,brentq
 from drag_regular import make
 from drag_second import build
 
-OUT=Path('technical_review');OUT.mkdir(exist_ok=True)
+from paths import DATA as OUT
 
 def center_data(alpha,c):
  a0=-35*alpha/8; a1=35*alpha/16+735*alpha**2/32

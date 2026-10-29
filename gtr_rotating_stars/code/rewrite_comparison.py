@@ -10,7 +10,7 @@ from scipy.optimize import brentq
 from drag_regular import make
 from drag_second import vacuum_basis
 
-OUT=Path('rewrite');OUT.mkdir(exist_ok=True)
+from paths import DATA as OUT
 
 def eos(h,kind):
  h=np.maximum(h,0)

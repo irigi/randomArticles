@@ -8,11 +8,9 @@ from pathlib import Path
 import numpy as np
 from scipy.integrate import quad
 from scipy.optimize import minimize_scalar
-ROOT=Path(__file__).resolve().parents[3]
-sys.path.insert(0,str(ROOT))
 from drag_regular import make
 from technical_family import center_data
-OUT=Path(__file__).resolve().parents[1]/'data'
+from paths import DATA as OUT, INPUTS
 
 class Model:
     def __init__(self,alpha):
@@ -64,7 +62,7 @@ class Model:
 
 def main():
     summaries=[];surface=[];profiles=[]
-    supplied=json.loads((ROOT/'review2/attachments/thermodynamics/computed_values.json').read_text())
+    supplied=json.loads((INPUTS/'thermodynamics_computed_values.json').read_text())
     for alpha in [.1,.3]:
         m=Model(alpha)
         r=np.unique(np.r_[np.linspace(0,.98,501),1-np.geomspace(.02,5e-9,200),1.])
